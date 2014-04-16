@@ -1,0 +1,7 @@
+#!/bin/bash
+awk  '/@HISEQ/ {getline; print length($0)}' /home/saba/BNLx.SHR.Liver.totalRNA.UCD/trimmedReads/BNLX_1*.fq | awk '{sum+=$1} END { print "BNLx1","\t",sum/NR,"\t",NR}' > /home/saba/BNLx.SHR.Liver.totalRNA.UCD/data/trimmedInfo.BNLx.SHR.Liver.09Apr14.txt
+awk  '/@HISEQ/ {getline; print length($0)}' /home/saba/BNLx.SHR.Liver.totalRNA.UCD/trimmedReads/BNLX_2*.fq | awk '{sum+=$1} END { print "BNLx2","\t",sum/NR,"\t",NR}' >> /home/saba/BNLx.SHR.Liver.totalRNA.UCD/data/trimmedInfo.BNLx.SHR.Liver.09Apr14.txt
+awk  '/@HISEQ/ {getline; print length($0)}' /home/saba/BNLx.SHR.Liver.totalRNA.UCD/trimmedReads/BNLX_3*.fq | awk '{sum+=$1} END { print "BNLx3","\t",sum/NR,"\t",NR}' >> /home/saba/BNLx.SHR.Liver.totalRNA.UCD/data/trimmedInfo.BNLx.SHR.Liver.09Apr14.txt
+awk  '/@HISEQ/ {getline; print length($0)}' /home/saba/BNLx.SHR.Liver.totalRNA.UCD/trimmedReads/SHR_H1*.fq | awk '{sum+=$1} END { print "SHR1","\t",sum/NR,"\t",NR}' >> /home/saba/BNLx.SHR.Liver.totalRNA.UCD/data/trimmedInfo.BNLx.SHR.Liver.09Apr14.txt
+awk  '/@HISEQ/ {getline; print length($0)}' /home/saba/BNLx.SHR.Liver.totalRNA.UCD/trimmedReads/SHR_H5*.fq | awk '{sum+=$1} END { print "SHR5","\t",sum/NR,"\t",NR}' >> /home/saba/BNLx.SHR.Liver.totalRNA.UCD/data/trimmedInfo.BNLx.SHR.Liver.09Apr14.txt
+awk  '/@HISEQ/ {getline; print length($0)}' /home/saba/BNLx.SHR.Liver.totalRNA.UCD/trimmedReads/SHR_L25*.fq | awk '{sum+=$1} END { print "SHR25","\t",sum/NR,"\t",NR}' >> /home/saba/BNLx.SHR.Liver.totalRNA.UCD/data/trimmedInfo.BNLx.SHR.Liver.09Apr14.txt

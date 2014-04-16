@@ -1,0 +1,58 @@
+Characterization of Brain RNA-Seq Reads From BNLx and SHR Rats
+=========================
+* 6 brain ribosomal RNA depleted total RNA samples, SHR1, SHR2, SHR3, BNLx1, BNLx2, and BNLx3
+  * 2X100 paired end reads using the unstranded protocol
+* 6 brain polyA+ selected RNA samples, SHR1, SHR2, SHR3, BNLx1, BNLx2, and BNLx3
+  * 2X100 paired end reads using the unstranded protocol
+* 6 brain small RNA samples, SHR1, SHR2, SHR3, BNLx1, BNLx2, and BNLx3
+  * 1X50 single end reads using the unstranded protocol
+
+1. Unzip Raw Reads
+-----------------
+
+### Total RNA
+```
+cd /data/Users/hi-seq/BNLx.SHR.Brain-totalRNA-Jul2012/rawReads
+gzip -d Sample_H1/*.gz
+gzip -d Sample_H3/*.gz
+gzip -d Sample_Lx1/*.gz
+gzip -d Sample_Lx2/*.gz
+gzip -d Sample_Lx3/*.gz
+```
+
+### PolyA+ RNA
+```
+cd /data/Users/hi-seq/BNLx.SHR.Brain-polyARNA/rawReads
+tar -zxvf BNLX1.fastq.tar.gz
+```
+
+### small RNA
+
+
+
+2. Count number of raw read fragments per sample
+----------------------------------
+
+### Total RNA
+
+```
+cd /data/Users/hi-seq/BNLx.SHR.Brain-totalRNA-Jul2012/rawReads
+awk  '/@HWI/ {getline; print length($0)}' Sample_H1/*.fastq | awk '{sum+=$1} END { print "SHR1","\t",NR}' > /data/Tabastore3/LauraS/BNLx.SHR/RNA-Seq/Data/numRawReads.totalRNA.16Apr14.txt
+awk  '/@HWI/ {getline; print length($0)}' ./Sample_H2/*.fastq | awk '{sum+=$1} END { print "SHR2","\t",NR}' >> /data/Tabastore3/LauraS/BNLx.SHR/RNA-Seq/Data/numRawReads.totalRNA.16Apr14.txt
+awk  '/@HWI/ {getline; print length($0)}' ./Sample_H3/*.fastq | awk '{sum+=$1} END { print "SHR3","\t",NR}' >> /data/Tabastore3/LauraS/BNLx.SHR/RNA-Seq/Data/numRawReads.totalRNA.16Apr14.txt
+awk  '/@HWI/ {getline; print length($0)}' ./Sample_Lx1/*.fastq | awk '{sum+=$1} END { print "BNLx1","\t",NR}' >> /data/Tabastore3/LauraS/BNLx.SHR/RNA-Seq/Data/numRawReads.totalRNA.16Apr14.txt
+awk  '/@HWI/ {getline; print length($0)}' ./Sample_Lx2/*.fastq | awk '{sum+=$1} END { print "BNLx2","\t",NR}' >> /data/Tabastore3/LauraS/BNLx.SHR/RNA-Seq/Data/numRawReads.totalRNA.16Apr14.txt
+awk  '/@HWI/ {getline; print length($0)}' ./Sample_Lx3/*.fastq | awk '{sum+=$1} END { print "BNLx3","\t",NR}' >> /data/Tabastore3/LauraS/BNLx.SHR/RNA-Seq/Data/numRawReads.totalRNA.16Apr14.txt
+```
+
+3. Zip files up for storage
+-------------------------
+
+### Total RNA
+
+```
+cd /data/Users/hi-seq/BNLx.SHR.Brain-totalRNA-Jul2012/rawReads
+gzip Sample_H1/*.fastq
+
+
+

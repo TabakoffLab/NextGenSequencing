@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<!-- saved from url=(0014)about:internet -->
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=9" >
+
+<title>Initial Quality Control of Liver RNA-Seq Reads From UCD Genomics Core (received 4/1/14)</title>
+
+<style type="text/css">
+body, td {
+   font-family: sans-serif;
+   background-color: white;
+   font-size: 12px;
+   margin: 8px;
+}
+
+tt, code, pre {
+   font-family: 'DejaVu Sans Mono', 'Droid Sans Mono', 'Lucida Console', Consolas, Monaco, monospace;
+}
+
+h1 { 
+   font-size:2.2em; 
+}
+
+h2 { 
+   font-size:1.8em; 
+}
+
+h3 { 
+   font-size:1.4em; 
+}
+
+h4 { 
+   font-size:1.0em; 
+}
+
+h5 { 
+   font-size:0.9em; 
+}
+
+h6 { 
+   font-size:0.8em; 
+}
+
+a:visited {
+   color: rgb(50%, 0%, 50%);
+}
+
+pre {	
+   margin-top: 0;
+   max-width: 95%;
+   border: 1px solid #ccc;
+   white-space: pre-wrap;
+}
+
+pre code {
+   display: block; padding: 0.5em;
+}
+
+code.r, code.cpp {
+   background-color: #F8F8F8;
+}
+
+table, td, th {
+  border: none;
+}
+
+blockquote {
+   color:#666666;
+   margin:0;
+   padding-left: 1em;
+   border-left: 0.5em #EEE solid;
+}
+
+hr {
+   height: 0px;
+   border-bottom: none;
+   border-top-width: thin;
+   border-top-style: dotted;
+   border-top-color: #999999;
+}
+
+@media print {
+   * { 
+      background: transparent !important; 
+      color: black !important; 
+      filter:none !important; 
+      -ms-filter: none !important; 
+   }
+
+   body { 
+      font-size:12pt; 
+      max-width:100%; 
+   }
+       
+   a, a:visited { 
+      text-decoration: underline; 
+   }
+
+   hr { 
+      visibility: hidden;
+      page-break-before: always;
+   }
+
+   pre, blockquote { 
+      padding-right: 1em; 
+      page-break-inside: avoid; 
+   }
+
+   tr, img { 
+      page-break-inside: avoid; 
+   }
+
+   img { 
+      max-width: 100% !important; 
+   }
+
+   @page :left { 
+      margin: 15mm 20mm 15mm 10mm; 
+   }
+     
+   @page :right { 
+      margin: 15mm 10mm 15mm 20mm; 
+   }
+
+   p, h2, h3 { 
+      orphans: 3; widows: 3; 
+   }
+
+   h2, h3 { 
+      page-break-after: avoid; 
+   }
+}
+
+</style>
+
+
+
+
+
+</head>
+
+<body>
+<h1>Initial Quality Control of Liver RNA-Seq Reads From UCD Genomics Core (received 4/1/14)</h1>
+
+<ul>
+<li>6 liver ribosomal RNA depleted total RNA samples, SHR1, SHR5, SHR25, BNLx1, BNLx2, and BNLx3</li>
+<li>synthetic spikes included Mix 1 in SHR1, BNLx1, and BNLx2 and Mix 2 in SHR5, SHR25, and BNLx3</li>
+<li>2X100 paired end reads using the stranded protocol</li>
+</ul>
+
+<h2>1. Unzip FASTQ files on Yucca - DONE</h2>
+
+<pre><code>qsub -q smp-q /home/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/unzip.yucca.sh
+</code></pre>
+
+<h2>2. Determine number of reads sent for each sample - DONE</h2>
+
+<pre><code>qsub -q smp-q /home/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/rawReadCounts.sh
+</code></pre>
+
+<h2>Raw Reads/Read Fragments From UCD Genomic Core</h2>
+
+<table><thead>
+<tr>
+<th align="center">sample</th>
+<th align="center">strain</th>
+<th align="center">lane</th>
+<th align="center">numPairedReads</th>
+<th align="center">numReadFragments</th>
+</tr>
+</thead><tbody>
+<tr>
+<td align="center">BNLx1</td>
+<td align="center">BNLx</td>
+<td align="center">L005</td>
+<td align="center">119,624,256</td>
+<td align="center">239,248,512</td>
+</tr>
+<tr>
+<td align="center">SHRH1</td>
+<td align="center">SHR</td>
+<td align="center">L005</td>
+<td align="center">109,987,327</td>
+<td align="center">219,974,654</td>
+</tr>
+<tr>
+<td align="center">BNLx2</td>
+<td align="center">BNLx</td>
+<td align="center">L006</td>
+<td align="center">104,944,610</td>
+<td align="center">209,889,220</td>
+</tr>
+<tr>
+<td align="center">SHRH5</td>
+<td align="center">SHR</td>
+<td align="center">L006</td>
+<td align="center">96,770,957</td>
+<td align="center">193,541,914</td>
+</tr>
+<tr>
+<td align="center">BNLx3</td>
+<td align="center">BNLx</td>
+<td align="center">L007</td>
+<td align="center">69,001,559</td>
+<td align="center">138,003,118</td>
+</tr>
+<tr>
+<td align="center">SHRL25</td>
+<td align="center">SHR</td>
+<td align="center">L007</td>
+<td align="center">82,591,985</td>
+<td align="center">165,183,970</td>
+</tr>
+</tbody></table>
+
+<h2>3. Trim Reads for Adaptors and for Quality - DONE</h2>
+
+<pre><code>qsub -q smp-q /home/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/trimReads.yucca.sh
+</code></pre>
+
+<h2>4. Characterizing Trimmed Reads - DONE</h2>
+
+<pre><code>qsub -q smp-q /home/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/countTrimmed.yucca.sh
+</code></pre>
+
+<h2>Effect of Trimming Adaptors and Poor Quality Base Calls</h2>
+
+<table><thead>
+<tr>
+<th align="center">sample</th>
+<th align="center">strain</th>
+<th align="center">lane</th>
+<th align="center">numPairedReads</th>
+<th align="center">numReadFragments</th>
+<th align="center">avgTrimmedReadLength</th>
+<th align="center">numTrimmedReadFragments</th>
+<th align="center">pctRemovedByTrimming</th>
+</tr>
+</thead><tbody>
+<tr>
+<td align="center">BNLx1</td>
+<td align="center">BNLx</td>
+<td align="center">L005</td>
+<td align="center">119,624,256</td>
+<td align="center">239,248,512</td>
+<td align="center">92.83</td>
+<td align="center">234,327,370</td>
+<td align="center">0.021%</td>
+</tr>
+<tr>
+<td align="center">BNLx2</td>
+<td align="center">BNLx</td>
+<td align="center">L006</td>
+<td align="center">104,944,610</td>
+<td align="center">209,889,220</td>
+<td align="center">96.09</td>
+<td align="center">207,427,684</td>
+<td align="center">0.012%</td>
+</tr>
+<tr>
+<td align="center">BNLx3</td>
+<td align="center">BNLx</td>
+<td align="center">L007</td>
+<td align="center">69,001,559</td>
+<td align="center">138,003,118</td>
+<td align="center">90.95</td>
+<td align="center">137,036,336</td>
+<td align="center">0.007%</td>
+</tr>
+<tr>
+<td align="center">SHRH1</td>
+<td align="center">SHR</td>
+<td align="center">L005</td>
+<td align="center">109,987,327</td>
+<td align="center">219,974,654</td>
+<td align="center">97.27</td>
+<td align="center">217,663,066</td>
+<td align="center">0.011%</td>
+</tr>
+<tr>
+<td align="center">SHRH5</td>
+<td align="center">SHR</td>
+<td align="center">L006</td>
+<td align="center">96,770,957</td>
+<td align="center">193,541,914</td>
+<td align="center">95.94</td>
+<td align="center">190,584,770</td>
+<td align="center">0.015%</td>
+</tr>
+<tr>
+<td align="center">SHRL25</td>
+<td align="center">SHR</td>
+<td align="center">L007</td>
+<td align="center">82,591,985</td>
+<td align="center">165,183,970</td>
+<td align="center">90.56</td>
+<td align="center">163,641,336</td>
+<td align="center">0.0093%</td>
+</tr>
+</tbody></table>
+
+<h2>5.  Generate Strain-Specific Genomes Including Spike-In Sequences - DONE</h2>
+
+<pre><code>qsub -q smp-q /home/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/createGenomeIndex.yucca.sh
+</code></pre>
+
+<h2>6. Alignment of Raw Reads to Strain-Specific Genomes - DEBUGGING</h2>
+
+<h1><em>STOPPED HERE - waiting for response from Ron</em></h1>
+
+<h2>7.  Characterization of Aligned Reads</h2>
+
+<h2>8.  Examine Spike-In Expression </h2>
+
+</body>
+
+</html>
+

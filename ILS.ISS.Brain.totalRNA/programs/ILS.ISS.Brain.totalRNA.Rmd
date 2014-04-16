@@ -1,0 +1,132 @@
+ILS and ISS total Brain RNA-Seq
+========================================================
+
+* 3 samples per strain (ILS1, ILS2, ILS3, ISS1, ISS2, ISS3)
+* ribosomal RNA depleted total RNA
+* 2X100 reads using the stranded protocol
+* sequencing done in Boulder by James Huntley
+* synthetic spike-in were added to each sample (ISS samples got Mix 1 and ILS samples got Mix 2)
+  * Information regarding the spike-ins can be found here: http://products.invitrogen.com/ivgn/product/4456739
+  * Adam started with 1 ug of Total RNA and used 2 ul of a 1:100 dilution of either Mix 1 or Mix 2 in the samples. Also note, they are added prior to rRNA depletion so we can account for any variation through that step in library prep.
+
+1. Unzip Files
+---------------
+
+```
+gzip -d ./Sample_*/*.gz
+```
+
+2. Determine Number of Reads Generated
+---------------------------------------
+
+```
+##  Determine Number of Reads Generated - number of rows divided by 4  ##
+cd /data/Users/hi-seq/ILS.ISS.Brain.totalRNA.23Oct13/rawReads
+wc -l ./*/*.fastq > /data/Tabastore3/LauraS/LXS/RNA-Seq/totalRNA.24Oct13/data/rawReadCount.15Apr14.txt
+```
+
+```{r, echo=FALSE}
+rm(list=ls())
+options(stringsAsFactors=FALSE)
+setwd("/Volumes/LauraS/LXS/RNA-Seq/totalRNA.24Oct13/")
+rawReads = read.table(file="data/rawReadCount.15Apr14.txt",sep="\t",header=FALSE,fill=TRUE)
+rawReads = data.frame(V1=rawReads[grep("fastq",rawReads[,"V1"]),])
+rawReads$count = as.numeric(unlist(lapply(strsplit(rawReads$V1,split=".",fixed=TRUE),function(a) gsub(" ","",a[1],fixed=TRUE))))/4
+rawReads$sample = unlist(lapply(strsplit(rawReads$V1,split="/",fixed=TRUE),function(a) gsub("Sample_","",a[2],fixed=TRUE)))
+rawReads$strain = unlist(lapply(strsplit(rawReads$sample,split="_",fixed=TRUE),function(a) a[1]))
+
+readFragments = aggregate(rawReads$count,by=list(sample=rawReads$sample,strain=rawReads$strain),sum)
+readFragments$numPairedReads = prettyNum(readFragments$x/2,big.mark=",",scientific=FALSE)
+readFragments$numReadFragments = prettyNum(readFragments$x,big.mark=",",scientific=FALSE)
+
+readFragments=readFragments[,colnames(readFragments)!="x"]
+```
+
+### Raw Reads/Read Fragments From UC Boulder Core
+
+```{r, results='asis',echo=FALSE}
+kable(readFragments,align=rep("c",ncol(readFragments)))
+```
+
+
+3. Trim Reads for Adapters and Quality  
+--------------------------------------
+
+```
+export PATH=$HOME/bin:$PATH
+export PYTHONPATH=$HOME/bin:$PYTHONPATH
+
+cd /data/Users/hi-seq/ILS.ISS.Brain.totalRNA.23Oct13/
+
+FILES1=./rawReads/Sample_ILS_1LB/*R1*.fastq
+for f in $FILES1
+do
+  f2=${f//R1/R2} 
+	trim_galore --paired --stringency 3 -a GATCGGAAGAGCACACGTCTGAACTCCAGTCACCCGTCCCGATCTCGTATGCCGTCTTCTGCTTG -a2 AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT -q 20 -o ./trimmedReads/ $f $f2
+done
+
+FILES=./rawReads/Sample_ILS_2LB/*R1*.fastq
+for f in $FILES
+do
+	f2=${f//R1/R2} 
+	trim_galore --paired --stringency 3 -a GATCGGAAGAGCACACGTCTGAACTCCAGTCACGTCCGCACATCTCGTATGCCGTCTTCTGCTTG -a2 AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT -q 20 -o ./trimmedReads/ $f $f2
+done
+
+FILES=./rawReads/Sample_ILS_3LB/*R1*.fastq
+for f in $FILES
+do
+	f2=${f//R1/R2} 
+	trim_galore --paired --stringency 3 -a GATCGGAAGAGCACACGTCTGAACTCCAGTCACGTGAAACGATCTCGTATGCCGTCTTCTGCTTG -a2 AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT -q 20 -o ./trimmedReads/ $f $f2
+done
+
+FILES=./rawReads/Sample_ISS_1LB/*R1*.fastq
+for f in $FILES
+do
+	f2=${f//R1/R2} 
+	trim_galore --paired --stringency 3 -a GATCGGAAGAGCACACGTCTGAACTCCAGTCACAGTCAACAATCTCGTATGCCGTCTTCTGCTTG -a2 AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT -q 20 -o ./trimmedReads/ $f $f2
+done
+
+FILES=./rawReads/Sample_ISS_2LB/*R1*.fastq
+for f in $FILES
+do
+	f2=${f//R1/R2} 
+	trim_galore --paired --stringency 3 -a GATCGGAAGAGCACACGTCTGAACTCCAGTCACAGTTCCGTATCTCGTATGCCGTCTTCTGCTTG -a2 AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT -q 20 -o ./trimmedReads/ $f $f2
+done
+
+FILES=./rawReads/Sample_ISS_3LB/*R1*.fastq
+for f in $FILES
+do
+	f2=${f//R1/R2} 
+	trim_galore --paired --stringency 3 -a GATCGGAAGAGCACACGTCTGAACTCCAGTCACATGTCAGAATCTCGTATGCCGTCTTCTGCTTG -a2 AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT -q 20 -o ./trimmedReads/ $f $f2
+done
+
+```
+
+4.  Characterizing Trimmed Reads  
+-----------------------------------
+
+
+```
+qsub -q smp-q /home/saba/ILS.ISS.Brain.totalRNA/programs/countTrimmed.15Apr14.sh
+```
+
+```{r}
+trimmed = read.table(file="/Volumes/LauraS/LXS/RNA-Seq/totalRNA.24Oct13/data/trimmedInfo.ILS.ISS.Brain.15Apr14.txt",sep="\t",header=FALSE)
+trimmed$avgTrimmedReadLength = prettyNum(trimmed$V2,digits=4)
+trimmed$numTrimmedReadFragments = prettyNum(trimmed$V3,big.mark=",",scientific=FALSE)
+trimmed$V1 = gsub(" ","",trimmed$V1)
+trimmed$V1 = gsub("1","_1LB",trimmed$V1)
+trimmed$V1 = gsub("2","_2LB",trimmed$V1)
+trimmed$V1 = gsub("3","_3LB",trimmed$V1)
+
+fullTable = merge(readFragments,trimmed,by.x="sample",by.y="V1")
+fullTable = fullTable[,!(colnames(fullTable) %in% c("V2","V3"))]
+fullTable$pctRemovedByTrimming = paste(prettyNum(100*(1-(as.numeric(gsub(",","",fullTable$numTrimmedReadFragments))/as.numeric(gsub(",","",fullTable$numReadFragments)))),digits=2),"%",sep="")
+```
+
+### Effect of Trimming Adaptors and Poor Quality Base Calls
+
+```{r, results='asis',echo=FALSE}
+kable(fullTable,align=rep("c",ncol(fullTable)))
+```
+

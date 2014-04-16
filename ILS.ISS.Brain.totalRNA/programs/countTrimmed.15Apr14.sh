@@ -1,0 +1,7 @@
+#!/bin/bash
+awk  '/@HWI-ST753/ {getline; print length($0)}' /home/saba/ILS.ISS.Brain.totalRNA/trimmedReads/ILS_1LB*.fq | awk '{sum+=$1} END { print "ILS1","\t",sum/NR,"\t",NR}' > /home/saba/ILS.ISS.Brain.totalRNA/data/trimmedInfo.ILS.ISS.Brain.15Apr14.txt
+awk  '/@HWI-ST753/ {getline; print length($0)}' /home/saba/ILS.ISS.Brain.totalRNA/trimmedReads/ILS_2LB*.fq | awk '{sum+=$1} END { print "ILS2","\t",sum/NR,"\t",NR}' >> /home/saba/ILS.ISS.Brain.totalRNA/data/trimmedInfo.ILS.ISS.Brain.15Apr14.txt
+awk  '/@HWI-ST753/ {getline; print length($0)}' /home/saba/ILS.ISS.Brain.totalRNA/trimmedReads/ILS_3LB*.fq | awk '{sum+=$1} END { print "ILS3","\t",sum/NR,"\t",NR}' >> /home/saba/ILS.ISS.Brain.totalRNA/data/trimmedInfo.ILS.ISS.Brain.15Apr14.txt
+awk  '/@HWI-ST753/ {getline; print length($0)}' /home/saba/ILS.ISS.Brain.totalRNA/trimmedReads/ISS_1LB*.fq | awk '{sum+=$1} END { print "ISS1","\t",sum/NR,"\t",NR}' >> /home/saba/ILS.ISS.Brain.totalRNA/data/trimmedInfo.ILS.ISS.Brain.15Apr14.txt
+awk  '/@HWI-ST753/ {getline; print length($0)}' /home/saba/ILS.ISS.Brain.totalRNA/trimmedReads/ISS_2LB*.fq | awk '{sum+=$1} END { print "ISS2","\t",sum/NR,"\t",NR}' >> /home/saba/ILS.ISS.Brain.totalRNA/data/trimmedInfo.ILS.ISS.Brain.15Apr14.txt
+awk  '/@HWI-ST753/ {getline; print length($0)}' /home/saba/ILS.ISS.Brain.totalRNA/trimmedReads/ISS_3LB*.fq | awk '{sum+=$1} END { print "ISS3","\t",sum/NR,"\t",NR}' >> /home/saba/ILS.ISS.Brain.totalRNA/data/trimmedInfo.ILS.ISS.Brain.15Apr14.txt

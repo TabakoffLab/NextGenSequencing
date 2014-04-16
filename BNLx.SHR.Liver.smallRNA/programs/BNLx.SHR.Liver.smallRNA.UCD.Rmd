@@ -1,0 +1,110 @@
+Initial Quality Control of Liver RNA-Seq Reads From UCD Genomics Core (received 4/1/14)
+=========================
+* 5 liver small RNA samples, SHR1, SHR5, BNLx1, BNLx2, and BNLx3
+* 2X100 paired end reads using the stranded protocol
+
+1. Unzip FASTQ files on Yucca - DONE
+----------------------------
+```
+qsub -q smp-q /home/saba/BNLx.SHR.Liver.smallRNA.UCD/programs/unzip.yucca.11Apr14.sh
+```
+
+2. Determine number of reads sent for each sample - DONE
+----------------------------------------------------------
+```
+qsub -q smp-q /home/saba/BNLx.SHR.Liver.smallRNA.UCD/programs/rawReadCounts.14Apr14.sh
+```
+
+```{r,echo=FALSE}
+rm(list=ls())
+options(stringsAsFactors=FALSE)
+setwd("/Volumes/LauraS/BNLx.SHR/RNA-Seq.Liver/smallRNA/")
+rawCounts = read.table(file="data/rawReadCounts.14Apr14.txt",sep=" ",header=FALSE,fill=TRUE)
+rawCounts$V4[rawCounts$V4==""] = rawCounts$V5[rawCounts$V4==""]
+rawCounts$V5[!grepl("home",rawCounts$V5)] = rawCounts$V6[!grepl("home",rawCounts$V5)]
+
+rawCounts = rawCounts[is.na(rawCounts$V3),]
+rawCounts$readFrag = as.numeric(rawCounts$V4)/4
+rawCounts$strain = NA
+rawCounts$strain[grep("BN_LX",rawCounts$V5)] = "BNLx"
+rawCounts$strain[grep("SHR_",rawCounts$V5)] = "SHR"
+rawCounts$strain[grep("shr_",rawCounts$V5)] = "SHR"
+rawCounts$sample = toupper(unlist(lapply(strsplit(rawCounts$V5,split="_",fixed=TRUE),function(a) a[2])))
+rawCounts$lane = unlist(lapply(strsplit(rawCounts$V5,split="_",fixed=TRUE),function(a) a[4]))
+
+rawCounts$sample = gsub("LX","BNLx",rawCounts$sample)
+rawCounts$sample = gsub("H","SHR",rawCounts$sample)
+
+readFragments = aggregate(rawCounts$readFrag,by=list(sample=rawCounts$sample,strain=rawCounts$strain),sum)
+readFragments$numPairedReads = prettyNum(readFragments$x/2,big.mark=",",scientific=FALSE)
+readFragments$numReadFragments = prettyNum(readFragments$x,big.mark=",",scientific=FALSE)
+
+readFragments=readFragments[,colnames(readFragments)!="x"]
+```
+
+Raw Reads/Read Fragments From UCD Genomic Core
+---------------------------
+
+```{r, results='asis',echo=FALSE}
+kable(readFragments,align=rep("c",ncol(readFragments)))
+```
+
+3. Trim Reads for Adaptors and for Quality - DONE
+--------------------------------------------
+```
+qsub -q smp-q /home/saba/BNLx.SHR.Liver.smallRNA.UCD/programs/trimReads.11Apr14.sh
+```
+### Code used for trimming (trimReads.11Apr14.sh)
+```
+#!/bin/bash
+module add bio/trim_galore
+FILES1=/home/saba/BNLx.SHR.Liver.smallRNA.UCD/rawReads/*R1*.fastq
+for f in $FILES1
+do
+  f2=${f//R1/R2} 
+	trim_galore --paired --stringency 3 -a TGGAATTCTCGGGTGCCAAGG -a2 GATCGTCGGACTGTAGAACTCTGAAC -q 20 -o /home/saba/BNLx.SHR.Liver.smallRNA.UCD/trimmedReads/ $f $f2
+done
+```
+
+
+4. Characterizing Trimmed Reads - DONE
+----------------------------------
+```
+qsub -q smp-q /home/saba/BNLx.SHR.Liver.smallRNA.UCD/programs/countTrimmed.14Apr14.sh
+```
+
+```{r, echo=FALSE}
+trimmed = read.table(file="/Volumes/LauraS/BNLx.SHR/RNA-Seq.Liver/smallRNA/data/trimmedInfo.BNLx.SHR.Liver.14Apr14.txt",sep="\t",header=FALSE,row.names=1)
+trimmed$avgTrimmedReadLength = prettyNum(trimmed$V2,digits=4)
+trimmed$numTrimmedReadFragments = prettyNum(trimmed$V3,big.mark=",",scientific=FALSE)
+rownames(trimmed) = gsub(" ","",rownames(trimmed))
+
+fullTable = merge(readFragments,trimmed,by.x="sample",by.y=0)
+fullTable = fullTable[,!(colnames(fullTable) %in% c("V2","V3"))]
+fullTable$pctRemovedByTrimming = paste(prettyNum((1-(as.numeric(gsub(",","",fullTable$numTrimmedReadFragments))/as.numeric(gsub(",","",fullTable$numReadFragments))))*100,digits=3),"%",sep="")
+```
+
+Effect of Trimming Adaptors and Poor Quality Base Calls
+---------------------------
+
+```{r, results='asis',echo=FALSE}
+kable(fullTable,align=rep("c",ncol(fullTable)))
+```
+
+5.  Generate Strain-Specific Genomes Including Spike-In Sequences - DONE PREVIOUSLY
+-------------------------------------------
+
+6. Alignment of Raw Reads to Strain-Specific Genomes - DEBUGGING
+------------------------------------
+
+
+
+
+*STOPPED HERE* 
+==============================================
+7.  Characterization of Aligned Reads
+---------------------------
+
+8.  Examine Spike-In Expression 
+-----------------------
+

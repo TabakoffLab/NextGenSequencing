@@ -1,0 +1,153 @@
+Initial Quality Control of Liver RNA-Seq Reads From Beckman (received 3/25/14)
+=========================
+* 2 liver ribosomal RNA depleted total RNA samples, BN-Lx3 and SHR1
+* synthetic spikes included Mix 1 in SHR1 and Mix 2 in BN-Lx3
+* 2X100 paired end reads using the stranded protocol
+
+
+1. Unzip FASTQ files - DONE
+----------------------------
+```
+cd /data/Users/hi-seq/BNLx.SHR.Liver.totalRNA.Beckman.25Mar14/rawReads
+gzip -d *.gz
+```
+
+2. Determine number of reads sent for each sample - DONE
+----------------------------------------------------------
+```
+##  Determine Number of Reads Generated - number of rows divided by 4  ##
+wc -l *.fastq > /data/Tabastore3/LauraS/BNLx.SHR/RNA-Seq.Liver/data/numberReads.BNLx.SHR.Liver.25Mar14.txt
+```
+
+```{r}
+rm(list=ls())
+options(stringsAsFactors=FALSE)
+setwd("/Volumes/LauraS/BNLx.SHR/RNA-Seq.Liver/data/")
+rawCounts = read.table(file="numberReads.BNLx.SHR.Liver.25Mar14.txt",sep=" ",header=FALSE,fill=TRUE)
+rawCounts = rawCounts[is.na(rawCounts$V2),]
+rawCounts$readFrag = as.numeric(rawCounts$V3)/4
+```
+
+BNLx3 = `r prettyNum(sum(rawCounts$readFrag[grep("BN",rawCounts$V4)]),big.mark=",",scientific=FALSE)` read fragments (`r prettyNum(sum(rawCounts$readFrag[grep("BN",rawCounts$V4)])/2,big.mark=",",scientific=FALSE)` paired reads)  
+SHR1 = `r prettyNum(sum(rawCounts$readFrag[grep("SHR",rawCounts$V4)]),big.mark=",",scientific=FALSE)` read fragments (`r prettyNum(sum(rawCounts$readFrag[grep("SHR",rawCounts$V4)])/2,big.mark=",",scientific=FALSE)` paired reads)
+
+
+3. Trim Reads for Adaptors and for Quality - DONE
+--------------------------------------------
+```
+export PATH=$HOME/bin:$PATH
+export PYTHONPATH=$HOME/bin:$PYTHONPATH
+
+cd /data/Users/hi-seq/BNLx.SHR.Liver.totalRNA.Beckman.25Mar14/
+
+trim_galore --paired --stringency 3 -a GATCGGAAGAGCACACGTCTGAACTCCAGTCACCCGTCCCGATCTCGTATGCCGTCTTCTGCTTG -a2 AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT -q 20 -o ./trimmedReads/ ./rawReads/BN_LX-3_CTTGTA_R1.fastq ./rawReads/BN_LX-3_CTTGTA_R2.fastq
+trim_galore --paired --stringency 3 -a GATCGGAAGAGCACACGTCTGAACTCCAGTCACCCGTCCCGATCTCGTATGCCGTCTTCTGCTTG -a2 AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT -q 20 -o ./trimmedReads/ ./rawReads/SHR_H-1_CGATGT_R1.fastq ./rawReads/SHR_H-1_CGATGT_R2.fastq
+```
+
+4. Characterizing Trimmed Reads - DONE
+----------------------------------
+```
+export PATH=$HOME/bin:$PATH
+export PYTHONPATH=$HOME/bin:$PYTHONPATH
+
+cd /data/Users/hi-seq/BNLx.SHR.Liver.totalRNA.Beckman.25Mar14/trimmedReads
+awk  '/@HWI/ {getline; print length($0)}' BN*.fq | awk '{sum+=$1} END { print "BNLx3","\t",sum/NR,"\t",NR}' > /data/Tabastore3/LauraS/BNLx.SHR/RNA-Seq.Liver/data/trimmedInfo.BNLx.SHR.Liver.25Mar14.txt
+awk  '/@HWI/ {getline; print length($0)}' SHR*.fq | awk '{sum+=$1} END { print "SHR1","\t",sum/NR,"\t",NR}' >> /data/Tabastore3/LauraS/BNLx.SHR/RNA-Seq.Liver/data/trimmedInfo.BNLx.SHR.Liver.25Mar14.txt
+```
+
+```{r}
+rm(list=ls())
+options(stringsAsFactors=FALSE)
+setwd("/Volumes/LauraS/BNLx.SHR/RNA-Seq.Liver/data/")
+trimmed = read.table(file="trimmedInfo.BNLx.SHR.Liver.25Mar14.txt",sep="\t",header=FALSE,row.names=1)
+```
+
+BNLx3:
+------
+Average read fragment length = `r round(trimmed["BNLx3","V2"],2)`  
+Number of read fragments that remain after trimming = `r prettyNum(trimmed["BNLx3","V3"],big.mark=",")`
+
+SHR1:
+------
+Average read fragment length = `r round(trimmed["SHR1","V2"],2)`  
+Number of read fragments that remain after trimming = `r prettyNum(trimmed["SHR1","V3"],big.mark=",")`
+
+
+5.  Generate Strain-Specific Genomes Including Spike-In Sequences - DONE
+-------------------------------------------
+```
+cd /data/Tabastore3/LauraS/index
+cat /data/Tabastore3/LauraS/BNLx.SHR/RNA-Seq/index/BNLX_rn5_Genome.fa /data/Tabastore3/LauraS/BxH.HxB.Rats/RNA-Seq/spikeSource/ERCC92.fa > BNLx_rn5_wSpikes.fa
+bowtie2-build BNLx_rn5_wSpikes.fa BNLx_rn5_wSpikes
+
+cd /data/Tabastore3/LauraS/BxH.HxB.Rats/RNA-Seq/index/
+cp SHR_rn5_Genome.wSpikes* /data/Tabastore3/LauraS/index
+```
+
+6. Alignment of Raw Reads to Strain-Specific Genomes
+------------------------------------
+
+```
+qsub -q smp-q /home/saba/BNLx.SHR.Liver.totalRNA.Beckman/programs/alignment.14Apr14.sh
+```
+
+### Code from alignment.14Apr14.sh
+```
+#!/bin/bash
+module add bio/bowtie2
+module add bio/tophat
+tophat2 --library-type fr-firststrand -o /home/saba/BNLx.SHR.Liver.totalRNA.Beckman/alignedReads/BNLx3 -p 10 /home/saba/index/BNLx_rn5_wSpikes /home/saba/BNLx.SHR.Liver.totalRNA.Beckman/trimmedReads/BN_LX-3_CTTGTA_R1_val_1.fq /home/saba/BNLx.SHR.Liver.totalRNA.Beckman/trimmedReads/BN_LX-3_CTTGTA_R2_val_2.fq
+tophat2 --library-type fr-firststrand -o /home/saba/BNLx.SHR.Liver.totalRNA.Beckman/alignedReads/SHR1 -p 10 /home/saba/index/SHR_rn5_wSpikes /home/saba/BNLx.SHR.Liver.totalRNA.Beckman/trimmedReads/SHR_H-1_CGATGT_R1_val_1.fq /home/saba/BNLx.SHR.Liver.totalRNA.Beckman/trimmedReads/SHR_H-1_CGATGT_R2_val_2.fq
+```
+
+
+7.  Characterization of Aligned Reads
+---------------------------
+
+8.  Examine Spike-In Expression 
+-----------------------
+```
+##  NOT YET UPDATED
+
+cd /data/Tabastore3/LauraS/BxH.HxB.Rats/RNA-Seq/
+samtools view ./alignedReads/HXB25_1/accepted_hits.bam | awk '$3!~"chr"' - > ./alignedReads/HXB25_1/spikeOnly.sam 
+samtools view ./alignedReads/HXB25_2/accepted_hits.bam | awk '$3!~"chr"' - > ./alignedReads/HXB25_2/spikeOnly.sam 
+samtools view ./alignedReads/HXB25_3/accepted_hits.bam | awk '$3!~"chr"' - > ./alignedReads/HXB25_3/spikeOnly.sam 
+
+samtools view ./alignedReads/HXB2_1/accepted_hits.bam | awk '$3!~"chr"' - > ./alignedReads/HXB2_1/spikeOnly.sam 
+samtools view ./alignedReads/HXB2_2/accepted_hits.bam | awk '$3!~"chr"' - > ./alignedReads/HXB2_2/spikeOnly.sam 
+samtools view ./alignedReads/HXB2_3/accepted_hits.bam | awk '$3!~"chr"' - > ./alignedReads/HXB2_3/spikeOnly.sam 
+
+
+cd /data/Tabastore3/LauraS/BxH.HxB.Rats/RNA-Seq/
+cufflinks -p 2 -o ./spikeCounts/HXB25_1 -b ./index/SHR_rn5_Genome.wSpikes.fa -u -G ./spikeSource/ERCC92.none.gtf ./alignedReads/HXB25_1/spikeOnly.sam
+cufflinks -p 2 -o ./spikeCounts/HXB25_2 -b ./index/SHR_rn5_Genome.wSpikes.fa -u -G ./spikeSource/ERCC92.none.gtf ./alignedReads/HXB25_2/spikeOnly.sam
+cufflinks -p 2 -o ./spikeCounts/HXB25_3 -b ./index/SHR_rn5_Genome.wSpikes.fa -u -G ./spikeSource/ERCC92.none.gtf ./alignedReads/HXB25_3/spikeOnly.sam
+
+cufflinks -p 2 -o ./spikeCounts/HXB2_1 -b ./index/SHR_rn5_Genome.wSpikes.fa -u -G ./spikeSource/ERCC92.none.gtf ./alignedReads/HXB2_1/spikeOnly.sam
+cufflinks -p 2 -o ./spikeCounts/HXB2_2 -b ./index/SHR_rn5_Genome.wSpikes.fa -u -G ./spikeSource/ERCC92.none.gtf ./alignedReads/HXB2_2/spikeOnly.sam
+cufflinks -p 2 -o ./spikeCounts/HXB2_3 -b ./index/SHR_rn5_Genome.wSpikes.fa -u -G ./spikeSource/ERCC92.none.gtf ./alignedReads/HXB2_3/spikeOnly.sam
+
+
+samtools view -bT ./index/rn5.wSpikes.fa ./alignedReads/HXB25_1/spikeOnly.sam | genomeCoverageBed -d -split -strand - -ibam stdin | sort - > ./spikeCounts/spikeInCoverage.HXB25_1.txt
+samtools view -bT ./index/rn5.wSpikes.fa ./alignedReads/HXB25_2/spikeOnly.sam | genomeCoverageBed -d -split -strand - -ibam stdin | sort - > ./spikeCounts/spikeInCoverage.HXB25_2.txt
+samtools view -bT ./index/rn5.wSpikes.fa ./alignedReads/HXB25_3/spikeOnly.sam | genomeCoverageBed -d -split -strand - -ibam stdin | sort - > ./spikeCounts/spikeInCoverage.HXB25_3.txt
+
+
+awk '{if($2==16) print $3}' ./alignedReads/HXB25_1/spikeOnly.sam | sort - | uniq -c > ./spikeCounts/readCounts.spikes.HXB25_1.txt
+awk '{if($2==16) print $3}' ./alignedReads/HXB25_2/spikeOnly.sam | sort - | uniq -c > ./spikeCounts/readCounts.spikes.HXB25_2.txt
+awk '{if($2==16) print $3}' ./alignedReads/HXB25_3/spikeOnly.sam | sort - | uniq -c > ./spikeCounts/readCounts.spikes.HXB25_3.txt
+
+awk '{if($2==16) print $3}' ./alignedReads/HXB2_1/spikeOnly.sam | sort - | uniq -c > ./spikeCounts/readCounts.spikes.HXB2_1.txt
+awk '{if($2==16) print $3}' ./alignedReads/HXB2_2/spikeOnly.sam | sort - | uniq -c > ./spikeCounts/readCounts.spikes.HXB2_2.txt
+awk '{if($2==16) print $3}' ./alignedReads/HXB2_3/spikeOnly.sam | sort - | uniq -c > ./spikeCounts/readCounts.spikes.HXB2_3.txt
+
+
+
+##  number of aligned reads  ##
+samtools view -F 0X100 ./alignedReads/HXB25_1/accepted_hits.bam | wc -l 
+samtools view -F 0X100 ./alignedReads/HXB25_2/accepted_hits.bam | wc -l 
+samtools view -F 0X100 ./alignedReads/HXB25_3/accepted_hits.bam | wc -l 
+
+``` 
+

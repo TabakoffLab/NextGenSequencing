@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<!-- saved from url=(0014)about:internet -->
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=9" >
+
+<title>Initial Quality Control of Liver RNA-Seq Reads From UCD Genomics Core (received 4/1/14)</title>
+
+<style type="text/css">
+body, td {
+   font-family: sans-serif;
+   background-color: white;
+   font-size: 12px;
+   margin: 8px;
+}
+
+tt, code, pre {
+   font-family: 'DejaVu Sans Mono', 'Droid Sans Mono', 'Lucida Console', Consolas, Monaco, monospace;
+}
+
+h1 { 
+   font-size:2.2em; 
+}
+
+h2 { 
+   font-size:1.8em; 
+}
+
+h3 { 
+   font-size:1.4em; 
+}
+
+h4 { 
+   font-size:1.0em; 
+}
+
+h5 { 
+   font-size:0.9em; 
+}
+
+h6 { 
+   font-size:0.8em; 
+}
+
+a:visited {
+   color: rgb(50%, 0%, 50%);
+}
+
+pre {	
+   margin-top: 0;
+   max-width: 95%;
+   border: 1px solid #ccc;
+   white-space: pre-wrap;
+}
+
+pre code {
+   display: block; padding: 0.5em;
+}
+
+code.r, code.cpp {
+   background-color: #F8F8F8;
+}
+
+table, td, th {
+  border: none;
+}
+
+blockquote {
+   color:#666666;
+   margin:0;
+   padding-left: 1em;
+   border-left: 0.5em #EEE solid;
+}
+
+hr {
+   height: 0px;
+   border-bottom: none;
+   border-top-width: thin;
+   border-top-style: dotted;
+   border-top-color: #999999;
+}
+
+@media print {
+   * { 
+      background: transparent !important; 
+      color: black !important; 
+      filter:none !important; 
+      -ms-filter: none !important; 
+   }
+
+   body { 
+      font-size:12pt; 
+      max-width:100%; 
+   }
+       
+   a, a:visited { 
+      text-decoration: underline; 
+   }
+
+   hr { 
+      visibility: hidden;
+      page-break-before: always;
+   }
+
+   pre, blockquote { 
+      padding-right: 1em; 
+      page-break-inside: avoid; 
+   }
+
+   tr, img { 
+      page-break-inside: avoid; 
+   }
+
+   img { 
+      max-width: 100% !important; 
+   }
+
+   @page :left { 
+      margin: 15mm 20mm 15mm 10mm; 
+   }
+     
+   @page :right { 
+      margin: 15mm 10mm 15mm 20mm; 
+   }
+
+   p, h2, h3 { 
+      orphans: 3; widows: 3; 
+   }
+
+   h2, h3 { 
+      page-break-after: avoid; 
+   }
+}
+
+</style>
+
+
+
+
+
+</head>
+
+<body>
+<h1>Initial Quality Control of Liver RNA-Seq Reads From UCD Genomics Core (received 4/1/14)</h1>
+
+<ul>
+<li>5 liver small RNA samples, SHR1, SHR5, BNLx1, BNLx2, and BNLx3</li>
+<li>2X100 paired end reads using the stranded protocol</li>
+</ul>
+
+<h2>1. Unzip FASTQ files on Yucca - DONE</h2>
+
+<pre><code>qsub -q smp-q /home/saba/BNLx.SHR.Liver.smallRNA.UCD/programs/unzip.yucca.11Apr14.sh
+</code></pre>
+
+<h2>2. Determine number of reads sent for each sample - DONE</h2>
+
+<pre><code>qsub -q smp-q /home/saba/BNLx.SHR.Liver.smallRNA.UCD/programs/rawReadCounts.14Apr14.sh
+</code></pre>
+
+<h2>Raw Reads/Read Fragments From UCD Genomic Core</h2>
+
+<table><thead>
+<tr>
+<th align="center">sample</th>
+<th align="center">strain</th>
+<th align="center">numPairedReads</th>
+<th align="center">numReadFragments</th>
+</tr>
+</thead><tbody>
+<tr>
+<td align="center">BNLx1</td>
+<td align="center">BNLx</td>
+<td align="center">42,273,076</td>
+<td align="center">84,546,152</td>
+</tr>
+<tr>
+<td align="center">BNLx2</td>
+<td align="center">BNLx</td>
+<td align="center">68,673,192</td>
+<td align="center">137,346,384</td>
+</tr>
+<tr>
+<td align="center">BNLx3</td>
+<td align="center">BNLx</td>
+<td align="center">72,883,707</td>
+<td align="center">145,767,414</td>
+</tr>
+<tr>
+<td align="center">SHR1</td>
+<td align="center">SHR</td>
+<td align="center">82,446,872</td>
+<td align="center">164,893,744</td>
+</tr>
+<tr>
+<td align="center">SHR5</td>
+<td align="center">SHR</td>
+<td align="center">75,364,419</td>
+<td align="center">150,728,838</td>
+</tr>
+</tbody></table>
+
+<h2>3. Trim Reads for Adaptors and for Quality - DONE</h2>
+
+<pre><code>qsub -q smp-q /home/saba/BNLx.SHR.Liver.smallRNA.UCD/programs/trimReads.11Apr14.sh
+</code></pre>
+
+<h3>Code used for trimming (trimReads.11Apr14.sh)</h3>
+
+<pre><code>#!/bin/bash
+module add bio/trim_galore
+FILES1=/home/saba/BNLx.SHR.Liver.smallRNA.UCD/rawReads/*R1*.fastq
+for f in $FILES1
+do
+  f2=${f//R1/R2} 
+    trim_galore --paired --stringency 3 -a TGGAATTCTCGGGTGCCAAGG -a2 GATCGTCGGACTGTAGAACTCTGAAC -q 20 -o /home/saba/BNLx.SHR.Liver.smallRNA.UCD/trimmedReads/ $f $f2
+done
+</code></pre>
+
+<h2>4. Characterizing Trimmed Reads - DONE</h2>
+
+<pre><code>qsub -q smp-q /home/saba/BNLx.SHR.Liver.smallRNA.UCD/programs/countTrimmed.14Apr14.sh
+</code></pre>
+
+<h2>Effect of Trimming Adaptors and Poor Quality Base Calls</h2>
+
+<table><thead>
+<tr>
+<th align="center">sample</th>
+<th align="center">strain</th>
+<th align="center">numPairedReads</th>
+<th align="center">numReadFragments</th>
+<th align="center">avgTrimmedReadLength</th>
+<th align="center">numTrimmedReadFragments</th>
+<th align="center">pctRemovedByTrimming</th>
+</tr>
+</thead><tbody>
+<tr>
+<td align="center">BNLx1</td>
+<td align="center">BNLx</td>
+<td align="center">42,273,076</td>
+<td align="center">84,546,152</td>
+<td align="center">45.69</td>
+<td align="center">79,456,274</td>
+<td align="center">6.02%</td>
+</tr>
+<tr>
+<td align="center">BNLx2</td>
+<td align="center">BNLx</td>
+<td align="center">68,673,192</td>
+<td align="center">137,346,384</td>
+<td align="center">32.46</td>
+<td align="center">113,284,650</td>
+<td align="center">17.5%</td>
+</tr>
+<tr>
+<td align="center">BNLx3</td>
+<td align="center">BNLx</td>
+<td align="center">72,883,707</td>
+<td align="center">145,767,414</td>
+<td align="center">23.56</td>
+<td align="center">116,989,606</td>
+<td align="center">19.7%</td>
+</tr>
+<tr>
+<td align="center">SHR1</td>
+<td align="center">SHR</td>
+<td align="center">82,446,872</td>
+<td align="center">164,893,744</td>
+<td align="center">31.47</td>
+<td align="center">138,556,574</td>
+<td align="center">16%</td>
+</tr>
+<tr>
+<td align="center">SHR5</td>
+<td align="center">SHR</td>
+<td align="center">75,364,419</td>
+<td align="center">150,728,838</td>
+<td align="center">30.93</td>
+<td align="center">119,405,650</td>
+<td align="center">20.8%</td>
+</tr>
+</tbody></table>
+
+<h2>5.  Generate Strain-Specific Genomes Including Spike-In Sequences - DONE PREVIOUSLY</h2>
+
+<h2>6. Alignment of Raw Reads to Strain-Specific Genomes - DEBUGGING</h2>
+
+<h1><em>STOPPED HERE</em> </h1>
+
+<h2>7.  Characterization of Aligned Reads</h2>
+
+<h2>8.  Examine Spike-In Expression </h2>
+
+</body>
+
+</html>
+

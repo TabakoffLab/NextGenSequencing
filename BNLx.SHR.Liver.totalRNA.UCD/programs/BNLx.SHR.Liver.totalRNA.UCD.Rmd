@@ -1,0 +1,103 @@
+Initial Quality Control of Liver RNA-Seq Reads From UCD Genomics Core (received 4/1/14)
+=========================
+* 6 liver ribosomal RNA depleted total RNA samples, SHR1, SHR5, SHR25, BNLx1, BNLx2, and BNLx3
+* synthetic spikes included Mix 1 in SHR1, BNLx1, and BNLx2 and Mix 2 in SHR5, SHR25, and BNLx3
+* 2X100 paired end reads using the stranded protocol
+
+
+1. Unzip FASTQ files on Yucca - DONE
+----------------------------
+```
+qsub -q smp-q /home/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/unzip.yucca.sh
+```
+
+2. Determine number of reads sent for each sample - DONE
+----------------------------------------------------------
+```
+qsub -q smp-q /home/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/rawReadCounts.sh
+```
+
+```{r,echo=FALSE}
+rm(list=ls())
+options(stringsAsFactors=FALSE)
+setwd("/Volumes/LauraS/BNLx.SHR/RNA-Seq.Liver/totalRNA.UCD/")
+rawCounts = read.table(file="data/rawReadCounts.07Apr14.txt",sep=" ",header=FALSE,fill=TRUE)
+rawCounts = rawCounts[is.na(rawCounts$V3),]
+rawCounts$readFrag = as.numeric(rawCounts$V4)/4
+rawCounts$strain = NA
+rawCounts$strain[grep("BNLX_",rawCounts$V5)] = "BNLx"
+rawCounts$strain[grep("SHR_",rawCounts$V5)] = "SHR"
+rawCounts$sample = paste(rawCounts$strain,unlist(lapply(strsplit(rawCounts$V5,split="_",fixed=TRUE),function(a) a[2])),sep="")
+rawCounts$lane = unlist(lapply(strsplit(rawCounts$V5,split="_",fixed=TRUE),function(a) a[4]))
+
+readFragments = aggregate(rawCounts$readFrag,by=list(sample=rawCounts$sample,strain=rawCounts$strain,lane=rawCounts$lane),sum)
+readFragments$numPairedReads = prettyNum(readFragments$x/2,big.mark=",",scientific=FALSE)
+readFragments$numReadFragments = prettyNum(readFragments$x,big.mark=",",scientific=FALSE)
+
+readFragments=readFragments[,colnames(readFragments)!="x"]
+```
+
+Raw Reads/Read Fragments From UCD Genomic Core
+---------------------------
+
+```{r, results='asis',echo=FALSE}
+kable(readFragments,align=rep("c",ncol(readFragments)))
+```
+
+3. Trim Reads for Adaptors and for Quality - DONE
+--------------------------------------------
+```
+qsub -q smp-q /home/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/trimReads.yucca.sh
+```
+
+4. Characterizing Trimmed Reads - DONE
+----------------------------------
+```
+qsub -q smp-q /home/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/countTrimmed.yucca.sh
+```
+
+```{r, echo=FALSE}
+setwd("/Volumes/LauraS/BNLx.SHR/RNA-Seq.Liver/totalRNA.UCD/")
+trimmed = read.table(file="data/trimmedInfo.BNLx.SHR.Liver.09Apr14.txt",sep="\t",header=FALSE,row.names=1)
+trimmed$avgTrimmedReadLength = prettyNum(trimmed$V2,digits=4)
+trimmed$numTrimmedReadFragments = prettyNum(trimmed$V3,big.mark=",",scientific=FALSE)
+rownames(trimmed) = gsub(" ","",rownames(trimmed))
+rownames(trimmed)[rownames(trimmed)=="SHR1"]="SHRH1"
+rownames(trimmed)[rownames(trimmed)=="SHR5"]="SHRH5"
+rownames(trimmed)[rownames(trimmed)=="SHR25"]="SHRL25"
+
+fullTable = merge(readFragments,trimmed,by.x="sample",by.y=0)
+fullTable = fullTable[,!(colnames(fullTable) %in% c("V2","V3"))]
+fullTable$pctRemovedByTrimming = paste(prettyNum(1-(as.numeric(gsub(",","",fullTable$numTrimmedReadFragments))/as.numeric(gsub(",","",fullTable$numReadFragments))),digits=2),"%",sep="")
+```
+
+Effect of Trimming Adaptors and Poor Quality Base Calls
+---------------------------
+
+```{r, results='asis',echo=FALSE}
+kable(fullTable,align=rep("c",ncol(fullTable)))
+```
+
+5.  Generate Strain-Specific Genomes Including Spike-In Sequences - DONE
+-------------------------------------------
+```
+qsub -q smp-q /home/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/createGenomeIndex.yucca.sh
+```
+
+6. Alignment of Raw Reads to Strain-Specific Genomes - RUNNING
+------------------------------------
+```
+qsub -q smp-q /home/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/tophatAlign.15Apr14.sh
+```
+
+
+
+
+*STOPPED HERE - waiting for response from Ron*
+==============================================
+7.  Characterization of Aligned Reads
+---------------------------
+
+8.  Examine Spike-In Expression 
+-----------------------
+

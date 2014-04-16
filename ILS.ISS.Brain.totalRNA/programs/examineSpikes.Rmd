@@ -1,0 +1,46 @@
+Examining Synthetic Spike-Ins in ILS/ISS Total RNA-Seq
+========================================================
+
+Identify Uniquely Aligned Reads
+```
+export LC_ALL='C'
+export PATH=$HOME/bin:$PATH
+export PYTHONPATH=$HOME/bin:$PYTHONPATH
+cd /data/Tabastore3/LauraS/LXS/RNA-Seq/totalRNA.24Oct13
+
+./program/identifyUniquelyAlignedReads.sh ILS1
+./program/identifyUniquelyAlignedReads.sh ILS2
+./program/identifyUniquelyAlignedReads.sh ILS3
+./program/identifyUniquelyAlignedReads.sh ISS1
+./program/identifyUniquelyAlignedReads.sh ISS2
+./program/identifyUniquelyAlignedReads.sh ISS3
+
+## add header to uniquely aligned reads
+samtools view -H ./alignedReads/ILS_E13/accepted_hits.bam > ./alignedReads/header.txt
+samtools view ./alignedReads/ILS_E13.smallRNA.unique.sorted.bam | cat ./alignedReads/header.txt - | samtools view -bS - | samtools sort - ./alignedReads/ILS_E13.unique
+samtools view ./alignedReads/ILS_E14.smallRNA.unique.sorted.bam | cat ./alignedReads/header.txt - | samtools view -bS - | samtools sort - ./alignedReads/ILS_E14.unique
+samtools view ./alignedReads/ILS_E15.smallRNA.unique.sorted.bam | cat ./alignedReads/header.txt - | samtools view -bS - | samtools sort - ./alignedReads/ILS_E15.unique
+
+samtools view ./alignedReads/ILS_S13.smallRNA.unique.sorted.bam | cat ./alignedReads/header.txt - | samtools view -bS - | samtools sort - ./alignedReads/ILS_S13.unique
+samtools view ./alignedReads/ILS_S14.smallRNA.unique.sorted.bam | cat ./alignedReads/header.txt - | samtools view -bS - | samtools sort - ./alignedReads/ILS_S14.unique
+samtools view ./alignedReads/ILS_S15.smallRNA.unique.sorted.bam | cat ./alignedReads/header.txt - | samtools view -bS - | samtools sort - ./alignedReads/ILS_S15.unique
+
+samtools view ./alignedReads/ISS_E13.smallRNA.unique.sorted.bam | cat ./alignedReads/header.txt - | samtools view -bS - | samtools sort - ./alignedReads/ISS_E13.unique
+samtools view ./alignedReads/ISS_E14.smallRNA.unique.sorted.bam | cat ./alignedReads/header.txt - | samtools view -bS - | samtools sort - ./alignedReads/ISS_E14.unique
+samtools view ./alignedReads/ISS_E15.smallRNA.unique.sorted.bam | cat ./alignedReads/header.txt - | samtools view -bS - | samtools sort - ./alignedReads/ISS_E15.unique
+
+samtools view ./alignedReads/ISS_S13.smallRNA.unique.sorted.bam | cat ./alignedReads/header.txt - | samtools view -bS - | samtools sort - ./alignedReads/ISS_S13.unique
+samtools view ./alignedReads/ISS_S14.smallRNA.unique.sorted.bam | cat ./alignedReads/header.txt - | samtools view -bS - | samtools sort - ./alignedReads/ISS_S14.unique
+samtools view ./alignedReads/ISS_S15.smallRNA.unique.sorted.bam | cat ./alignedReads/header.txt - | samtools view -bS - | samtools sort - ./alignedReads/ISS_S15.unique
+
+rm ./alignedReads/*.smallRNA.unique.sorted.bam
+
+
+```
+
+You can also embed plots, for example:
+
+```{r fig.width=7, fig.height=6}
+plot(cars)
+```
+

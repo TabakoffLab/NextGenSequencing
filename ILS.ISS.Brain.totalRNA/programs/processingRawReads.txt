@@ -1,0 +1,211 @@
+##  Unzip Files  ##
+gzip -d ./Sample_*/*.gz
+
+##  Determine Number of Reads Generated - number of rows divided by 4  ##
+cd /data/Users/hi-seq/ILS.ISS.Brain.totalRNA.23Oct13/rawReads
+wc -l ./Sample_ILS_1LB/*.fastq
+wc -l ./Sample_ILS_2LB/*.fastq
+wc -l ./Sample_ILS_3LB/*.fastq
+wc -l ./Sample_ISS_1LB/*.fastq
+wc -l ./Sample_ISS_2LB/*.fastq
+wc -l ./Sample_ISS_3LB/*.fastq
+
+###########################################
+##  Trim Reads for Adapters and Quality  ##
+###########################################
+
+export PATH=$HOME/bin:$PATH
+export PYTHONPATH=$HOME/bin:$PYTHONPATH
+
+cd /data/Users/hi-seq/ILS.ISS.Brain.totalRNA.23Oct13/
+
+FILES1=./rawReads/Sample_ILS_1LB/*R1*.fastq
+for f in $FILES1
+do
+	f2=${f//R1/R2} 
+	trim_galore --paired --stringency 3 -a GATCGGAAGAGCACACGTCTGAACTCCAGTCACCCGTCCCGATCTCGTATGCCGTCTTCTGCTTG -a2 AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT -q 20 -o ./trimmedReads/ $f $f2
+done
+
+FILES=./rawReads/Sample_ILS_2LB/*R1*.fastq
+for f in $FILES
+do
+	f2=${f//R1/R2} 
+	trim_galore --paired --stringency 3 -a GATCGGAAGAGCACACGTCTGAACTCCAGTCACGTCCGCACATCTCGTATGCCGTCTTCTGCTTG -a2 AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT -q 20 -o ./trimmedReads/ $f $f2
+done
+
+FILES=./rawReads/Sample_ILS_3LB/*R1*.fastq
+for f in $FILES
+do
+	f2=${f//R1/R2} 
+	trim_galore --paired --stringency 3 -a GATCGGAAGAGCACACGTCTGAACTCCAGTCACGTGAAACGATCTCGTATGCCGTCTTCTGCTTG -a2 AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT -q 20 -o ./trimmedReads/ $f $f2
+done
+
+FILES=./rawReads/Sample_ISS_1LB/*R1*.fastq
+for f in $FILES
+do
+	f2=${f//R1/R2} 
+	trim_galore --paired --stringency 3 -a GATCGGAAGAGCACACGTCTGAACTCCAGTCACAGTCAACAATCTCGTATGCCGTCTTCTGCTTG -a2 AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT -q 20 -o ./trimmedReads/ $f $f2
+done
+
+FILES=./rawReads/Sample_ISS_2LB/*R1*.fastq
+for f in $FILES
+do
+	f2=${f//R1/R2} 
+	trim_galore --paired --stringency 3 -a GATCGGAAGAGCACACGTCTGAACTCCAGTCACAGTTCCGTATCTCGTATGCCGTCTTCTGCTTG -a2 AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT -q 20 -o ./trimmedReads/ $f $f2
+done
+
+FILES=./rawReads/Sample_ISS_3LB/*R1*.fastq
+for f in $FILES
+do
+	f2=${f//R1/R2} 
+	trim_galore --paired --stringency 3 -a GATCGGAAGAGCACACGTCTGAACTCCAGTCACATGTCAGAATCTCGTATGCCGTCTTCTGCTTG -a2 AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT -q 20 -o ./trimmedReads/ $f $f2
+done
+
+
+
+####################################
+##  Characterizing Trimmed Reads  ##
+####################################
+
+export PATH=$HOME/bin:$PATH
+export PYTHONPATH=$HOME/bin:$PYTHONPATH
+
+cd /data/Users/hi-seq/ILS.ISS.Brain.totalRNA.23Oct13/trimmedReads
+awk  '/@HWI/ {getline; print length($0)}' ILS_1*.fq | awk '{sum+=$1} END { print "Average Read Length = ",sum/NR," and Number of Reads = ",NR}'
+#Average Read Length =  96.9608  and Number of Reads =  155760826
+
+awk  '/@HWI/ {getline; print length($0)}' ILS_2*.fq | awk '{sum+=$1} END { print "Average Read Length = ",sum/NR," and Number of Reads = ",NR}'
+#Average Read Length =  97.24  and Number of Reads =  134219316
+
+awk  '/@HWI/ {getline; print length($0)}' ILS_3*.fq | awk '{sum+=$1} END { print "Average Read Length = ",sum/NR," and Number of Reads = ",NR}'
+#Average Read Length =  97.4953  and Number of Reads =  143117546
+
+awk  '/@HWI/ {getline; print length($0)}' ISS_1*.fq | awk '{sum+=$1} END { print "Average Read Length = ",sum/NR," and Number of Reads = ",NR}'
+#Average Read Length =  97.1767  and Number of Reads =  142883024
+
+awk  '/@HWI/ {getline; print length($0)}' ISS_2*.fq | awk '{sum+=$1} END { print "Average Read Length = ",sum/NR," and Number of Reads = ",NR}'
+#Average Read Length =  97.2797  and Number of Reads =  186218350
+
+awk  '/@HWI/ {getline; print length($0)}' ISS_3*.fq | awk '{sum+=$1} END { print "Average Read Length = ",sum/NR," and Number of Reads = ",NR}'
+#Average Read Length =  97.3004  and Number of Reads =  129805906
+
+###############################
+##   Alignment of Raw Reads  ##
+###############################
+export PATH=$HOME/bin:$PATH
+export PYTHONPATH=$HOME/bin:$PYTHONPATH
+
+###  Generate Index with Spike-In Sequences  ###
+cd /data/Tabastore3/LauraS/LXS/RNA-Seq/index/
+cat /data/Tabastore3/LauraS/BXD/RNA-Seq/GeneNetwork/index/mm10.fa /data/Tabastore3/LauraS/BxH.HxB.Rats/RNA-Seq/spikeSource/ERCC92.fa > mm10.wSpikes.fa
+
+bowtie2-build mm10.wSpikes.fa mm10.wSpikes
+
+cd /data/Users/hi-seq/ILS.ISS.Brain.totalRNA.23Oct13/trimmedReads/
+tophat2 -o /data/Tabastore3/LauraS/LXS/RNA-Seq/totalRNA.24Oct13/alignedReads/ILS1 -p 6 /data/Tabastore3/LauraS/LXS/RNA-Seq/index/mm10.wSpikes ILS_1LB_CCGTCC_L004_R1_001_val_1.fq,ILS_1LB_CCGTCC_L004_R1_002_val_1.fq,ILS_1LB_CCGTCC_L004_R1_003_val_1.fq,ILS_1LB_CCGTCC_L004_R1_004_val_1.fq,ILS_1LB_CCGTCC_L004_R1_005_val_1.fq,ILS_1LB_CCGTCC_L004_R1_006_val_1.fq,ILS_1LB_CCGTCC_L004_R1_007_val_1.fq,ILS_1LB_CCGTCC_L005_R1_001_val_1.fq,ILS_1LB_CCGTCC_L005_R1_002_val_1.fq,ILS_1LB_CCGTCC_L005_R1_003_val_1.fq,ILS_1LB_CCGTCC_L005_R1_004_val_1.fq,ILS_1LB_CCGTCC_L005_R1_005_val_1.fq,ILS_1LB_CCGTCC_L005_R1_006_val_1.fq,ILS_1LB_CCGTCC_L005_R1_007_val_1.fq,ILS_1LB_CCGTCC_L006_R1_001_val_1.fq,ILS_1LB_CCGTCC_L006_R1_002_val_1.fq,ILS_1LB_CCGTCC_L006_R1_003_val_1.fq,ILS_1LB_CCGTCC_L006_R1_004_val_1.fq,ILS_1LB_CCGTCC_L006_R1_005_val_1.fq,ILS_1LB_CCGTCC_L006_R1_006_val_1.fq,ILS_1LB_CCGTCC_L006_R1_007_val_1.fq ILS_1LB_CCGTCC_L004_R2_001_val_2.fq,ILS_1LB_CCGTCC_L004_R2_002_val_2.fq,ILS_1LB_CCGTCC_L004_R2_003_val_2.fq,ILS_1LB_CCGTCC_L004_R2_004_val_2.fq,ILS_1LB_CCGTCC_L004_R2_005_val_2.fq,ILS_1LB_CCGTCC_L004_R2_006_val_2.fq,ILS_1LB_CCGTCC_L004_R2_007_val_2.fq,ILS_1LB_CCGTCC_L005_R2_001_val_2.fq,ILS_1LB_CCGTCC_L005_R2_002_val_2.fq,ILS_1LB_CCGTCC_L005_R2_003_val_2.fq,ILS_1LB_CCGTCC_L005_R2_004_val_2.fq,ILS_1LB_CCGTCC_L005_R2_005_val_2.fq,ILS_1LB_CCGTCC_L005_R2_006_val_2.fq,ILS_1LB_CCGTCC_L005_R2_007_val_2.fq,ILS_1LB_CCGTCC_L006_R2_001_val_2.fq,ILS_1LB_CCGTCC_L006_R2_002_val_2.fq,ILS_1LB_CCGTCC_L006_R2_003_val_2.fq,ILS_1LB_CCGTCC_L006_R2_004_val_2.fq,ILS_1LB_CCGTCC_L006_R2_005_val_2.fq,ILS_1LB_CCGTCC_L006_R2_006_val_2.fq,ILS_1LB_CCGTCC_L006_R2_007_val_2.fq
+tophat2 -o /data/Tabastore3/LauraS/LXS/RNA-Seq/totalRNA.24Oct13/alignedReads/ISS1 -p 6 /data/Tabastore3/LauraS/LXS/RNA-Seq/index/mm10.wSpikes ISS_1LB_AGTCAA_L004_R1_001_val_1.fq,ISS_1LB_AGTCAA_L004_R1_002_val_1.fq,ISS_1LB_AGTCAA_L004_R1_003_val_1.fq,ISS_1LB_AGTCAA_L004_R1_004_val_1.fq,ISS_1LB_AGTCAA_L004_R1_005_val_1.fq,ISS_1LB_AGTCAA_L004_R1_006_val_1.fq,ISS_1LB_AGTCAA_L004_R1_007_val_1.fq,ISS_1LB_AGTCAA_L005_R1_001_val_1.fq,ISS_1LB_AGTCAA_L005_R1_002_val_1.fq,ISS_1LB_AGTCAA_L005_R1_003_val_1.fq,ISS_1LB_AGTCAA_L005_R1_004_val_1.fq,ISS_1LB_AGTCAA_L005_R1_005_val_1.fq,ISS_1LB_AGTCAA_L005_R1_006_val_1.fq,ISS_1LB_AGTCAA_L006_R1_001_val_1.fq,ISS_1LB_AGTCAA_L006_R1_002_val_1.fq,ISS_1LB_AGTCAA_L006_R1_003_val_1.fq,ISS_1LB_AGTCAA_L006_R1_004_val_1.fq,ISS_1LB_AGTCAA_L006_R1_005_val_1.fq,ISS_1LB_AGTCAA_L006_R1_006_val_1.fq ISS_1LB_AGTCAA_L004_R2_001_val_2.fq,ISS_1LB_AGTCAA_L004_R2_002_val_2.fq,ISS_1LB_AGTCAA_L004_R2_003_val_2.fq,ISS_1LB_AGTCAA_L004_R2_004_val_2.fq,ISS_1LB_AGTCAA_L004_R2_005_val_2.fq,ISS_1LB_AGTCAA_L004_R2_006_val_2.fq,ISS_1LB_AGTCAA_L004_R2_007_val_2.fq,ISS_1LB_AGTCAA_L005_R2_001_val_2.fq,ISS_1LB_AGTCAA_L005_R2_002_val_2.fq,ISS_1LB_AGTCAA_L005_R2_003_val_2.fq,ISS_1LB_AGTCAA_L005_R2_004_val_2.fq,ISS_1LB_AGTCAA_L005_R2_005_val_2.fq,ISS_1LB_AGTCAA_L005_R2_006_val_2.fq,ISS_1LB_AGTCAA_L006_R2_001_val_2.fq,ISS_1LB_AGTCAA_L006_R2_002_val_2.fq,ISS_1LB_AGTCAA_L006_R2_003_val_2.fq,ISS_1LB_AGTCAA_L006_R2_004_val_2.fq,ISS_1LB_AGTCAA_L006_R2_005_val_2.fq,ISS_1LB_AGTCAA_L006_R2_006_val_2.fq
+tophat2 -o /data/Tabastore3/LauraS/LXS/RNA-Seq/totalRNA.24Oct13/alignedReads/ILS2 -p 6 /data/Tabastore3/LauraS/LXS/RNA-Seq/index/mm10.wSpikes ILS_2LB_GTCCGC_L004_R1_001_val_1.fq,ILS_2LB_GTCCGC_L004_R1_002_val_1.fq,ILS_2LB_GTCCGC_L004_R1_003_val_1.fq,ILS_2LB_GTCCGC_L004_R1_004_val_1.fq,ILS_2LB_GTCCGC_L004_R1_005_val_1.fq,ILS_2LB_GTCCGC_L004_R1_006_val_1.fq,ILS_2LB_GTCCGC_L005_R1_001_val_1.fq,ILS_2LB_GTCCGC_L005_R1_002_val_1.fq,ILS_2LB_GTCCGC_L005_R1_003_val_1.fq,ILS_2LB_GTCCGC_L005_R1_004_val_1.fq,ILS_2LB_GTCCGC_L005_R1_005_val_1.fq,ILS_2LB_GTCCGC_L005_R1_006_val_1.fq,ILS_2LB_GTCCGC_L006_R1_001_val_1.fq,ILS_2LB_GTCCGC_L006_R1_002_val_1.fq,ILS_2LB_GTCCGC_L006_R1_003_val_1.fq,ILS_2LB_GTCCGC_L006_R1_004_val_1.fq,ILS_2LB_GTCCGC_L006_R1_005_val_1.fq,ILS_2LB_GTCCGC_L006_R1_006_val_1.fq ILS_2LB_GTCCGC_L004_R2_001_val_2.fq,ILS_2LB_GTCCGC_L004_R2_002_val_2.fq,ILS_2LB_GTCCGC_L004_R2_003_val_2.fq,ILS_2LB_GTCCGC_L004_R2_004_val_2.fq,ILS_2LB_GTCCGC_L004_R2_005_val_2.fq,ILS_2LB_GTCCGC_L004_R2_006_val_2.fq,ILS_2LB_GTCCGC_L005_R2_001_val_2.fq,ILS_2LB_GTCCGC_L005_R2_002_val_2.fq,ILS_2LB_GTCCGC_L005_R2_003_val_2.fq,ILS_2LB_GTCCGC_L005_R2_004_val_2.fq,ILS_2LB_GTCCGC_L005_R2_005_val_2.fq,ILS_2LB_GTCCGC_L005_R2_006_val_2.fq,ILS_2LB_GTCCGC_L006_R2_001_val_2.fq,ILS_2LB_GTCCGC_L006_R2_002_val_2.fq,ILS_2LB_GTCCGC_L006_R2_003_val_2.fq,ILS_2LB_GTCCGC_L006_R2_004_val_2.fq,ILS_2LB_GTCCGC_L006_R2_005_val_2.fq,ILS_2LB_GTCCGC_L006_R2_006_val_2.fq
+
+tophat2 -o /data/Tabastore3/LauraS/LXS/RNA-Seq/totalRNA.24Oct13/alignedReads/ILS3 -p 6 /data/Tabastore3/LauraS/LXS/RNA-Seq/index/mm10.wSpikes ILS_3LB_GTGAAA_L004_R1_001_val_1.fq,ILS_3LB_GTGAAA_L004_R1_002_val_1.fq,ILS_3LB_GTGAAA_L004_R1_003_val_1.fq,ILS_3LB_GTGAAA_L004_R1_004_val_1.fq,ILS_3LB_GTGAAA_L004_R1_005_val_1.fq,ILS_3LB_GTGAAA_L004_R1_006_val_1.fq,ILS_3LB_GTGAAA_L004_R1_007_val_1.fq,ILS_3LB_GTGAAA_L005_R1_001_val_1.fq,ILS_3LB_GTGAAA_L005_R1_002_val_1.fq,ILS_3LB_GTGAAA_L005_R1_003_val_1.fq,ILS_3LB_GTGAAA_L005_R1_004_val_1.fq,ILS_3LB_GTGAAA_L005_R1_005_val_1.fq,ILS_3LB_GTGAAA_L005_R1_006_val_1.fq,ILS_3LB_GTGAAA_L006_R1_001_val_1.fq,ILS_3LB_GTGAAA_L006_R1_002_val_1.fq,ILS_3LB_GTGAAA_L006_R1_003_val_1.fq,ILS_3LB_GTGAAA_L006_R1_004_val_1.fq,ILS_3LB_GTGAAA_L006_R1_005_val_1.fq,ILS_3LB_GTGAAA_L006_R1_006_val_1.fq ILS_3LB_GTGAAA_L004_R2_001_val_2.fq,ILS_3LB_GTGAAA_L004_R2_002_val_2.fq,ILS_3LB_GTGAAA_L004_R2_003_val_2.fq,ILS_3LB_GTGAAA_L004_R2_004_val_2.fq,ILS_3LB_GTGAAA_L004_R2_005_val_2.fq,ILS_3LB_GTGAAA_L004_R2_006_val_2.fq,ILS_3LB_GTGAAA_L004_R2_007_val_2.fq,ILS_3LB_GTGAAA_L005_R2_001_val_2.fq,ILS_3LB_GTGAAA_L005_R2_002_val_2.fq,ILS_3LB_GTGAAA_L005_R2_003_val_2.fq,ILS_3LB_GTGAAA_L005_R2_004_val_2.fq,ILS_3LB_GTGAAA_L005_R2_005_val_2.fq,ILS_3LB_GTGAAA_L005_R2_006_val_2.fq,ILS_3LB_GTGAAA_L006_R2_001_val_2.fq,ILS_3LB_GTGAAA_L006_R2_002_val_2.fq,ILS_3LB_GTGAAA_L006_R2_003_val_2.fq,ILS_3LB_GTGAAA_L006_R2_004_val_2.fq,ILS_3LB_GTGAAA_L006_R2_005_val_2.fq,ILS_3LB_GTGAAA_L006_R2_006_val_2.fq &
+tophat2 -o /data/Tabastore3/LauraS/LXS/RNA-Seq/totalRNA.24Oct13/alignedReads/ISS2 -p 6 /data/Tabastore3/LauraS/LXS/RNA-Seq/index/mm10.wSpikes ISS_2LB_AGTTCC_L004_R1_001_val_1.fq,ISS_2LB_AGTTCC_L004_R1_002_val_1.fq,ISS_2LB_AGTTCC_L004_R1_003_val_1.fq,ISS_2LB_AGTTCC_L004_R1_004_val_1.fq,ISS_2LB_AGTTCC_L004_R1_005_val_1.fq,ISS_2LB_AGTTCC_L004_R1_006_val_1.fq,ISS_2LB_AGTTCC_L004_R1_007_val_1.fq,ISS_2LB_AGTTCC_L004_R1_008_val_1.fq,ISS_2LB_AGTTCC_L005_R1_001_val_1.fq,ISS_2LB_AGTTCC_L005_R1_002_val_1.fq,ISS_2LB_AGTTCC_L005_R1_003_val_1.fq,ISS_2LB_AGTTCC_L005_R1_004_val_1.fq,ISS_2LB_AGTTCC_L005_R1_005_val_1.fq,ISS_2LB_AGTTCC_L005_R1_006_val_1.fq,ISS_2LB_AGTTCC_L005_R1_007_val_1.fq,ISS_2LB_AGTTCC_L005_R1_008_val_1.fq,ISS_2LB_AGTTCC_L006_R1_001_val_1.fq,ISS_2LB_AGTTCC_L006_R1_002_val_1.fq,ISS_2LB_AGTTCC_L006_R1_003_val_1.fq,ISS_2LB_AGTTCC_L006_R1_004_val_1.fq,ISS_2LB_AGTTCC_L006_R1_005_val_1.fq,ISS_2LB_AGTTCC_L006_R1_006_val_1.fq,ISS_2LB_AGTTCC_L006_R1_007_val_1.fq,ISS_2LB_AGTTCC_L006_R1_008_val_1.fq ISS_2LB_AGTTCC_L004_R2_001_val_2.fq,ISS_2LB_AGTTCC_L004_R2_002_val_2.fq,ISS_2LB_AGTTCC_L004_R2_003_val_2.fq,ISS_2LB_AGTTCC_L004_R2_004_val_2.fq,ISS_2LB_AGTTCC_L004_R2_005_val_2.fq,ISS_2LB_AGTTCC_L004_R2_006_val_2.fq,ISS_2LB_AGTTCC_L004_R2_007_val_2.fq,ISS_2LB_AGTTCC_L004_R2_008_val_2.fq,ISS_2LB_AGTTCC_L005_R2_001_val_2.fq,ISS_2LB_AGTTCC_L005_R2_002_val_2.fq,ISS_2LB_AGTTCC_L005_R2_003_val_2.fq,ISS_2LB_AGTTCC_L005_R2_004_val_2.fq,ISS_2LB_AGTTCC_L005_R2_005_val_2.fq,ISS_2LB_AGTTCC_L005_R2_006_val_2.fq,ISS_2LB_AGTTCC_L005_R2_007_val_2.fq,ISS_2LB_AGTTCC_L005_R2_008_val_2.fq,ISS_2LB_AGTTCC_L006_R2_001_val_2.fq,ISS_2LB_AGTTCC_L006_R2_002_val_2.fq,ISS_2LB_AGTTCC_L006_R2_003_val_2.fq,ISS_2LB_AGTTCC_L006_R2_004_val_2.fq,ISS_2LB_AGTTCC_L006_R2_005_val_2.fq,ISS_2LB_AGTTCC_L006_R2_006_val_2.fq,ISS_2LB_AGTTCC_L006_R2_007_val_2.fq,ISS_2LB_AGTTCC_L006_R2_008_val_2.fq &
+tophat2 -o /data/Tabastore3/LauraS/LXS/RNA-Seq/totalRNA.24Oct13/alignedReads/ISS3 -p 6 /data/Tabastore3/LauraS/LXS/RNA-Seq/index/mm10.wSpikes ISS_3LB_ATGTCA_L004_R1_001_val_1.fq,ISS_3LB_ATGTCA_L004_R1_002_val_1.fq,ISS_3LB_ATGTCA_L004_R1_003_val_1.fq,ISS_3LB_ATGTCA_L004_R1_004_val_1.fq,ISS_3LB_ATGTCA_L004_R1_005_val_1.fq,ISS_3LB_ATGTCA_L004_R1_006_val_1.fq,ISS_3LB_ATGTCA_L005_R1_001_val_1.fq,ISS_3LB_ATGTCA_L005_R1_002_val_1.fq,ISS_3LB_ATGTCA_L005_R1_003_val_1.fq,ISS_3LB_ATGTCA_L005_R1_004_val_1.fq,ISS_3LB_ATGTCA_L005_R1_005_val_1.fq,ISS_3LB_ATGTCA_L005_R1_006_val_1.fq,ISS_3LB_ATGTCA_L006_R1_001_val_1.fq,ISS_3LB_ATGTCA_L006_R1_002_val_1.fq,ISS_3LB_ATGTCA_L006_R1_003_val_1.fq,ISS_3LB_ATGTCA_L006_R1_004_val_1.fq,ISS_3LB_ATGTCA_L006_R1_005_val_1.fq,ISS_3LB_ATGTCA_L006_R1_006_val_1.fq ISS_3LB_ATGTCA_L004_R2_001_val_2.fq,ISS_3LB_ATGTCA_L004_R2_002_val_2.fq,ISS_3LB_ATGTCA_L004_R2_003_val_2.fq,ISS_3LB_ATGTCA_L004_R2_004_val_2.fq,ISS_3LB_ATGTCA_L004_R2_005_val_2.fq,ISS_3LB_ATGTCA_L004_R2_006_val_2.fq,ISS_3LB_ATGTCA_L005_R2_001_val_2.fq,ISS_3LB_ATGTCA_L005_R2_002_val_2.fq,ISS_3LB_ATGTCA_L005_R2_003_val_2.fq,ISS_3LB_ATGTCA_L005_R2_004_val_2.fq,ISS_3LB_ATGTCA_L005_R2_005_val_2.fq,ISS_3LB_ATGTCA_L005_R2_006_val_2.fq,ISS_3LB_ATGTCA_L006_R2_001_val_2.fq,ISS_3LB_ATGTCA_L006_R2_002_val_2.fq,ISS_3LB_ATGTCA_L006_R2_003_val_2.fq,ISS_3LB_ATGTCA_L006_R2_004_val_2.fq,ISS_3LB_ATGTCA_L006_R2_005_val_2.fq,ISS_3LB_ATGTCA_L006_R2_006_val_2.fq
+
+
+cd /data/Tabastore3/LauraS/LXS/RNA-Seq/totalRNA.24Oct13/alignedReads
+samtools sort ./ILS1/accepted_hits.bam ILS1.total
+samtools sort ./ILS2/accepted_hits.bam ILS2.total
+samtools sort ./ILS3/accepted_hits.bam ILS3.total
+
+samtools sort ./ISS1/accepted_hits.bam ISS1.total
+samtools sort ./ISS2/accepted_hits.bam ISS2.total
+samtools sort ./ISS3/accepted_hits.bam ISS3.total
+
+
+
+##################################################################################
+##  Consolidating Reads by Strain and Executing a Transcriptome Reconstruction  ##
+##################################################################################
+
+# bowtie version 2.1.0
+# tophat version 2.0.9
+# samtools version 0.1.19.0
+
+export PATH=$HOME/bin:$PATH
+export PYTHONPATH=$HOME/bin:$PYTHONPATH
+
+cd /data/Tabastore3/LauraS/LXS/RNA-Seq/totalRNA.24Oct13/alignedReads
+samtools merge - ILS1.total.bam ILS2.total.bam ILS3.total.bam | samtools sort - ILS.total 
+#cufflinks -u --seed 1110 -p 4 -o /data/Tabastore3/LauraS/BNLx.SHR/RNA-Seq/totalRNA/totalRNA.reconstruction/BNLx.total BNLx.total.bam
+cufflinks -g /data/Tabastore3/LauraS/LXS/RNA-Seq/source/refSeq.mm10.Dec2011.gtf -u --seed 564654 -p 6 -o /data/Tabastore3/LauraS/LXS/RNA-Seq/totalRNA.24Oct13/reconstruction/ILS.total.transGuided ILS.total.bam
+
+cd /data/Tabastore3/LauraS/LXS/RNA-Seq/totalRNA.24Oct13/alignedReads
+samtools merge - ISS1.total.bam ISS2.total.bam ISS3.total.bam | samtools sort - ISS.total 
+#cufflinks -u --seed 1110 -p 8 -o /data/Tabastore3/LauraS/BNLx.SHR/RNA-Seq/totalRNA/totalRNA.reconstruction/SHR.total SHR.total.bam
+cufflinks -g /data/Tabastore3/LauraS/LXS/RNA-Seq/source/refSeq.mm10.Dec2011.gtf -u --seed 564894 -p 6 -o /data/Tabastore3/LauraS/LXS/RNA-Seq/totalRNA.24Oct13/reconstruction/ISS.total.transGuided ISS.total.bam
+
+
+
+
+
+
+
+
+
+
+
+
+
+#######################################
+##  Quantifying Spike In Expression  ##
+#######################################
+
+##  Isolate Synthetic Spike Reads
+
+cd /data/Tabastore3/LauraS/BxH.HxB.Rats/RNA-Seq/
+samtools view ./alignedReads/HXB25_1/accepted_hits.bam | awk '$3!~"chr"' - > ./alignedReads/HXB25_1/spikeOnly.sam 
+samtools view ./alignedReads/HXB25_2/accepted_hits.bam | awk '$3!~"chr"' - > ./alignedReads/HXB25_2/spikeOnly.sam 
+samtools view ./alignedReads/HXB25_3/accepted_hits.bam | awk '$3!~"chr"' - > ./alignedReads/HXB25_3/spikeOnly.sam 
+
+samtools view ./alignedReads/HXB2_1/accepted_hits.bam | awk '$3!~"chr"' - > ./alignedReads/HXB2_1/spikeOnly.sam 
+samtools view ./alignedReads/HXB2_2/accepted_hits.bam | awk '$3!~"chr"' - > ./alignedReads/HXB2_2/spikeOnly.sam 
+samtools view ./alignedReads/HXB2_3/accepted_hits.bam | awk '$3!~"chr"' - > ./alignedReads/HXB2_3/spikeOnly.sam 
+
+
+cd /data/Tabastore3/LauraS/BxH.HxB.Rats/RNA-Seq/
+cufflinks -p 2 -o ./spikeCounts/HXB25_1 -b ./index/SHR_rn5_Genome.wSpikes.fa -u -G ./spikeSource/ERCC92.none.gtf ./alignedReads/HXB25_1/spikeOnly.sam
+cufflinks -p 2 -o ./spikeCounts/HXB25_2 -b ./index/SHR_rn5_Genome.wSpikes.fa -u -G ./spikeSource/ERCC92.none.gtf ./alignedReads/HXB25_2/spikeOnly.sam
+cufflinks -p 2 -o ./spikeCounts/HXB25_3 -b ./index/SHR_rn5_Genome.wSpikes.fa -u -G ./spikeSource/ERCC92.none.gtf ./alignedReads/HXB25_3/spikeOnly.sam
+
+cufflinks -p 2 -o ./spikeCounts/HXB2_1 -b ./index/SHR_rn5_Genome.wSpikes.fa -u -G ./spikeSource/ERCC92.none.gtf ./alignedReads/HXB2_1/spikeOnly.sam
+cufflinks -p 2 -o ./spikeCounts/HXB2_2 -b ./index/SHR_rn5_Genome.wSpikes.fa -u -G ./spikeSource/ERCC92.none.gtf ./alignedReads/HXB2_2/spikeOnly.sam
+cufflinks -p 2 -o ./spikeCounts/HXB2_3 -b ./index/SHR_rn5_Genome.wSpikes.fa -u -G ./spikeSource/ERCC92.none.gtf ./alignedReads/HXB2_3/spikeOnly.sam
+
+
+samtools view -bT ./index/rn5.wSpikes.fa ./alignedReads/HXB25_1/spikeOnly.sam | genomeCoverageBed -d -split -strand - -ibam stdin | sort - > ./spikeCounts/spikeInCoverage.HXB25_1.txt
+samtools view -bT ./index/rn5.wSpikes.fa ./alignedReads/HXB25_2/spikeOnly.sam | genomeCoverageBed -d -split -strand - -ibam stdin | sort - > ./spikeCounts/spikeInCoverage.HXB25_2.txt
+samtools view -bT ./index/rn5.wSpikes.fa ./alignedReads/HXB25_3/spikeOnly.sam | genomeCoverageBed -d -split -strand - -ibam stdin | sort - > ./spikeCounts/spikeInCoverage.HXB25_3.txt
+
+
+awk '{if($2==16) print $3}' ./alignedReads/HXB25_1/spikeOnly.sam | sort - | uniq -c > ./spikeCounts/readCounts.spikes.HXB25_1.txt
+awk '{if($2==16) print $3}' ./alignedReads/HXB25_2/spikeOnly.sam | sort - | uniq -c > ./spikeCounts/readCounts.spikes.HXB25_2.txt
+awk '{if($2==16) print $3}' ./alignedReads/HXB25_3/spikeOnly.sam | sort - | uniq -c > ./spikeCounts/readCounts.spikes.HXB25_3.txt
+
+awk '{if($2==16) print $3}' ./alignedReads/HXB2_1/spikeOnly.sam | sort - | uniq -c > ./spikeCounts/readCounts.spikes.HXB2_1.txt
+awk '{if($2==16) print $3}' ./alignedReads/HXB2_2/spikeOnly.sam | sort - | uniq -c > ./spikeCounts/readCounts.spikes.HXB2_2.txt
+awk '{if($2==16) print $3}' ./alignedReads/HXB2_3/spikeOnly.sam | sort - | uniq -c > ./spikeCounts/readCounts.spikes.HXB2_3.txt
+
+
+
+##  number of aligned reads  ##
+samtools view -F 0X100 ./alignedReads/HXB25_1/accepted_hits.bam | wc -l 
+samtools view -F 0X100 ./alignedReads/HXB25_2/accepted_hits.bam | wc -l 
+samtools view -F 0X100 ./alignedReads/HXB25_3/accepted_hits.bam | wc -l 
+
+samtools view -F 0X100 ./alignedReads/HXB25_1/spikeOnly.sam | wc -l
+
+####################################
+##  Transcriptome Reconstruction  ##
+####################################
+
+ 
+
