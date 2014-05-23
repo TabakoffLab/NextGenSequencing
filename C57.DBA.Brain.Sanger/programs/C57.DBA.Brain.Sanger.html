@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<!-- saved from url=(0014)about:internet -->
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=9" >
+
+<title>RNA-Seq Analysis of C57 vs DBA from Sanger Institute </title>
+
+<style type="text/css">
+body, td {
+   font-family: sans-serif;
+   background-color: white;
+   font-size: 12px;
+   margin: 8px;
+}
+
+tt, code, pre {
+   font-family: 'DejaVu Sans Mono', 'Droid Sans Mono', 'Lucida Console', Consolas, Monaco, monospace;
+}
+
+h1 { 
+   font-size:2.2em; 
+}
+
+h2 { 
+   font-size:1.8em; 
+}
+
+h3 { 
+   font-size:1.4em; 
+}
+
+h4 { 
+   font-size:1.0em; 
+}
+
+h5 { 
+   font-size:0.9em; 
+}
+
+h6 { 
+   font-size:0.8em; 
+}
+
+a:visited {
+   color: rgb(50%, 0%, 50%);
+}
+
+pre {	
+   margin-top: 0;
+   max-width: 95%;
+   border: 1px solid #ccc;
+   white-space: pre-wrap;
+}
+
+pre code {
+   display: block; padding: 0.5em;
+}
+
+code.r, code.cpp {
+   background-color: #F8F8F8;
+}
+
+table, td, th {
+  border: none;
+}
+
+blockquote {
+   color:#666666;
+   margin:0;
+   padding-left: 1em;
+   border-left: 0.5em #EEE solid;
+}
+
+hr {
+   height: 0px;
+   border-bottom: none;
+   border-top-width: thin;
+   border-top-style: dotted;
+   border-top-color: #999999;
+}
+
+@media print {
+   * { 
+      background: transparent !important; 
+      color: black !important; 
+      filter:none !important; 
+      -ms-filter: none !important; 
+   }
+
+   body { 
+      font-size:12pt; 
+      max-width:100%; 
+   }
+       
+   a, a:visited { 
+      text-decoration: underline; 
+   }
+
+   hr { 
+      visibility: hidden;
+      page-break-before: always;
+   }
+
+   pre, blockquote { 
+      padding-right: 1em; 
+      page-break-inside: avoid; 
+   }
+
+   tr, img { 
+      page-break-inside: avoid; 
+   }
+
+   img { 
+      max-width: 100% !important; 
+   }
+
+   @page :left { 
+      margin: 15mm 20mm 15mm 10mm; 
+   }
+     
+   @page :right { 
+      margin: 15mm 10mm 15mm 20mm; 
+   }
+
+   p, h2, h3 { 
+      orphans: 3; widows: 3; 
+   }
+
+   h2, h3 { 
+      page-break-after: avoid; 
+   }
+}
+
+</style>
+
+
+
+
+
+</head>
+
+<body>
+<h1>RNA-Seq Analysis of C57 vs DBA from Sanger Institute </h1>
+
+<p>Data were downloaded from the European Nucleotide Archive (ENA).  Paired-end reads (76X2)</p>
+
+<h2>Download Data</h2>
+
+<pre><code>#two DBA samples
+wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR033/ERR033015/ERR033015_1.fastq.gz
+wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR033/ERR033015/ERR033015_2.fastq.gz
+wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR033/ERR033016/ERR033016_1.fastq.gz
+wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR033/ERR033016/ERR033016_2.fastq.gz
+#two C57 samples
+wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR033/ERR033006/ERR033006_1.fastq.gz
+wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR033/ERR033006/ERR033006_2.fastq.gz
+wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR033/ERR033006/ERR033007_1.fastq.gz
+wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR033/ERR033006/ERR033007_2.fastq.gz
+</code></pre>
+
+<h2>Unzip files</h2>
+
+<pre><code>qsub -q smp-q /home/saba/C57.DBA.Brain.Sanger/programs/unzip.yucca.sh
+</code></pre>
+
+<h2>Determine number of reads sent for each sample</h2>
+
+<pre><code>qsub -q smp-q /home/saba/C57.DBA.Brain.Sanger/programs/rawReadCounts.sh
+</code></pre>
+
+<h3>Raw Reads/Read Fragments From Sanger Institute</h3>
+
+<table><thead>
+<tr>
+<th align="center">sample</th>
+<th align="center">strain</th>
+<th align="center">numPairedReads</th>
+<th align="center">numReadFragments</th>
+</tr>
+</thead><tbody>
+<tr>
+<td align="center">C571</td>
+<td align="center">C57</td>
+<td align="center">35,752,923</td>
+<td align="center">71,505,846</td>
+</tr>
+<tr>
+<td align="center">C572</td>
+<td align="center">C57</td>
+<td align="center">40,940,770</td>
+<td align="center">81,881,540</td>
+</tr>
+<tr>
+<td align="center">DBA1</td>
+<td align="center">DBA</td>
+<td align="center">25,912,031</td>
+<td align="center">51,824,062</td>
+</tr>
+<tr>
+<td align="center">DBA2</td>
+<td align="center">DBA</td>
+<td align="center">31,275,311</td>
+<td align="center">62,550,622</td>
+</tr>
+</tbody></table>
+
+<h2>Trim Reads for Adaptors and for Quality</h2>
+
+<pre><code>qsub -q smp-q /home/saba/C57.DBA.Brain.Sanger/programs/trimReads.sh
+qsub -q smp-q /home/saba/C57.DBA.Brain.Sanger/programs/trimReads.v2.sh
+</code></pre>
+
+<h2>Characterize Trimmed Reads</h2>
+
+<pre><code>qsub -q smp-q /home/saba/C57.DBA.Brain.Sanger/programs/countTrimmed.sh
+</code></pre>
+
+<h3>Effect of Trimming Adaptors and Poor Quality Base Calls</h3>
+
+<table><thead>
+<tr>
+<th align="center">sample</th>
+<th align="center">strain</th>
+<th align="center">num of paired end reads</th>
+<th align="center">num of read fragments</th>
+<th align="center">avg trimmed read fragment length</th>
+<th align="center">num of read fragments after trimming</th>
+<th align="center">perc of read fragments eliminated during trimming</th>
+</tr>
+</thead><tbody>
+<tr>
+<td align="center">C571</td>
+<td align="center">C57</td>
+<td align="center">35,752,923</td>
+<td align="center">71,505,846</td>
+<td align="center">72.89</td>
+<td align="center">69,014,508</td>
+<td align="center">0.035%</td>
+</tr>
+<tr>
+<td align="center">C572</td>
+<td align="center">C57</td>
+<td align="center">40,940,770</td>
+<td align="center">81,881,540</td>
+<td align="center">71.80</td>
+<td align="center">77,291,488</td>
+<td align="center">0.056%</td>
+</tr>
+<tr>
+<td align="center">DBA1</td>
+<td align="center">DBA</td>
+<td align="center">25,912,031</td>
+<td align="center">51,824,062</td>
+<td align="center">74.01</td>
+<td align="center">51,018,388</td>
+<td align="center">0.016%</td>
+</tr>
+<tr>
+<td align="center">DBA2</td>
+<td align="center">DBA</td>
+<td align="center">31,275,311</td>
+<td align="center">62,550,622</td>
+<td align="center">73.73</td>
+<td align="center">60,763,532</td>
+<td align="center">0.029%</td>
+</tr>
+</tbody></table>
+
+<h2>Create Bowtie2 Index without spikes</h2>
+
+<pre><code>cd /data/Tabastore3/LauraS/index
+cat /data/Tabastore3/LauraS/BXD/RNA-Seq/GeneNetwork/index/mm10.revised.wo.chrY.fa /data/Tabastore3/LauraS/BXD/RNA-Seq/GeneNetwork/index/mm10.revised.chrY.v2.fa &gt; mm10.cleaned.v1.fa
+awk &#39;{if($1~&quot;&gt;&quot;) print $1; else print $0}&#39; mm10.cleaned.v1.fa &gt; mm10.cleaned.fa
+</code></pre>
+
+<pre><code>qsub -q smp-q /home/saba/C57.DBA.Brain.Sanger/programs/createBowtie2Index.sh
+</code></pre>
+
+<h4>Code from createBowtie2Index.sh</h4>
+
+<pre><code>#!/bin/bash
+module add bio/bowtie2
+bowtie2-build /home/saba/index/mm10.cleaned.fa /home/saba/index/mm10.cleaned
+</code></pre>
+
+<h2>Alignment of Raw Reads to Reference Genome</h2>
+
+<pre><code>qsub -q smp-q /home/saba/C57.DBA.Brain.Sanger/programs/tophatAlign.sh
+</code></pre>
+
+<h4>Code from tophatAlign.sh</h4>
+
+<pre><code>#!/bin/bash
+module add bio/bowtie2
+module add bio/tophat
+tophat2 -o /home/saba/C57.DBA.Brain.Sanger/alignedReads/C571 -p 16 /home/saba/index/mm10.cleaned /home/saba/C57.DBA.Brain.Sanger/trimmedReads/ERR033006_1_val_1.fq /home/saba/C57.DBA.Brain.Sanger/trimmedReads/ERR033006_2_val_2.fq
+tophat2 -o /home/saba/C57.DBA.Brain.Sanger/alignedReads/C572 -p 16 /home/saba/index/mm10.cleaned /home/saba/C57.DBA.Brain.Sanger/trimmedReads/ERR033007_1_val_1.fq /home/saba/C57.DBA.Brain.Sanger/trimmedReads/ERR033007_2_val_2.fq
+tophat2 -o /home/saba/C57.DBA.Brain.Sanger/alignedReads/DBA1 -p 16 /home/saba/index/mm10.cleaned /home/saba/C57.DBA.Brain.Sanger/trimmedReads/ERR033015_1_val_1.fq /home/saba/C57.DBA.Brain.Sanger/trimmedReads/ERR033015_2_val_2.fq
+tophat2 -o /home/saba/C57.DBA.Brain.Sanger/alignedReads/DBA2 -p 16 /home/saba/index/mm10.cleaned /home/saba/C57.DBA.Brain.Sanger/trimmedReads/ERR033016_1_val_1.fq /home/saba/C57.DBA.Brain.Sanger/trimmedReads/ERR033016_2_val_2.fq
+</code></pre>
+
+<h2>Characterization of Aligned Reads</h2>
+
+<table><thead>
+<tr>
+<th align="center">Label</th>
+<th align="center">C571</th>
+<th align="center">C571.pct</th>
+<th align="center">C572</th>
+<th align="center">C572.pct</th>
+<th align="center">DBA1</th>
+<th align="center">DBA1.pct</th>
+<th align="center">DBA2</th>
+<th align="center">DBA2.pct</th>
+</tr>
+</thead><tbody>
+<tr>
+<td align="center">number of paired-end reads</td>
+<td align="center">34,507,254</td>
+<td align="center">100.00%</td>
+<td align="center">38,645,744</td>
+<td align="center">100.00%</td>
+<td align="center">25,509,194</td>
+<td align="center">100.00%</td>
+<td align="center">30,381,766</td>
+<td align="center">100.00%</td>
+</tr>
+<tr>
+<td align="center">number of left reads mapped to genome</td>
+<td align="center">28,515,644</td>
+<td align="center">82.64%</td>
+<td align="center">31,512,205</td>
+<td align="center">81.54%</td>
+<td align="center">22,800,619</td>
+<td align="center">89.38%</td>
+<td align="center">27,131,493</td>
+<td align="center">89.30%</td>
+</tr>
+<tr>
+<td align="center">number of right reads mapped to genome</td>
+<td align="center">27,878,050</td>
+<td align="center">80.79%</td>
+<td align="center">30,498,465</td>
+<td align="center">78.92%</td>
+<td align="center">22,574,292</td>
+<td align="center">88.49%</td>
+<td align="center">26,907,822</td>
+<td align="center">88.57%</td>
+</tr>
+<tr>
+<td align="center">number of mapped left reads with multiple alignments</td>
+<td align="center">2,871,541</td>
+<td align="center">8.32%</td>
+<td align="center">3,211,704</td>
+<td align="center">8.31%</td>
+<td align="center">4,077,575</td>
+<td align="center">15.98%</td>
+<td align="center">4,858,006</td>
+<td align="center">15.99%</td>
+</tr>
+<tr>
+<td align="center">number of mapped right reads with multiple alignments</td>
+<td align="center">2,822,002</td>
+<td align="center">8.18%</td>
+<td align="center">3,127,193</td>
+<td align="center">8.09%</td>
+<td align="center">4,028,573</td>
+<td align="center">15.79%</td>
+<td align="center">4,819,571</td>
+<td align="center">15.86%</td>
+</tr>
+<tr>
+<td align="center">number of mapped left reads with more than 20 alignments</td>
+<td align="center">297,390</td>
+<td align="center">0.86%</td>
+<td align="center">327,869</td>
+<td align="center">0.85%</td>
+<td align="center">226,284</td>
+<td align="center">0.89%</td>
+<td align="center">335,718</td>
+<td align="center">1.10%</td>
+</tr>
+<tr>
+<td align="center">number of mapped right reads with more than 20 alignments</td>
+<td align="center">297,395</td>
+<td align="center">0.86%</td>
+<td align="center">327,877</td>
+<td align="center">0.85%</td>
+<td align="center">226,282</td>
+<td align="center">0.89%</td>
+<td align="center">335,720</td>
+<td align="center">1.11%</td>
+</tr>
+<tr>
+<td align="center">number of mapped read pairs</td>
+<td align="center">23,922,052</td>
+<td align="center">69.32%</td>
+<td align="center">25,746,958</td>
+<td align="center">66.62%</td>
+<td align="center">21,192,965</td>
+<td align="center">83.08%</td>
+<td align="center">25,238,269</td>
+<td align="center">83.07%</td>
+</tr>
+<tr>
+<td align="center">number of mapped read pairs with multiple alignments</td>
+<td align="center">2,562,374</td>
+<td align="center">7.43%</td>
+<td align="center">2,825,503</td>
+<td align="center">7.31%</td>
+<td align="center">3,732,475</td>
+<td align="center">14.63%</td>
+<td align="center">4,489,957</td>
+<td align="center">14.78%</td>
+</tr>
+<tr>
+<td align="center">number of mapped read pairs with discordant alignments</td>
+<td align="center">4,061,389</td>
+<td align="center">11.77%</td>
+<td align="center">4,863,369</td>
+<td align="center">12.58%</td>
+<td align="center">2,810,656</td>
+<td align="center">11.02%</td>
+<td align="center">3,516,264</td>
+<td align="center">11.57%</td>
+</tr>
+</tbody></table>
+
+<h2>Sort and Merge Aligned Reads By Strain</h2>
+
+<pre><code>qsub -q smp-q /home/saba/C57.DBA.Brain.Sanger/programs/sortAndMerge.sh
+</code></pre>
+
+<h2>Strain-Specific Transcriptome Reconstruction</h2>
+
+<pre><code>qsub -q smp-q /home/saba/C57.DBA.Brain.Sanger/programs/reconstruction.sh
+</code></pre>
+
+<h2>Merge Strain-Specific Transcriptomes</h2>
+
+<h2>Quantify Individual Samples</h2>
+
+<h2>Assess differential expression</h2>
+
+</body>
+
+</html>
+

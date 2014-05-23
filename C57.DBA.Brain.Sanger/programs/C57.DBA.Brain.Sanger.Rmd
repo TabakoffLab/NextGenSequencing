@@ -1,0 +1,242 @@
+RNA-Seq Analysis of C57 vs DBA from Sanger Institute 
+========================================================
+
+Data were downloaded from the European Nucleotide Archive (ENA).  Paired-end reads (76X2)
+
+## Download Data
+```
+#two DBA samples
+wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR033/ERR033015/ERR033015_1.fastq.gz
+wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR033/ERR033015/ERR033015_2.fastq.gz
+wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR033/ERR033016/ERR033016_1.fastq.gz
+wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR033/ERR033016/ERR033016_2.fastq.gz
+#two C57 samples
+wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR033/ERR033006/ERR033006_1.fastq.gz
+wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR033/ERR033006/ERR033006_2.fastq.gz
+wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR033/ERR033006/ERR033007_1.fastq.gz
+wget ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR033/ERR033006/ERR033007_2.fastq.gz
+```
+
+## Unzip files
+```
+qsub -q smp-q /home/saba/C57.DBA.Brain.Sanger/programs/unzip.yucca.sh
+```
+
+## Determine number of reads sent for each sample
+
+```
+qsub -q smp-q /home/saba/C57.DBA.Brain.Sanger/programs/rawReadCounts.sh
+```
+
+```{r,echo=FALSE}
+rm(list=ls())
+options(stringsAsFactors=FALSE)
+setwd("/Volumes/LauraS/BXD/RNA-Seq/Sanger/")
+rawCounts = read.table(file="data/rawInfo.C57.DBA.Brain.Sanger.29Apr14.txt",sep="\t",header=FALSE,fill=TRUE)
+rawCounts$readFrag = as.numeric(rawCounts$V3)
+rawCounts$strain = NA
+rawCounts$strain[grep("C57",rawCounts$V1)] = "C57"
+rawCounts$strain[grep("DBA",rawCounts$V1)] = "DBA"
+rawCounts$sample = rawCounts$V1
+
+readFragments = aggregate(rawCounts$readFrag,by=list(sample=rawCounts$sample,strain=rawCounts$strain),sum)
+readFragments$numPairedReads = prettyNum(readFragments$x/2,big.mark=",",scientific=FALSE)
+readFragments$numReadFragments = prettyNum(readFragments$x,big.mark=",",scientific=FALSE)
+
+readFragments=readFragments[,colnames(readFragments)!="x"]
+```
+
+### Raw Reads/Read Fragments From Sanger Institute
+
+```{r, results='asis',echo=FALSE}
+kable(readFragments,align=rep("c",ncol(readFragments)))
+```
+
+## Trim Reads for Adaptors and for Quality 
+
+```
+qsub -q smp-q /home/saba/C57.DBA.Brain.Sanger/programs/trimReads.sh
+qsub -q smp-q /home/saba/C57.DBA.Brain.Sanger/programs/trimReads.v2.sh
+```
+
+## Characterize Trimmed Reads 
+
+```
+qsub -q smp-q /home/saba/C57.DBA.Brain.Sanger/programs/countTrimmed.sh
+```
+
+```{r, echo=FALSE}
+setwd("/Volumes/LauraS/BXD/RNA-Seq/Sanger/")
+trimmed = read.table(file="data/trimmedInfo.C57.DBA.Brain.Sanger.29Apr14.txt",sep="\t",header=FALSE,row.names=1)
+trimmed$avgTrimmedReadLength = sprintf("%.2f", round(trimmed$V2,2),digits=4)
+trimmed$numTrimmedReadFragments = prettyNum(trimmed$V3,big.mark=",",scientific=FALSE)
+rownames(trimmed) = gsub(" ","",rownames(trimmed))
+readFragments$sample = gsub(" ","",readFragments$sample)
+
+fullTable = merge(readFragments,trimmed,by.x="sample",by.y=0)
+fullTable = fullTable[,!(colnames(fullTable) %in% c("V2","V3"))]
+fullTable$pctRemovedByTrimming = paste(prettyNum(1-(as.numeric(gsub(",","",fullTable$numTrimmedReadFragments))/as.numeric(gsub(",","",fullTable$numReadFragments))),digits=2),"%",sep="")
+
+colnames(fullTable) = c("sample","strain","num of paired end reads","num of read fragments","avg trimmed read fragment length","num of read fragments after trimming","perc of read fragments eliminated during trimming")
+```
+
+### Effect of Trimming Adaptors and Poor Quality Base Calls
+
+```{r, results='asis',echo=FALSE}
+kable(fullTable,align=rep("c",ncol(fullTable)))
+```
+
+
+## Create Bowtie2 Index without spikes
+
+```
+cd /data/Tabastore3/LauraS/index
+cat /data/Tabastore3/LauraS/BXD/RNA-Seq/GeneNetwork/index/mm10.revised.wo.chrY.fa /data/Tabastore3/LauraS/BXD/RNA-Seq/GeneNetwork/index/mm10.revised.chrY.v2.fa > mm10.cleaned.v1.fa
+awk '{if($1~">") print $1; else print $0}' mm10.cleaned.v1.fa > mm10.cleaned.fa
+```
+
+```
+qsub -q smp-q /home/saba/C57.DBA.Brain.Sanger/programs/createBowtie2Index.sh
+```
+
+#### Code from createBowtie2Index.sh
+```
+#!/bin/bash
+module add bio/bowtie2
+bowtie2-build /home/saba/index/mm10.cleaned.fa /home/saba/index/mm10.cleaned
+```
+
+## Alignment of Raw Reads to Reference Genome
+
+```
+qsub -q smp-q /home/saba/C57.DBA.Brain.Sanger/programs/tophatAlign.sh
+```
+
+#### Code from tophatAlign.sh
+```
+#!/bin/bash
+module add bio/bowtie2
+module add bio/tophat
+tophat2 -o /home/saba/C57.DBA.Brain.Sanger/alignedReads/C571 -p 16 /home/saba/index/mm10.cleaned /home/saba/C57.DBA.Brain.Sanger/trimmedReads/ERR033006_1_val_1.fq /home/saba/C57.DBA.Brain.Sanger/trimmedReads/ERR033006_2_val_2.fq
+tophat2 -o /home/saba/C57.DBA.Brain.Sanger/alignedReads/C572 -p 16 /home/saba/index/mm10.cleaned /home/saba/C57.DBA.Brain.Sanger/trimmedReads/ERR033007_1_val_1.fq /home/saba/C57.DBA.Brain.Sanger/trimmedReads/ERR033007_2_val_2.fq
+tophat2 -o /home/saba/C57.DBA.Brain.Sanger/alignedReads/DBA1 -p 16 /home/saba/index/mm10.cleaned /home/saba/C57.DBA.Brain.Sanger/trimmedReads/ERR033015_1_val_1.fq /home/saba/C57.DBA.Brain.Sanger/trimmedReads/ERR033015_2_val_2.fq
+tophat2 -o /home/saba/C57.DBA.Brain.Sanger/alignedReads/DBA2 -p 16 /home/saba/index/mm10.cleaned /home/saba/C57.DBA.Brain.Sanger/trimmedReads/ERR033016_1_val_1.fq /home/saba/C57.DBA.Brain.Sanger/trimmedReads/ERR033016_2_val_2.fq
+```
+
+## Characterization of Aligned Reads
+```{r,echo=FALSE}
+sampleList=c("C571","C572","DBA1","DBA2")
+
+alignStats = c()
+for(i in sampleList){
+  x = read.table(file=paste("/Volumes/LauraS/BXD/RNA-Seq/Sanger/alignedReads/",i,"/align_summary.txt",sep=""),sep="\t",header=FALSE)
+  sample = i
+  numReads = as.numeric(gsub(":","",gsub("Input","",x[2,1])))  
+  mappedLeft = as.numeric(gsub(":","",gsub("Mapped","",unlist(lapply(strsplit(x[3,1],split="(",fixed=TRUE),function(a) a[1])))))
+  mappedRight = as.numeric(gsub(":","",gsub("Mapped","",unlist(lapply(strsplit(x[7,1],split="(",fixed=TRUE),function(a) a[1])))))
+  multiLeft = as.numeric(gsub("of these: ","",unlist(lapply(strsplit(x[4,1],split="(",fixed=TRUE),function(a) a[1]))))
+  multiRight = as.numeric(gsub("of these: ","",unlist(lapply(strsplit(x[8,1],split="(",fixed=TRUE),function(a) a[1]))))
+  lotsLeft = as.numeric(gsub(" have >20)","",unlist(lapply(strsplit(x[4,1],split="(",fixed=TRUE),function(a) a[3]))))
+  lotsRight = as.numeric(gsub(" have >20)","",unlist(lapply(strsplit(x[8,1],split="(",fixed=TRUE),function(a) a[3]))))
+  mappedPairs = as.numeric(gsub("Aligned pairs: ","",x[10,1]))  
+  multiPairs = as.numeric(gsub("of these: ","",unlist(lapply(strsplit(x[11,1],split="(",fixed=TRUE),function(a) a[1]))))
+  discordPairs = as.numeric(gsub("and: ","",unlist(lapply(strsplit(x[12,1],split="(",fixed=TRUE),function(a) a[1]))))
+
+  alignStats = rbind(alignStats,data.frame(sample,numReads,mappedLeft,mappedRight,multiLeft,multiRight,lotsLeft,lotsRight,mappedPairs,multiPairs,discordPairs))
+}
+
+alignTable = data.frame(t(alignStats))
+colnames(alignTable) = alignTable[1,]
+alignTable = alignTable[-1,]
+alignTable$C571.pct = as.numeric(alignTable$C571)/as.numeric(alignTable["numReads","C571"])
+alignTable$C572.pct = as.numeric(alignTable$C572)/as.numeric(alignTable["numReads","C572"])
+alignTable$DBA1.pct = as.numeric(alignTable$DBA1)/as.numeric(alignTable["numReads","DBA1"])
+alignTable$DBA2.pct = as.numeric(alignTable$DBA2)/as.numeric(alignTable["numReads","DBA2"])
+
+## format numbers
+alignTable$C571 = prettyNum(alignTable$C571,big.mark=",",scientific=FALSE)
+alignTable$C572 = prettyNum(alignTable$C572,big.mark=",",scientific=FALSE)
+alignTable$DBA1 = prettyNum(alignTable$DBA1,big.mark=",",scientific=FALSE)
+alignTable$DBA2 = prettyNum(alignTable$DBA2,big.mark=",",scientific=FALSE)
+alignTable$C571.pct = paste(sprintf("%.2f", round(alignTable$C571.pct*100,2)),"%",sep="")
+alignTable$C572.pct = paste(sprintf("%.2f", round(alignTable$C572.pct*100,2)),"%",sep="")
+alignTable$DBA1.pct = paste(sprintf("%.2f", round(alignTable$DBA1.pct*100,2)),"%",sep="")
+alignTable$DBA2.pct = paste(sprintf("%.2f", round(alignTable$DBA2.pct*100,2)),"%",sep="")
+
+## add labels
+labels = read.table(file="/Volumes/LauraS/NextGenSeq/misc/alignLabels.txt",sep="\t",header=TRUE)
+alignTable = merge(labels,alignTable,by.x="var",by.y=0)
+alignTable = alignTable[order(alignTable$orderNum),]
+alignTable = alignTable[,c("Label",paste(rep(sampleList,each=2),c("",".pct"),sep=""))]
+```
+
+```{r, results='asis',echo=FALSE}
+kable(alignTable,align=rep("c",ncol(alignTable)),row.names=FALSE)
+```
+
+## Sort and Merge Aligned Reads By Strain 
+```
+qsub -q smp-q /home/saba/C57.DBA.Brain.Sanger/programs/sortAndMerge.sh
+```
+
+## Make Strain-Specific BedGraph Files
+```
+qsub -q smp /home/saba/C57.DBA.Brain.Sanger/programs/makeBedGraph.sh
+qsub -q smp /home/saba/C57.DBA.Brain.Sanger/programs/makeBigWig.v2.sh
+```
+
+
+## Strain-Specific Transcriptome Reconstruction
+```
+qsub -q smp-q /home/saba/C57.DBA.Brain.Sanger/programs/reconstruction.sh
+```
+
+## Merge Strain-Specific Transcriptomes
+
+## Quantify Individual Samples
+```
+qsub -q smp /home/saba/C57.DBA.Brain.Sanger/programs/sailFish.quant.refSeq.sh
+```
+## Assess differential expression
+
+```{r}
+rm(list=ls())
+options(stringsAsFactors=FALSE)
+setwd("/Volumes/LauraS/BXD/RNA-Seq/Sanger")
+
+C571.count = read.table(file="quantification/sailFish.FINAL/C571/quant_bias_corrected.sf",sep="\t",header=FALSE)
+C572.count = read.table(file="quantification/sailFish.FINAL/C572/quant_bias_corrected.sf",sep="\t",header=FALSE)
+DBA1.count = read.table(file="quantification/sailFish.FINAL/DBA1/quant_bias_corrected.sf",sep="\t",header=FALSE)
+DBA2.count = read.table(file="quantification/sailFish.FINAL/DBA2/quant_bias_corrected.sf",sep="\t",header=FALSE)
+
+colnames(C571.count) = c("transcript","length",paste("C571",c("TPM","RPKM","KPKM","EstNumKmers","EstNumReads"),sep="."))
+colnames(C572.count) = c("transcript","length",paste("C572",c("TPM","RPKM","KPKM","EstNumKmers","EstNumReads"),sep="."))
+colnames(DBA1.count) = c("transcript","length",paste("DBA1",c("TPM","RPKM","KPKM","EstNumKmers","EstNumReads"),sep="."))
+colnames(DBA2.count) = c("transcript","length",paste("DBA2",c("TPM","RPKM","KPKM","EstNumKmers","EstNumReads"),sep="."))
+
+counts = merge(C571.count,C572.count,by=c("transcript","length"))
+counts = merge(counts,DBA1.count,by=c("transcript","length"))
+counts = merge(counts,DBA2.count,by=c("transcript","length"))
+
+library(limma)
+
+estCounts = counts[,grep("EstNumReads",colnames(counts))]
+rownames(estCounts) = counts$transcript
+strain = as.factor(c("C57","C57","DBA","DBA"))
+design = model.matrix(~ -1 + strain)
+
+voomed.librarySize = voom(estCounts,design=design,normalize.method="none")
+
+contrast.matrix = makeContrasts(strainC57 - strainDBA,levels=design)
+fit = lmFit(voomed.librarySize$E,design=design,weights=voomed.librarySize$weights)
+contrast.results = contrasts.fit(fit,contrasts=contrast.matrix)
+eBayes.results = eBayes(contrast.results)
+
+results = data.frame(cbind(counts$transcript,eBayes.results$coefficients,eBayes.results$p.value))
+colnames(results) = c("transcript_id","diff","pvalue")
+
+goiRNASeq = read.table(file="data/goi.RNASeq.txt",sep="\t",header=TRUE)
+goi.results = merge(goiRNASeq,results,by="transcript_id")
+
+goi.results$diff = 
+```

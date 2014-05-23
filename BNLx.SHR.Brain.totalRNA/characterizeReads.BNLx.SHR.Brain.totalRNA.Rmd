@@ -55,4 +55,7 @@ cd /data/Users/hi-seq/BNLx.SHR.Brain-totalRNA-Jul2012/rawReads
 gzip Sample_H1/*.fastq
 
 
+qsub -q smp-q /home/saba/BNLx.SHR.Brain.totalRNA/programs/SHR.totalRNA.reconstruction.sh
+
+
 

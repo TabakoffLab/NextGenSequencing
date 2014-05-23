@@ -22,7 +22,7 @@ wc -l *.fastq > /data/Tabastore3/LauraS/BNLx.SHR/RNA-Seq.Liver/data/numberReads.
 ```{r}
 rm(list=ls())
 options(stringsAsFactors=FALSE)
-setwd("/Volumes/LauraS/BNLx.SHR/RNA-Seq.Liver/data/")
+setwd("/Volumes/LauraS/BNLx.SHR/RNA-Seq.Liver/totalRNA.Beckman/data/")
 rawCounts = read.table(file="numberReads.BNLx.SHR.Liver.25Mar14.txt",sep=" ",header=FALSE,fill=TRUE)
 rawCounts = rawCounts[is.na(rawCounts$V2),]
 rawCounts$readFrag = as.numeric(rawCounts$V3)/4
@@ -58,7 +58,7 @@ awk  '/@HWI/ {getline; print length($0)}' SHR*.fq | awk '{sum+=$1} END { print "
 ```{r}
 rm(list=ls())
 options(stringsAsFactors=FALSE)
-setwd("/Volumes/LauraS/BNLx.SHR/RNA-Seq.Liver/data/")
+setwd("/Volumes/LauraS/BNLx.SHR/RNA-Seq.Liver/totalRNA.Beckman/data/")
 trimmed = read.table(file="trimmedInfo.BNLx.SHR.Liver.25Mar14.txt",sep="\t",header=FALSE,row.names=1)
 ```
 
@@ -104,50 +104,67 @@ tophat2 --library-type fr-firststrand -o /home/saba/BNLx.SHR.Liver.totalRNA.Beck
 7.  Characterization of Aligned Reads
 ---------------------------
 
+```{r}
+sampleList=c("BNLx3","SHR1")
+
+alignStats = c()
+for(i in sampleList){
+  x = read.table(file=paste("/Volumes/LauraS/BNLx.SHR/RNA-Seq.Liver/totalRNA.Beckman/alignedReads/",i,"/align_summary.txt",sep=""),sep="\t",header=FALSE)
+  sample = i
+  numReads = as.numeric(gsub(":","",gsub("Input","",x[2,1])))  
+  mappedLeft = as.numeric(gsub(":","",gsub("Mapped","",unlist(lapply(strsplit(x[3,1],split="(",fixed=TRUE),function(a) a[1])))))
+  mappedRight = as.numeric(gsub(":","",gsub("Mapped","",unlist(lapply(strsplit(x[7,1],split="(",fixed=TRUE),function(a) a[1])))))
+  multiLeft = as.numeric(gsub("of these: ","",unlist(lapply(strsplit(x[4,1],split="(",fixed=TRUE),function(a) a[1]))))
+  multiRight = as.numeric(gsub("of these: ","",unlist(lapply(strsplit(x[8,1],split="(",fixed=TRUE),function(a) a[1]))))
+  lotsLeft = as.numeric(gsub(" have >20)","",unlist(lapply(strsplit(x[4,1],split="(",fixed=TRUE),function(a) a[3]))))
+  lotsRight = as.numeric(gsub(" have >20)","",unlist(lapply(strsplit(x[8,1],split="(",fixed=TRUE),function(a) a[3]))))
+  mappedPairs = as.numeric(gsub("Aligned pairs: ","",x[10,1]))  
+  multiPairs = as.numeric(gsub("of these: ","",unlist(lapply(strsplit(x[11,1],split="(",fixed=TRUE),function(a) a[1]))))
+  discordPairs = as.numeric(gsub("and: ","",unlist(lapply(strsplit(x[12,1],split="(",fixed=TRUE),function(a) a[1]))))
+
+  alignStats = rbind(alignStats,data.frame(sample,numReads,mappedLeft,mappedRight,multiLeft,multiRight,lotsLeft,lotsRight,mappedPairs,multiPairs,discordPairs))
+}
+
+alignTable = data.frame(t(alignStats))
+colnames(alignTable) = alignTable[1,]
+alignTable = alignTable[-1,]
+alignTable$BNLx3.pct = as.numeric(alignTable$BNLx3)/as.numeric(alignTable["numReads","BNLx3"])
+alignTable$SHR1.pct = as.numeric(alignTable$SHR1)/as.numeric(alignTable["numReads","SHR1"])
+
+## format numbers
+alignTable$BNLx3 = prettyNum(alignTable$BNLx3,big.mark=",",scientific=FALSE)
+alignTable$SHR1 = prettyNum(alignTable$SHR1,big.mark=",",scientific=FALSE)
+alignTable$BNLx3.pct = paste(sprintf("%.2f", round(alignTable$BNLx3.pct*100,2)),"%",sep="")
+alignTable$SHR1.pct = paste(sprintf("%.2f", round(alignTable$SHR1.pct*100,2)),"%",sep="")
+
+## add labels
+labels = read.table(file="/Volumes/LauraS/NextGenSeq/misc/alignLabels.txt",sep="\t",header=TRUE)
+alignTable = merge(labels,alignTable,by.x="var",by.y=0)
+alignTable = alignTable[order(alignTable$orderNum),]
+alignTable = alignTable[,c("Label","BNLx3","BNLx3.pct","SHR1","SHR1.pct")]
+
+````
+
+### Statistics on Alignment to Genome
+```{r, results='asis',echo=FALSE}
+kable(alignTable,align=rep("c",ncol(alignTable)),row.names=FALSE)
+```
+
 8.  Examine Spike-In Expression 
 -----------------------
+
 ```
-##  NOT YET UPDATED
+qsub -q smp-q /home/saba/BNLx.SHR.Liver.totalRNA.Beckman/programs/quantifySpikes.sh
+```
 
-cd /data/Tabastore3/LauraS/BxH.HxB.Rats/RNA-Seq/
-samtools view ./alignedReads/HXB25_1/accepted_hits.bam | awk '$3!~"chr"' - > ./alignedReads/HXB25_1/spikeOnly.sam 
-samtools view ./alignedReads/HXB25_2/accepted_hits.bam | awk '$3!~"chr"' - > ./alignedReads/HXB25_2/spikeOnly.sam 
-samtools view ./alignedReads/HXB25_3/accepted_hits.bam | awk '$3!~"chr"' - > ./alignedReads/HXB25_3/spikeOnly.sam 
+9.  Create BigWig Files
+-------------------
+```
+qsub -q smp /home/saba/BNLx.SHR.Liver.totalRNA.Beckman/programs/testBigWig.sh
+```
 
-samtools view ./alignedReads/HXB2_1/accepted_hits.bam | awk '$3!~"chr"' - > ./alignedReads/HXB2_1/spikeOnly.sam 
-samtools view ./alignedReads/HXB2_2/accepted_hits.bam | awk '$3!~"chr"' - > ./alignedReads/HXB2_2/spikeOnly.sam 
-samtools view ./alignedReads/HXB2_3/accepted_hits.bam | awk '$3!~"chr"' - > ./alignedReads/HXB2_3/spikeOnly.sam 
+```
+track type=bigWig name="Beckman.plus" description="BNLx3 (Beckman) - PLUS" bigDataUrl=http://ucsc:JU7etr5t@phenogen.ucdenver.edu/ucsc/BNLx3.plus.v2.bw
+track type=bigWig name="Beckman.minus" description="BNLx3 (Beckman) - MINUS" bigDataUrl=http://ucsc:JU7etr5t@phenogen.ucdenver.edu/ucsc/BNLx3.minus.bw
 
-
-cd /data/Tabastore3/LauraS/BxH.HxB.Rats/RNA-Seq/
-cufflinks -p 2 -o ./spikeCounts/HXB25_1 -b ./index/SHR_rn5_Genome.wSpikes.fa -u -G ./spikeSource/ERCC92.none.gtf ./alignedReads/HXB25_1/spikeOnly.sam
-cufflinks -p 2 -o ./spikeCounts/HXB25_2 -b ./index/SHR_rn5_Genome.wSpikes.fa -u -G ./spikeSource/ERCC92.none.gtf ./alignedReads/HXB25_2/spikeOnly.sam
-cufflinks -p 2 -o ./spikeCounts/HXB25_3 -b ./index/SHR_rn5_Genome.wSpikes.fa -u -G ./spikeSource/ERCC92.none.gtf ./alignedReads/HXB25_3/spikeOnly.sam
-
-cufflinks -p 2 -o ./spikeCounts/HXB2_1 -b ./index/SHR_rn5_Genome.wSpikes.fa -u -G ./spikeSource/ERCC92.none.gtf ./alignedReads/HXB2_1/spikeOnly.sam
-cufflinks -p 2 -o ./spikeCounts/HXB2_2 -b ./index/SHR_rn5_Genome.wSpikes.fa -u -G ./spikeSource/ERCC92.none.gtf ./alignedReads/HXB2_2/spikeOnly.sam
-cufflinks -p 2 -o ./spikeCounts/HXB2_3 -b ./index/SHR_rn5_Genome.wSpikes.fa -u -G ./spikeSource/ERCC92.none.gtf ./alignedReads/HXB2_3/spikeOnly.sam
-
-
-samtools view -bT ./index/rn5.wSpikes.fa ./alignedReads/HXB25_1/spikeOnly.sam | genomeCoverageBed -d -split -strand - -ibam stdin | sort - > ./spikeCounts/spikeInCoverage.HXB25_1.txt
-samtools view -bT ./index/rn5.wSpikes.fa ./alignedReads/HXB25_2/spikeOnly.sam | genomeCoverageBed -d -split -strand - -ibam stdin | sort - > ./spikeCounts/spikeInCoverage.HXB25_2.txt
-samtools view -bT ./index/rn5.wSpikes.fa ./alignedReads/HXB25_3/spikeOnly.sam | genomeCoverageBed -d -split -strand - -ibam stdin | sort - > ./spikeCounts/spikeInCoverage.HXB25_3.txt
-
-
-awk '{if($2==16) print $3}' ./alignedReads/HXB25_1/spikeOnly.sam | sort - | uniq -c > ./spikeCounts/readCounts.spikes.HXB25_1.txt
-awk '{if($2==16) print $3}' ./alignedReads/HXB25_2/spikeOnly.sam | sort - | uniq -c > ./spikeCounts/readCounts.spikes.HXB25_2.txt
-awk '{if($2==16) print $3}' ./alignedReads/HXB25_3/spikeOnly.sam | sort - | uniq -c > ./spikeCounts/readCounts.spikes.HXB25_3.txt
-
-awk '{if($2==16) print $3}' ./alignedReads/HXB2_1/spikeOnly.sam | sort - | uniq -c > ./spikeCounts/readCounts.spikes.HXB2_1.txt
-awk '{if($2==16) print $3}' ./alignedReads/HXB2_2/spikeOnly.sam | sort - | uniq -c > ./spikeCounts/readCounts.spikes.HXB2_2.txt
-awk '{if($2==16) print $3}' ./alignedReads/HXB2_3/spikeOnly.sam | sort - | uniq -c > ./spikeCounts/readCounts.spikes.HXB2_3.txt
-
-
-
-##  number of aligned reads  ##
-samtools view -F 0X100 ./alignedReads/HXB25_1/accepted_hits.bam | wc -l 
-samtools view -F 0X100 ./alignedReads/HXB25_2/accepted_hits.bam | wc -l 
-samtools view -F 0X100 ./alignedReads/HXB25_3/accepted_hits.bam | wc -l 
-
-``` 
 

@@ -1,0 +1,11 @@
+orderNum	var	Label
+1	numReads	number of paired-end reads
+2	mappedLeft	number of left reads mapped to genome
+3	mappedRight	number of right reads mapped to genome
+4	multiLeft	number of mapped left reads with multiple alignments
+5	multiRight	number of mapped right reads with multiple alignments
+6	lotsLeft	number of mapped left reads with more than 20 alignments
+7	lotsRight	number of mapped right reads with more than 20 alignments
+8	mappedPairs	number of mapped read pairs
+9	multiPairs	number of mapped read pairs with multiple alignments
+10	discordPairs	number of mapped read pairs with discordant alignments

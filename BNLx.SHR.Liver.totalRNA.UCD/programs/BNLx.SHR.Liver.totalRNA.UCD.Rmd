@@ -84,20 +84,208 @@ kable(fullTable,align=rep("c",ncol(fullTable)))
 qsub -q smp-q /home/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/createGenomeIndex.yucca.sh
 ```
 
-6. Alignment of Raw Reads to Strain-Specific Genomes - RUNNING
+6. Alignment of Raw Reads to Strain-Specific Genomes - DONE
 ------------------------------------
+
 ```
 qsub -q smp-q /home/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/tophatAlign.15Apr14.sh
 ```
 
+### Code from tophatAlign.15Apr14.sh
+```
+#!/bin/bash
+module add bio/bowtie2
+module add bio/tophat
+tophat2 --library-type fr-firststrand -o /home/saba/BNLx.SHR.Liver.totalRNA.UCD/alignedReads/SHR1 -p 16 /home/saba/index/SHR_rn5_wSpikes /home/saba/BNLx.SHR.Liver.totalRNA.UCD/trimmedReads/SHR_H1_CGATGT_L005_R1_001_val_1.fq /home/saba/BNLx.SHR.Liver.totalRNA.UCD/trimmedReads/SHR_H1_CGATGT_L005_R2_001_val_2.fq
+tophat2 --library-type fr-firststrand -o /home/saba/BNLx.SHR.Liver.totalRNA.UCD/alignedReads/SHR5 -p 16 /home/saba/index/SHR_rn5_wSpikes /home/saba/BNLx.SHR.Liver.totalRNA.UCD/trimmedReads/SHR_H5_TGACCA_L006_R1_001_val_1.fq /home/saba/BNLx.SHR.Liver.totalRNA.UCD/trimmedReads/SHR_H5_TGACCA_L006_R2_001_val_2.fq
+tophat2 --library-type fr-firststrand -o /home/saba/BNLx.SHR.Liver.totalRNA.UCD/alignedReads/SHR25 -p 16 /home/saba/index/SHR_rn5_wSpikes /home/saba/BNLx.SHR.Liver.totalRNA.UCD/trimmedReads/SHR_L25_ACAGTG_L007_R1_001_val_1.fq /home/saba/BNLx.SHR.Liver.totalRNA.UCD/trimmedReads/SHR_L25_ACAGTG_L007_R2_001_val_2.fq
+tophat2 --library-type fr-firststrand -o /home/saba/BNLx.SHR.Liver.totalRNA.UCD/alignedReads/BNLx1 -p 16 /home/saba/index/BNLx_rn5_wSpikes /home/saba/BNLx.SHR.Liver.totalRNA.UCD/trimmedReads/BNLX_1_GCCAAT_L005_R1_001_val_1.fq /home/saba/BNLx.SHR.Liver.totalRNA.UCD/trimmedReads/BNLX_1_GCCAAT_L005_R2_001_val_2.fq
+tophat2 --library-type fr-firststrand -o /home/saba/BNLx.SHR.Liver.totalRNA.UCD/alignedReads/BNLx2 -p 16 /home/saba/index/BNLx_rn5_wSpikes /home/saba/BNLx.SHR.Liver.totalRNA.UCD/trimmedReads/BNLX_2_CAGATC_L006_R1_001_val_1.fq /home/saba/BNLx.SHR.Liver.totalRNA.UCD/trimmedReads/BNLX_2_CAGATC_L006_R2_001_val_2.fq
+tophat2 --library-type fr-firststrand -o /home/saba/BNLx.SHR.Liver.totalRNA.UCD/alignedReads/BNLx3 -p 16 /home/saba/index/BNLx_rn5_wSpikes /home/saba/BNLx.SHR.Liver.totalRNA.UCD/trimmedReads/BNLX_3_CTTGTA_L007_R1_001_val_1.fq /home/saba/BNLx.SHR.Liver.totalRNA.UCD/trimmedReads/BNLX_3_CTTGTA_L007_R2_001_val_2.fq
+```
 
-
-
-*STOPPED HERE - waiting for response from Ron*
-==============================================
 7.  Characterization of Aligned Reads
 ---------------------------
 
-8.  Examine Spike-In Expression 
+```{r,echo=FALSE}
+sampleList=c("BNLx1","BNLx2","BNLx3","SHR1","SHR5","SHR25")
+
+alignStats = c()
+for(i in sampleList){
+  x = read.table(file=paste("/Volumes/LauraS/BNLx.SHR/RNA-Seq.Liver/totalRNA.UCD/alignedReads/",i,"/align_summary.txt",sep=""),sep="\t",header=FALSE)
+  sample = i
+  numReads = as.numeric(gsub(":","",gsub("Input","",x[2,1])))       
+  mappedLeft = as.numeric(gsub(":","",gsub("Mapped","",unlist(lapply(strsplit(x[3,1],split="(",fixed=TRUE),function(a) a[1])))))
+  mappedRight = as.numeric(gsub(":","",gsub("Mapped ","",unlist(lapply(strsplit(x[7,1],split="(",fixed=TRUE),function(a) a[1])))))
+  multiLeft = as.numeric(gsub("of these: ","",unlist(lapply(strsplit(x[4,1],split="(",fixed=TRUE),function(a) a[1]))))
+  multiRight = as.numeric(gsub("of these: ","",unlist(lapply(strsplit(x[8,1],split="(",fixed=TRUE),function(a) a[1]))))
+  lotsLeft = as.numeric(gsub(" have >20)","",unlist(lapply(strsplit(x[4,1],split="(",fixed=TRUE),function(a) a[3]))))
+  lotsRight = as.numeric(gsub(" have >20)","",unlist(lapply(strsplit(x[8,1],split="(",fixed=TRUE),function(a) a[3]))))
+  mappedPairs = as.numeric(gsub("Aligned pairs: ","",x[10,1]))  
+  multiPairs = as.numeric(gsub("of these: ","",unlist(lapply(strsplit(x[11,1],split="(",fixed=TRUE),function(a) a[1]))))
+  discordPairs = as.numeric(gsub("and: ","",unlist(lapply(strsplit(x[12,1],split="(",fixed=TRUE),function(a) a[1]))))
+
+  alignStats = rbind(alignStats,data.frame(sample,numReads,mappedLeft,mappedRight,multiLeft,multiRight,lotsLeft,lotsRight,mappedPairs,multiPairs,discordPairs))
+}
+
+alignTable = data.frame(t(alignStats))
+colnames(alignTable) = alignTable[1,]
+alignTable = alignTable[-1,]
+
+alignTable$BNLx1.pct = as.numeric(alignTable$BNLx1)/as.numeric(alignTable["numReads","BNLx1"])
+alignTable$BNLx2.pct = as.numeric(alignTable$BNLx2)/as.numeric(alignTable["numReads","BNLx2"])
+alignTable$BNLx3.pct = as.numeric(alignTable$BNLx3)/as.numeric(alignTable["numReads","BNLx3"])
+alignTable$SHR1.pct = as.numeric(alignTable$SHR1)/as.numeric(alignTable["numReads","SHR1"])
+alignTable$SHR5.pct = as.numeric(alignTable$SHR5)/as.numeric(alignTable["numReads","SHR5"])
+alignTable$SHR25.pct = as.numeric(alignTable$SHR25)/as.numeric(alignTable["numReads","SHR25"])
+
+## format numbers
+for(i in sampleList){
+  alignTable[,i] = prettyNum(alignTable[,i],big.mark=",",scientific=FALSE)
+  alignTable[,paste(i,".pct",sep="")] = paste(sprintf("%.2f", round(alignTable[,paste(i,".pct",sep="")]*100,2)),"%",sep="")
+  }
+
+## add labels
+labels = read.table(file="/Volumes/LauraS/NextGenSeq/misc/alignLabels.txt",sep="\t",header=TRUE)
+alignTable = merge(labels,alignTable,by.x="var",by.y=0)
+alignTable = alignTable[order(alignTable$orderNum),]
+alignTable = alignTable[,c("Label",paste(rep(sampleList,each=2),rep(c(" (num)"," (pct)"),length(sampleList)),sep=""))]
+```
+
+### Statistics on Alignment to Genome
+```{r, results='asis',echo=FALSE}
+kable(alignTable,align=rep("c",ncol(alignTable)),row.names=FALSE)
+```
+
+8.  Examine Spike-In Expression - DONE
 -----------------------
+
+```
+qsub -q smp-q /home/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/quantifyControlSpikes.21Apr14.sh
+```
+
+```{r,echo=FALSE,eval=TRUE}
+sampleList=c("BNLx1","BNLx2","BNLx3","SHR1","SHR5","SHR25")
+
+spikes = read.table(file="/Volumes/LauraS/BxH.HxB.Rats/RNA-Seq/spikeSource/ERCC_Controls_Analysis.txt",sep="\t",header=TRUE)
+colnames(spikes) = gsub("concentration.in.","",gsub("..attomoles.ul.","",colnames(spikes)))
+
+spikeCnt = spikes
+for(i in sampleList){
+  x = read.table(file=paste("/Volumes/LauraS/BNLx.SHR/RNA-Seq.Liver/totalRNA.UCD/alignedReads/",i,"/readCounts.spikes.txt",sep=""),sep="\t",header=FALSE,fill=TRUE)
+  x$ERCC.ID = unlist(lapply(strsplit(x$V1,split=" E",fixed=TRUE),function(a) paste("E",a[2],sep="")))
+  x[,i] = as.numeric(unlist(lapply(strsplit(x$V1,split=" E",fixed=TRUE),function(a) a[1])))
+  x = x[,c("ERCC.ID",i)]
+  spikeCnt = merge(spikeCnt,x,by="ERCC.ID",all.x=TRUE)
+  spikeCnt[is.na(spikeCnt[,i]),i] = 0
+}
+
+mapped = rowSums(alignStats[,c("mappedLeft","mappedRight")])
+names(mapped) = alignStats$sample
+
+pctSpike = colSums(spikeCnt[,sampleList])/mapped
+pctSpike.allReads = colSums(spikeCnt[,sampleList]) / (2*alignStats$numReads)
+
+
+spikeSummary = data.frame(cbind(sample=sampleList,numReads=prettyNum((2*alignStats$numReads),big.mark=",",scientific=FALSE),numAlignedReads=prettyNum(mapped,big.mark=",",scientific=FALSE),numSpikeReads=prettyNum(colSums(spikeCnt[,sampleList]),big.mark=",",scientific=FALSE),pctSpike=paste(sprintf("%.2f", round(pctSpike*100,2)),"%",sep=""),pctSpike.allReads=paste(sprintf("%.2f", round(pctSpike.allReads*100,2)),"%",sep="")))
+
+colnames(spikeSummary) = c("Sample","Num of Read Fragments","Num of Aligned Read Fragments","Num of Read Fragments Aligned to Spikes","Percent of Aligned Read Fragments Aligned to Spikes","Percent of All Read Fragments Aligned to Spikes")
+```
+
+### Synthetic spike-in summary
+```{r, results='asis',echo=FALSE}
+kable(spikeSummary,align=rep("c",ncol(spikeSummary)),row.names=FALSE)
+```
+
+
+### Comparison of raw read count versus spike concentrations
+```{r,echo=FALSE,fig.width=12, fig.height=4}
+library(limma)
+
+mix = as.factor(c(1,1,2,1,2,2))
+design = model.matrix(~ -1 + mix)
+counts = spikeCnt[,sampleList]
+
+voomed.spikeSize = voom(counts,design=design,normalize.method="none",lib.size=colSums(spikeCnt[spikeCnt$log2.Mix.1.Mix.2.=="0",sampleList]))
+voomed.librarySize = voom(counts,design=design,normalize.method="none",lib.size=mapped)
+
+par(mfrow=c(1,3))
+plot(log2(spikeCnt$Mix.1),log2(spikeCnt$BNLx1+1),xlab="log base 2 of spike concentration",ylab="log base 2 of read count plus 1")
+points(log2(spikeCnt$Mix.1),log2(spikeCnt$SHR1+1),col="red")
+points(log2(spikeCnt$Mix.1),log2(spikeCnt$BNLx2+1),col="blue")
+points(log2(spikeCnt$Mix.2),log2(spikeCnt$SHR5+1),col="green")
+points(log2(spikeCnt$Mix.2),log2(spikeCnt$SHR25+1),col="orange")
+points(log2(spikeCnt$Mix.2),log2(spikeCnt$BNLx3+1),col="yellow")
+
+plot(log2(spikeCnt$Mix.1),voomed.librarySize$E[,1],xlab="log base 2 of spike concentration",ylab="voomed values using all aligned reads as library size")
+points(log2(spikeCnt$Mix.1),voomed.librarySize$E[,2],col="red")
+points(log2(spikeCnt$Mix.2),voomed.librarySize$E[,3],col="blue")
+points(log2(spikeCnt$Mix.1),voomed.librarySize$E[,4],col="green")
+points(log2(spikeCnt$Mix.2),voomed.librarySize$E[,5],col="orange")
+points(log2(spikeCnt$Mix.2),voomed.librarySize$E[,6],col="yellow")
+
+
+plot(log2(spikeCnt$Mix.1),voomed.spikeSize$E[,1],xlab="log base 2 of spike concentration",ylab="voomed values using spike counts only for library size")
+points(log2(spikeCnt$Mix.1),voomed.spikeSize$E[,2],col="red")
+points(log2(spikeCnt$Mix.2),voomed.spikeSize$E[,3],col="blue")
+points(log2(spikeCnt$Mix.1),voomed.spikeSize$E[,4],col="green")
+points(log2(spikeCnt$Mix.2),voomed.spikeSize$E[,5],col="orange")
+points(log2(spikeCnt$Mix.2),voomed.spikeSize$E[,6],col="yellow")
+
+```
+Each color represents a different sample.  The y-axis of the plot on the left represents the log base 2 of the read count for each spike plus 1. The y-axis of the plot in the middle represents the "voom" expression values when the library size is calculated as ALL mapped reads. The y-axis of the plot on the right represents the "voom" expression values when the library size is calculated as only the reads that map to a synthetic spike-in.  
+
+### Expected Differential Expression In Spikes Between Mixes
+```{r fig.width=8,fig.height=6,echo=FALSE}
+par(mfrow=c(1,1))
+contrast.matrix = makeContrasts(mix1 - mix2,levels=design)
+fit = lmFit(voomed.spikeSize$E,design=design,weights=voomed.spikeSize$weights)
+contrast.results = contrasts.fit(fit,contrasts=contrast.matrix)
+eBayes.results = eBayes(contrast.results)
+
+
+results = cbind(spikeCnt$ERCC.ID,eBayes.results$coefficients,eBayes.results$p.value)
+colnames(results) = c("ERCC.ID","diff","pvalue")
+results = merge(results,spikeCnt,by="ERCC.ID")
+
+reduced = results[results$Mix.1>0.5 & results$Mix.2>0.5,]
+boxplot(as.numeric(reduced$diff) ~ as.factor(reduced$log2.Mix.1.Mix.2.))
+abline(h=-1,col="red")
+abline(h=-0.58,col="red")
+abline(h=0,col="red")
+abline(h=2,col="red")
+
+diffSpikes = round(data.frame(expected = aggregate(as.numeric(results$diff),by=list(results$log2.Mix.1.Mix.2.),median)$Group.1,median = aggregate(as.numeric(results$diff),by=list(results$log2.Mix.1.Mix.2.),median)$x,medianR = aggregate(as.numeric(reduced$diff),by=list(reduced$log2.Mix.1.Mix.2.),median)$x,p01 = aggregate(as.numeric(results$pvalue),by=list(results$log2.Mix.1.Mix.2.),function(a) sum(a<0.01)/length(a))$x,p01R = aggregate(as.numeric(reduced$pvalue),by=list(reduced$log2.Mix.1.Mix.2.),function(a) sum(a<0.01)/length(a))$x,p05 = aggregate(as.numeric(results$pvalue),by=list(results$log2.Mix.1.Mix.2.),function(a) sum(a<0.05)/length(a))$x,p05R = aggregate(as.numeric(reduced$pvalue),by=list(reduced$log2.Mix.1.Mix.2.),function(a) sum(a<0.05)/length(a))$x),2)
+
+colnames(diffSpikes) = c("expected log 2 difference","median difference","median difference (spikes > 0.5)","pct of spikes with sig diff (p<0.01)","pct of spikes with sig diff (p<0.01 - spikes > 0.5)","pct of spikes with sig diff (p<0.05)","pct of spikes with sig diff (p<0.05 - spikes > 0.5)")
+
+```
+Red lines represent the expected log 2 fold differences.  Only spikes that were included in a concentration greater than 0.5 in both samples were included in figure (66 out of 92 spikes).
+
+```{r, results='asis',echo=FALSE}
+kable(diffSpikes,align=rep("c",ncol(diffSpikes)),row.names=FALSE)
+```
+
+
+
+9.  Sort and Merge Aligned Reads By Strain - DONE
+--------------------------
+
+```
+qsub -q smp-q /home/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/sortAndMerge.BandH.Liver.21Apr14.sh
+```
+
+10.  Strain-Specific Transcriptome Reconstruction - RUNNING
+--------------------------
+
+```
+qsub -q smp-q /home/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/transRecon.BandH.Liver.22Apr14.sh
+qsub -q smp-q /home/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/reconSHR.sh
+```
+
+11.  Create BigWig Files
+-------------------
+```
+qsub -q smp /home/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/testBigWig.sh
+```
 

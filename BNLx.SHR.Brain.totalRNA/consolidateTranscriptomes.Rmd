@@ -1,0 +1,24 @@
+Rat Brain Transcriptome
+========================================================
+
+```{r}
+rm(list=ls())
+options(stringsAsFactors=FALSE)
+setwd("/Volumes/LauraS/BNLx.SHR/RNA-Seq/totalRNA")
+
+bnlx = read.table(file="totalRNA.reconstruction/BNLx.total.polyATransGuided/transcripts.gtf",sep="\t",header=FALSE)
+bnlx$transcript_id = unlist(lapply(strsplit(bnlx$V9,split=";"),function(a) gsub(" transcript_id ","",a[grep("transcript_id",a)])))
+bnlx$gene_id = unlist(lapply(strsplit(bnlx$V9,split=";"),function(a) gsub("gene_id ","",a[grep("gene_id",a)])))
+bnlx$fpkm = as.numeric(unlist(lapply(strsplit(bnlx$V9,split=";"),function(a) gsub(" FPKM ","",a[grep("FPKM",a)]))))
+
+bnlx.transcripts = bnlx[bnlx$V3=="transcript",-9]
+bnlx.transcripts = bnlx.transcripts[order(bnlx.transcripts$fpkm,decreasing=TRUE),]
+length(unique(bnlx$transcript_id[grep("polyA",bnlx$transcript_id)]))
+```
+
+You can also embed plots, for example:
+
+```{r fig.width=7, fig.height=6}
+plot(cars)
+```
+
