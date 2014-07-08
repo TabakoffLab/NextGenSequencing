@@ -170,11 +170,19 @@ qsub -q smp /home/data/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/convertToFastQ.
 
 ```
 qsub -q smp /home/data/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/tophatAlign.liver.sh
+qsub -q smp /home/data/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/tophatAlign.liver.v2.sh
 ```
 
 ***STOPPED HERE***
 
 
+9.  Sort and Merge Aligned Reads By Strain
+--------------------------
+
+```
+qsub -q smp /home/data/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/sortAndMerge.liver.BNLx.sh
+qsub -q smp /home/data/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/sortAndMerge.liver.SHR.sh
+```
 
 
 
@@ -361,12 +369,6 @@ kable(diffSpikes,align=rep("c",ncol(diffSpikes)),row.names=FALSE)
 
 
 
-11.  Sort and Merge Aligned Reads By Strain
---------------------------
-
-```
-qsub -q smp /home/data/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/sortAndMerge.liver.sh
-```
 
 12.  Strain-Specific Transcriptome Reconstruction (Ensembl-Guided)
 --------------------------

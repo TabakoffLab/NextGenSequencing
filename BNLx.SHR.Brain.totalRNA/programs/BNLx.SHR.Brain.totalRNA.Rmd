@@ -152,6 +152,7 @@ qsub -q smp /home/data/saba/BNLx.SHR.Brain.totalRNA/programs/convertToFastQ.brai
 ----------------
 ```
 qsub -q smp /home/data/saba/BNLx.SHR.Brain.totalRNA/programs/tophatAlign.brain.sh
+qsub -q smp /home/data/saba/BNLx.SHR.Brain.totalRNA/programs/tophatAlign.brain.v2.sh
 ```
 
 ***STOPPED HERE***
@@ -161,7 +162,8 @@ qsub -q smp /home/data/saba/BNLx.SHR.Brain.totalRNA/programs/tophatAlign.brain.s
 8.  Sort and merge BAM files by strain
 ----------------
 ```
-qsub -q smp /home/data/saba/BNLx.SHR.Brain.totalRNA/programs/sortAndMerge.brain.sh
+qsub -q smp /home/data/saba/BNLx.SHR.Brain.totalRNA/programs/sortAndMerge.brain.BNLx.sh
+qsub -q smp /home/data/saba/BNLx.SHR.Brain.totalRNA/programs/sortAndMerge.brain.SHR.sh
 ```
 
 9.  Strain-Specific Transcriptome Reconstruction (Ensembl-Guided)
