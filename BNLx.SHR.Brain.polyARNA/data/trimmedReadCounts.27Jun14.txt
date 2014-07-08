@@ -1,0 +1,12 @@
+/home/data/saba/BNLx.SHR.Brain.polyARNA/trimmedReads/BNLx1.R1_val_1.fq 95.1659 42985444
+/home/data/saba/BNLx.SHR.Brain.polyARNA/trimmedReads/BNLx1.R2_val_2.fq 95.0873 42985444
+/home/data/saba/BNLx.SHR.Brain.polyARNA/trimmedReads/BNLx2.R1_val_1.fq 95.2329 15630449
+/home/data/saba/BNLx.SHR.Brain.polyARNA/trimmedReads/BNLx2.R2_val_2.fq 95.1619 15630449
+/home/data/saba/BNLx.SHR.Brain.polyARNA/trimmedReads/BNLx3.R1_val_1.fq 95.1824 16247186
+/home/data/saba/BNLx.SHR.Brain.polyARNA/trimmedReads/BNLx3.R2_val_2.fq 95.098 16247186
+/home/data/saba/BNLx.SHR.Brain.polyARNA/trimmedReads/SHR1.R1_val_1.fq 95.0806 53841226
+/home/data/saba/BNLx.SHR.Brain.polyARNA/trimmedReads/SHR1.R2_val_2.fq 94.9563 53841226
+/home/data/saba/BNLx.SHR.Brain.polyARNA/trimmedReads/SHR2.R1_val_1.fq 95.599 28499912
+/home/data/saba/BNLx.SHR.Brain.polyARNA/trimmedReads/SHR2.R2_val_2.fq 95.5661 28499912
+/home/data/saba/BNLx.SHR.Brain.polyARNA/trimmedReads/SHR3.R1_val_1.fq 95.0129 29471052
+/home/data/saba/BNLx.SHR.Brain.polyARNA/trimmedReads/SHR3.R2_val_2.fq 94.9814 29471052

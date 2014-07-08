@@ -1,0 +1,12 @@
+/home/data/saba/BNLx.SHR.Brain.totalRNA/rawReads/BNLx1.R1.fq 100 90846224
+/home/data/saba/BNLx.SHR.Brain.totalRNA/rawReads/BNLx1.R2.fq 100 90846224
+/home/data/saba/BNLx.SHR.Brain.totalRNA/rawReads/BNLx2.R1.fq 100 101364795
+/home/data/saba/BNLx.SHR.Brain.totalRNA/rawReads/BNLx2.R2.fq 100 101364795
+/home/data/saba/BNLx.SHR.Brain.totalRNA/rawReads/BNLx3.R1.fq 100 103455074
+/home/data/saba/BNLx.SHR.Brain.totalRNA/rawReads/BNLx3.R2.fq 100 103455074
+/home/data/saba/BNLx.SHR.Brain.totalRNA/rawReads/SHR1.R1.fq 100 98205223
+/home/data/saba/BNLx.SHR.Brain.totalRNA/rawReads/SHR1.R2.fq 100 98205223
+/home/data/saba/BNLx.SHR.Brain.totalRNA/rawReads/SHR2.R1.fq 100 99380646
+/home/data/saba/BNLx.SHR.Brain.totalRNA/rawReads/SHR2.R2.fq 100 99380646
+/home/data/saba/BNLx.SHR.Brain.totalRNA/rawReads/SHR3.R1.fq 100 151429599
+/home/data/saba/BNLx.SHR.Brain.totalRNA/rawReads/SHR3.R2.fq 100 151429599

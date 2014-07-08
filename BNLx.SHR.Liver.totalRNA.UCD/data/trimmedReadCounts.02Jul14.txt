@@ -1,0 +1,12 @@
+/home/data/saba/BNLx.SHR.Liver.totalRNA.UCD/trimmedReads/BNLX_1_GCCAAT_L005_R1_001_val_1.fq 94.2311 117163685
+/home/data/saba/BNLx.SHR.Liver.totalRNA.UCD/trimmedReads/BNLX_1_GCCAAT_L005_R2_001_val_2.fq 91.4353 117163685
+/home/data/saba/BNLx.SHR.Liver.totalRNA.UCD/trimmedReads/BNLX_2_CAGATC_L006_R1_001_val_1.fq 96.5755 103713842
+/home/data/saba/BNLx.SHR.Liver.totalRNA.UCD/trimmedReads/BNLX_2_CAGATC_L006_R2_001_val_2.fq 95.6073 103713842
+/home/data/saba/BNLx.SHR.Liver.totalRNA.UCD/trimmedReads/BNLX_3_CTTGTA_L007_R1_001_val_1.fq 84.6553 68518168
+/home/data/saba/BNLx.SHR.Liver.totalRNA.UCD/trimmedReads/BNLX_3_CTTGTA_L007_R2_001_val_2.fq 97.2431 68518168
+/home/data/saba/BNLx.SHR.Liver.totalRNA.UCD/trimmedReads/SHR_H1_CGATGT_L005_R1_001_val_1.fq 97.7986 108831533
+/home/data/saba/BNLx.SHR.Liver.totalRNA.UCD/trimmedReads/SHR_H1_CGATGT_L005_R2_001_val_2.fq 96.7431 108831533
+/home/data/saba/BNLx.SHR.Liver.totalRNA.UCD/trimmedReads/SHR_H5_TGACCA_L006_R1_001_val_1.fq 96.5331 95292385
+/home/data/saba/BNLx.SHR.Liver.totalRNA.UCD/trimmedReads/SHR_H5_TGACCA_L006_R2_001_val_2.fq 95.3451 95292385
+/home/data/saba/BNLx.SHR.Liver.totalRNA.UCD/trimmedReads/SHR_L25_ACAGTG_L007_R1_001_val_1.fq 84.1905 81820668
+/home/data/saba/BNLx.SHR.Liver.totalRNA.UCD/trimmedReads/SHR_L25_ACAGTG_L007_R2_001_val_2.fq 96.9349 81820668

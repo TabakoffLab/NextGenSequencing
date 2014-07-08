@@ -1,8 +1,9 @@
-Initial Quality Control of Liver RNA-Seq Reads From UCD Genomics Core (received 4/1/14)
+BNLx and SHR Liver rRNA-Depleted Total RNA From UCD Genomics Core
 =========================
 * 6 liver ribosomal RNA depleted total RNA samples, SHR1, SHR5, SHR25, BNLx1, BNLx2, and BNLx3
 * synthetic spikes included Mix 1 in SHR1, BNLx1, and BNLx2 and Mix 2 in SHR5, SHR25, and BNLx3
 * 2X100 paired end reads using the stranded protocol
+* received 4/1/14
 
 
 1. Unzip FASTQ files on Yucca - DONE
@@ -14,35 +15,40 @@ qsub -q smp-q /home/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/unzip.yucca.sh
 2. Determine number of reads sent for each sample - DONE
 ----------------------------------------------------------
 ```
-qsub -q smp-q /home/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/rawReadCounts.sh
+qsub -q smp /home/data/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/countRawReads.liver.sh
 ```
 
 ```{r,echo=FALSE}
 rm(list=ls())
 options(stringsAsFactors=FALSE)
-setwd("/Volumes/LauraS/BNLx.SHR/RNA-Seq.Liver/totalRNA.UCD/")
-rawCounts = read.table(file="data/rawReadCounts.07Apr14.txt",sep=" ",header=FALSE,fill=TRUE)
-rawCounts = rawCounts[is.na(rawCounts$V3),]
-rawCounts$readFrag = as.numeric(rawCounts$V4)/4
-rawCounts$strain = NA
-rawCounts$strain[grep("BNLX_",rawCounts$V5)] = "BNLx"
-rawCounts$strain[grep("SHR_",rawCounts$V5)] = "SHR"
-rawCounts$sample = paste(rawCounts$strain,unlist(lapply(strsplit(rawCounts$V5,split="_",fixed=TRUE),function(a) a[2])),sep="")
-rawCounts$lane = unlist(lapply(strsplit(rawCounts$V5,split="_",fixed=TRUE),function(a) a[4]))
+setwd("/Volumes/LauraS/NextGenSeq/BNLx.SHR.Liver.totalRNA.UCD/")
+rawCounts = read.table(file="data/rawReadCounts.02Jul14.txt",sep=" ",header=FALSE,fill=TRUE)
 
-readFragments = aggregate(rawCounts$readFrag,by=list(sample=rawCounts$sample,strain=rawCounts$strain,lane=rawCounts$lane),sum)
+rawCounts$readFrag = as.numeric(rawCounts$V3)
+rawCounts$sample = unlist(lapply(strsplit(rawCounts$V1,split="/",fixed=TRUE),function(a) gsub("BNLX_","BNLx",gsub("SHR_.","SHR",a[length(a)]))))
+rawCounts$sample = unlist(lapply(strsplit(rawCounts$sample,split="_",fixed=TRUE),function(a) a[1]))
+
+readFragments = aggregate(rawCounts$readFrag,by=list(sample=rawCounts$sample),sum)
 readFragments$numPairedReads = prettyNum(readFragments$x/2,big.mark=",",scientific=FALSE)
 readFragments$numReadFragments = prettyNum(readFragments$x,big.mark=",",scientific=FALSE)
 
 readFragments=readFragments[,colnames(readFragments)!="x"]
+forPrint = readFragments[,c("sample","numPairedReads","numReadFragments")]
+colnames(forPrint) = c("sample","Number of Paired-End Reads","Number of Read Fragments")
 ```
 
-Raw Reads/Read Fragments From UCD Genomic Core
+Raw Reads/Read Fragments
 ---------------------------
 
 ```{r, results='asis',echo=FALSE}
-kable(readFragments,align=rep("c",ncol(readFragments)))
+kable(forPrint,align=rep("c",ncol(readFragments)))
 ```
+
+Total Number of Paired End Reads: `r prettyNum(sum(rawCounts$readFrag)/2,big.mark=",",scientific=FALSE)`  
+Total Number of Read Fragments:  `r prettyNum(sum(rawCounts$readFrag),big.mark=",",scientific=FALSE)`  
+Average Number of Paired End Reads Per Sample: `r prettyNum(sum(rawCounts$readFrag)/nrow(rawCounts),big.mark=",",scientific=FALSE)`  
+
+
 
 3. Trim Reads for Adaptors and for Quality - DONE
 --------------------------------------------
@@ -53,30 +59,45 @@ qsub -q smp-q /home/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/trimReads.yucca.sh
 4. Characterizing Trimmed Reads - DONE
 ----------------------------------
 ```
-qsub -q smp-q /home/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/countTrimmed.yucca.sh
+qsub -q smp /home/data/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/countTrimmedReads.liver.sh
 ```
 
-```{r, echo=FALSE}
-setwd("/Volumes/LauraS/BNLx.SHR/RNA-Seq.Liver/totalRNA.UCD/")
-trimmed = read.table(file="data/trimmedInfo.BNLx.SHR.Liver.09Apr14.txt",sep="\t",header=FALSE,row.names=1)
-trimmed$avgTrimmedReadLength = prettyNum(trimmed$V2,digits=4)
-trimmed$numTrimmedReadFragments = prettyNum(trimmed$V3,big.mark=",",scientific=FALSE)
-rownames(trimmed) = gsub(" ","",rownames(trimmed))
-rownames(trimmed)[rownames(trimmed)=="SHR1"]="SHRH1"
-rownames(trimmed)[rownames(trimmed)=="SHR5"]="SHRH5"
-rownames(trimmed)[rownames(trimmed)=="SHR25"]="SHRL25"
+```{r,echo=FALSE}
+options(stringsAsFactors=FALSE)
+setwd("/Volumes/LauraS/NextGenSeq/BNLx.SHR.Liver.totalRNA.UCD/")
 
-fullTable = merge(readFragments,trimmed,by.x="sample",by.y=0)
-fullTable = fullTable[,!(colnames(fullTable) %in% c("V2","V3"))]
-fullTable$pctRemovedByTrimming = paste(prettyNum(1-(as.numeric(gsub(",","",fullTable$numTrimmedReadFragments))/as.numeric(gsub(",","",fullTable$numReadFragments))),digits=2),"%",sep="")
+trimmed = read.table(file="data/trimmedReadCounts.02Jul14.txt",sep="",header=FALSE)
+trimmed$file = unlist(lapply(strsplit(trimmed$V1,split="/",fixed=TRUE),function(a) a[length(a)]))
+trimmed$sample = unlist(lapply(strsplit(trimmed$V1,split="/",fixed=TRUE),function(a) gsub("BNLX_","BNLx",gsub("SHR_.","SHR",a[length(a)]))))
+trimmed$sample = unlist(lapply(strsplit(trimmed$sample,split="_",fixed=TRUE),function(a) a[1]))
+trimmed$read = unlist(lapply(strsplit(trimmed$file,split="_",fixed=TRUE),function(a) a[grep("L00",a)+1]))
+
+bySample = merge(trimmed[trimmed$read=="R1",c("sample","V2","V3")],trimmed[trimmed$read=="R2",c("sample","V2")],by="sample")
+bySample$numReadFrag = bySample$V3*2
+colnames(bySample) = c("sample","avgFragLength.R1","numReads","avgFragLength.R2","numReadFrag")
+
+bySample = merge(readFragments,bySample,by="sample")
+bySample$pctReadsAfterTrim = paste(sprintf("%.1f",round(100*bySample$numReads/as.numeric(gsub(",","",bySample$numPairedReads)),1)),"%",sep="")
+
+forPrint2 = bySample[,c("sample","numPairedReads","numReadFragments","avgFragLength.R1","avgFragLength.R2","numReadFrag","pctReadsAfterTrim")]
+forPrint2$avgFragLength.R1 = sprintf("%.1f",round(forPrint2$avgFragLength.R1,1))
+forPrint2$avgFragLength.R2 = sprintf("%.1f",round(forPrint2$avgFragLength.R2,1))
+forPrint2$numReadFrag = prettyNum(forPrint2$numReadFrag,big.mark=",",scientific=FALSE)
+
+colnames(forPrint2) = c("sample","Number of Paired-End Reads","Number of Read Fragments","Average Read Fragment Length After Trimming (first read fragment)","Average Read Fragment Length After Trimming (second read fragment)","Number of Read Fragments After Trimming","Percent of Read Fragments That Remained After Trimming")
 ```
 
-Effect of Trimming Adaptors and Poor Quality Base Calls
+Trimmed Reads/Read Fragments
 ---------------------------
 
 ```{r, results='asis',echo=FALSE}
-kable(fullTable,align=rep("c",ncol(fullTable)))
+kable(forPrint2,align=rep("c",ncol(forPrint2)))
 ```
+
+Total Number of Paired End Reads After Trimming: `r prettyNum(sum(trimmed$V3)/2,big.mark=",",scientific=FALSE)`  
+Total Number of Read Fragments After Trimming:  `r prettyNum(sum(trimmed$V3),big.mark=",",scientific=FALSE)`  
+Average Number of Paired End Reads Per Sample After Trimming: `r prettyNum(mean(trimmed$V3),big.mark=",",scientific=FALSE)`  
+
 
 5.  Generate Strain-Specific Genomes Including Spike-In Sequences - DONE
 -------------------------------------------
@@ -84,35 +105,106 @@ kable(fullTable,align=rep("c",ncol(fullTable)))
 qsub -q smp-q /home/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/createGenomeIndex.yucca.sh
 ```
 
-6. Alignment of Raw Reads to Strain-Specific Genomes - DONE
+6. Align trimmed reads to ribosomal RNA - DONE
+-----------------------------------
+```
+qsub -q smp /home/data/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/alignTo.rRNA.liver.01Jul14.sh
+```
+
+**move files**
+```
+get BNLx1.rRNA/align_summary.txt rRNA.summary.BNLx1.txt  
+get BNLx2.rRNA/align_summary.txt rRNA.summary.BNLx2.txt  
+get BNLx3.rRNA/align_summary.txt rRNA.summary.BNLx3.txt  
+get SHR1.rRNA/align_summary.txt rRNA.summary.SHR1.txt  
+get SHR25.rRNA/align_summary.txt rRNA.summary.SHR25.txt  
+get SHR5.rRNA/align_summary.txt rRNA.summary.SHR5.txt  
+```
+
+```{r,echo=FALSE}
+rm(list=ls())
+setwd("/Volumes/LauraS/NextGenSeq/BNLx.SHR.Liver.totalRNA.UCD/data")
+options(stringsAsFactors=FALSE)
+
+sampleList = paste(rep(c("BNLx","SHR"),each=3),c(1:3,1,25,5),sep="")
+
+alignStats = c()
+for(i in sampleList){
+  x = read.table(file=paste("rRNA.summary.",i,".txt",sep=""),sep="\t",header=FALSE)
+  sample = i
+  numReads = as.numeric(gsub(":","",gsub("Input","",x[2,1])))       
+  mappedLeft = as.numeric(gsub(":","",gsub("Mapped","",unlist(lapply(strsplit(x[3,1],split="(",fixed=TRUE),function(a) a[1])))))
+  mappedRight = as.numeric(gsub(":","",gsub("Mapped ","",unlist(lapply(strsplit(x[7,1],split="(",fixed=TRUE),function(a) a[1])))))
+  mappedPairs = as.numeric(gsub("Aligned pairs: ","",x[10,1]))  
+  alignStats = rbind(alignStats,data.frame(sample,numReads,mappedLeft,mappedRight,mappedPairs))
+}
+
+alignStats$numReadFrag = (alignStats$mappedLeft + alignStats$mappedRight)
+alignStats$numDeletedPairedReads = (alignStats$mappedLeft + alignStats$mappedRight - alignStats$mappedPairs)
+
+alignStats = alignStats[,c("sample","numReads","numReadFrag","mappedPairs","numDeletedPairedReads")]
+
+alignTable = data.frame(sample=alignStats$sample,numTrimmedReads=prettyNum(alignStats$numReads,big.mark=","),numDeleted=prettyNum(alignStats$numDeletedPairedReads,big.mark=","),pctRiboReads=as.numeric(alignStats$numDeletedPairedReads)/as.numeric(alignStats$numReads),numRemaining=prettyNum(alignStats$numReads-alignStats$numDeletedPairedReads,big.mark=","))
+
+alignTable$pctRiboReads = paste(sprintf("%.1f",round(100*alignTable$pctRiboReads,1)),"%",sep="")
+colnames(alignTable) = c("Sample","Number of Paired-End Reads After Trimming","Number of Paired-End Reads with at Least One Fragment Aligned to rRNA","Percent of Paired-End Reads Aligned to rRNA","Number of Paired-End Reads NOT Aligned to rRNA")
+```
+
+```{r, results='asis',echo=FALSE}
+kable(alignTable,align=rep("c",ncol(alignTable)))
+```
+
+Total Number of Paired End Reads After Eliminating rRNA Aligned Reads: `r prettyNum(sum(alignStats$numReads-alignStats$numDeletedPairedReads),big.mark=",",scientific=FALSE)`  
+Average Number of Paired End Reads Per Sample After Eliminating rRNA Aligned Reads: `r prettyNum(mean(alignStats$numReads-alignStats$numDeletedPairedReads),big.mark=",",scientific=FALSE)`  
+
+
+7. Convert unmapped.bam into fastq files - DONE
+----------------------------------------
+```
+qsub -q smp /home/data/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/convertToFastQ.liver.sh
+```
+
+
+8. Alignment of Raw Reads to Strain-Specific Genomes With Mitochondrial Chromosome - RUNNING (7/7/14)
 ------------------------------------
 
 ```
-qsub -q smp-q /home/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/tophatAlign.15Apr14.sh
+qsub -q smp /home/data/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/tophatAlign.liver.sh
 ```
 
-### Code from tophatAlign.15Apr14.sh
-```
-#!/bin/bash
-module add bio/bowtie2
-module add bio/tophat
-tophat2 --library-type fr-firststrand -o /home/saba/BNLx.SHR.Liver.totalRNA.UCD/alignedReads/SHR1 -p 16 /home/saba/index/SHR_rn5_wSpikes /home/saba/BNLx.SHR.Liver.totalRNA.UCD/trimmedReads/SHR_H1_CGATGT_L005_R1_001_val_1.fq /home/saba/BNLx.SHR.Liver.totalRNA.UCD/trimmedReads/SHR_H1_CGATGT_L005_R2_001_val_2.fq
-tophat2 --library-type fr-firststrand -o /home/saba/BNLx.SHR.Liver.totalRNA.UCD/alignedReads/SHR5 -p 16 /home/saba/index/SHR_rn5_wSpikes /home/saba/BNLx.SHR.Liver.totalRNA.UCD/trimmedReads/SHR_H5_TGACCA_L006_R1_001_val_1.fq /home/saba/BNLx.SHR.Liver.totalRNA.UCD/trimmedReads/SHR_H5_TGACCA_L006_R2_001_val_2.fq
-tophat2 --library-type fr-firststrand -o /home/saba/BNLx.SHR.Liver.totalRNA.UCD/alignedReads/SHR25 -p 16 /home/saba/index/SHR_rn5_wSpikes /home/saba/BNLx.SHR.Liver.totalRNA.UCD/trimmedReads/SHR_L25_ACAGTG_L007_R1_001_val_1.fq /home/saba/BNLx.SHR.Liver.totalRNA.UCD/trimmedReads/SHR_L25_ACAGTG_L007_R2_001_val_2.fq
-tophat2 --library-type fr-firststrand -o /home/saba/BNLx.SHR.Liver.totalRNA.UCD/alignedReads/BNLx1 -p 16 /home/saba/index/BNLx_rn5_wSpikes /home/saba/BNLx.SHR.Liver.totalRNA.UCD/trimmedReads/BNLX_1_GCCAAT_L005_R1_001_val_1.fq /home/saba/BNLx.SHR.Liver.totalRNA.UCD/trimmedReads/BNLX_1_GCCAAT_L005_R2_001_val_2.fq
-tophat2 --library-type fr-firststrand -o /home/saba/BNLx.SHR.Liver.totalRNA.UCD/alignedReads/BNLx2 -p 16 /home/saba/index/BNLx_rn5_wSpikes /home/saba/BNLx.SHR.Liver.totalRNA.UCD/trimmedReads/BNLX_2_CAGATC_L006_R1_001_val_1.fq /home/saba/BNLx.SHR.Liver.totalRNA.UCD/trimmedReads/BNLX_2_CAGATC_L006_R2_001_val_2.fq
-tophat2 --library-type fr-firststrand -o /home/saba/BNLx.SHR.Liver.totalRNA.UCD/alignedReads/BNLx3 -p 16 /home/saba/index/BNLx_rn5_wSpikes /home/saba/BNLx.SHR.Liver.totalRNA.UCD/trimmedReads/BNLX_3_CTTGTA_L007_R1_001_val_1.fq /home/saba/BNLx.SHR.Liver.totalRNA.UCD/trimmedReads/BNLX_3_CTTGTA_L007_R2_001_val_2.fq
-```
+***STOPPED HERE***
 
-7.  Characterization of Aligned Reads
+
+
+
+
+
+
+
+
+
+
+
+
+9.  Characterization of Aligned Reads
 ---------------------------
+**move files**
+```
+cd /home/data/saba/BNLx.SHR.Liver.totalRNA.UCD/alignedReads
+get ./BNLx1.withMT/align_summary.txt align_summary.BNLx1.txt
+get ./BNLx2.withMT/align_summary.txt align_summary.BNLx2.txt
+get ./BNLx3.withMT/align_summary.txt align_summary.BNLx3.txt
+get ./SHR1.withMT/align_summary.txt align_summary.SHR1.txt
+get ./SHR5.withMT/align_summary.txt align_summary.SHR5.txt
+get ./SHR25.withMT/align_summary.txt align_summary.SHR25.txt
+```
 
-```{r,echo=FALSE}
+```{r,echo=FALSE,eval=FALSE}
 sampleList=c("BNLx1","BNLx2","BNLx3","SHR1","SHR5","SHR25")
 
 alignStats = c()
 for(i in sampleList){
-  x = read.table(file=paste("/Volumes/LauraS/BNLx.SHR/RNA-Seq.Liver/totalRNA.UCD/alignedReads/",i,"/align_summary.txt",sep=""),sep="\t",header=FALSE)
+  x = read.table(file=paste("/Volumes/LauraS/NextGenSeq/BNLx.SHR.Liver.totalRNA.UCD/data/align_summary.",i,".txt",sep=""),sep="\t",header=FALSE)
   sample = i
   numReads = as.numeric(gsub(":","",gsub("Input","",x[2,1])))       
   mappedLeft = as.numeric(gsub(":","",gsub("Mapped","",unlist(lapply(strsplit(x[3,1],split="(",fixed=TRUE),function(a) a[1])))))
@@ -149,22 +241,23 @@ for(i in sampleList){
 labels = read.table(file="/Volumes/LauraS/NextGenSeq/misc/alignLabels.txt",sep="\t",header=TRUE)
 alignTable = merge(labels,alignTable,by.x="var",by.y=0)
 alignTable = alignTable[order(alignTable$orderNum),]
-alignTable = alignTable[,c("Label",paste(rep(sampleList,each=2),rep(c(" (num)"," (pct)"),length(sampleList)),sep=""))]
+alignTable = alignTable[,c("Label",paste(rep(sampleList,each=2),rep(c("",".pct"),length(sampleList)),sep=""))]
+colnames(alignTable) = c("Label",paste(rep(sampleList,each=2),rep(c(" (num)"," (pct)"),length(sampleList)),sep=""))
 ```
 
 ### Statistics on Alignment to Genome
-```{r, results='asis',echo=FALSE}
+```{r, results='asis',echo=FALSE,eval=FALSE}
 kable(alignTable,align=rep("c",ncol(alignTable)),row.names=FALSE)
 ```
 
-8.  Examine Spike-In Expression - DONE
+10.  Examine Spike-In Expression - HAVEN'T RUN FOR DATA WITH MITO
 -----------------------
 
 ```
 qsub -q smp-q /home/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/quantifyControlSpikes.21Apr14.sh
 ```
 
-```{r,echo=FALSE,eval=TRUE}
+```{r,echo=FALSE,eval=FALSE,eval=FALSE}
 sampleList=c("BNLx1","BNLx2","BNLx3","SHR1","SHR5","SHR25")
 
 spikes = read.table(file="/Volumes/LauraS/BxH.HxB.Rats/RNA-Seq/spikeSource/ERCC_Controls_Analysis.txt",sep="\t",header=TRUE)
@@ -193,13 +286,13 @@ colnames(spikeSummary) = c("Sample","Num of Read Fragments","Num of Aligned Read
 ```
 
 ### Synthetic spike-in summary
-```{r, results='asis',echo=FALSE}
+```{r, results='asis',echo=FALSE,eval=FALSE}
 kable(spikeSummary,align=rep("c",ncol(spikeSummary)),row.names=FALSE)
 ```
 
 
 ### Comparison of raw read count versus spike concentrations
-```{r,echo=FALSE,fig.width=12, fig.height=4}
+```{r,echo=FALSE,fig.width=12, fig.height=4,eval=FALSE}
 library(limma)
 
 mix = as.factor(c(1,1,2,1,2,2))
@@ -236,7 +329,7 @@ points(log2(spikeCnt$Mix.2),voomed.spikeSize$E[,6],col="yellow")
 Each color represents a different sample.  The y-axis of the plot on the left represents the log base 2 of the read count for each spike plus 1. The y-axis of the plot in the middle represents the "voom" expression values when the library size is calculated as ALL mapped reads. The y-axis of the plot on the right represents the "voom" expression values when the library size is calculated as only the reads that map to a synthetic spike-in.  
 
 ### Expected Differential Expression In Spikes Between Mixes
-```{r fig.width=8,fig.height=6,echo=FALSE}
+```{r fig.width=8,fig.height=6,echo=FALSE,eval=FALSE}
 par(mfrow=c(1,1))
 contrast.matrix = makeContrasts(mix1 - mix2,levels=design)
 fit = lmFit(voomed.spikeSize$E,design=design,weights=voomed.spikeSize$weights)
@@ -262,28 +355,28 @@ colnames(diffSpikes) = c("expected log 2 difference","median difference","median
 ```
 Red lines represent the expected log 2 fold differences.  Only spikes that were included in a concentration greater than 0.5 in both samples were included in figure (66 out of 92 spikes).
 
-```{r, results='asis',echo=FALSE}
+```{r, results='asis',echo=FALSE,eval=FALSE}
 kable(diffSpikes,align=rep("c",ncol(diffSpikes)),row.names=FALSE)
 ```
 
 
 
-9.  Sort and Merge Aligned Reads By Strain - DONE
+11.  Sort and Merge Aligned Reads By Strain
 --------------------------
 
 ```
-qsub -q smp-q /home/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/sortAndMerge.BandH.Liver.21Apr14.sh
+qsub -q smp /home/data/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/sortAndMerge.liver.sh
 ```
 
-10.  Strain-Specific Transcriptome Reconstruction - RUNNING
+12.  Strain-Specific Transcriptome Reconstruction (Ensembl-Guided)
 --------------------------
 
 ```
-qsub -q smp-q /home/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/transRecon.BandH.Liver.22Apr14.sh
-qsub -q smp-q /home/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/reconSHR.sh
+qsub -q smp /home/data/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/reconSHR.liver.sh
+qsub -q smp /home/data/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/reconBNLx.liver.sh
 ```
 
-11.  Create BigWig Files
+13.  Create BigWig Files
 -------------------
 ```
 qsub -q smp /home/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/testBigWig.sh

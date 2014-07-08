@@ -1,0 +1,16 @@
+/home/data/saba/BNLx.SHR.Heart.totalRNA/rawReads/BN_LX_1_LV_total_RNA_cDNA_CTTGTA_L007_R1.fastq 100 102416734
+/home/data/saba/BNLx.SHR.Heart.totalRNA/rawReads/BN_LX_1_LV_total_RNA_cDNA_CTTGTA_L007_R2.fastq 100 102416734
+/home/data/saba/BNLx.SHR.Heart.totalRNA/rawReads/BN_LX_2_LV_total_RNA_cDNA_GTGAAA_L007_R1.fastq 100 105346919
+/home/data/saba/BNLx.SHR.Heart.totalRNA/rawReads/BN_LX_2_LV_total_RNA_cDNA_GTGAAA_L007_R2.fastq 100 105346919
+/home/data/saba/BNLx.SHR.Heart.totalRNA/rawReads/BN_LX_3_LV_total_RNA_cDNA_CAGATC_L008_R1.fastq 100 101549816
+/home/data/saba/BNLx.SHR.Heart.totalRNA/rawReads/BN_LX_3_LV_total_RNA_cDNA_CAGATC_L008_R2.fastq 100 101549816
+/home/data/saba/BNLx.SHR.Heart.totalRNA/rawReads/BN_LX_4_LV_total_RNA_cDNA_CCGTCC_L008_R1.fastq 100 99254730
+/home/data/saba/BNLx.SHR.Heart.totalRNA/rawReads/BN_LX_4_LV_total_RNA_cDNA_CCGTCC_L008_R2.fastq 100 99254730
+/home/data/saba/BNLx.SHR.Heart.totalRNA/rawReads/SHR_H_1_LV_total_RNA_cDNA_GCCAAT_L005_R1.fastq 100 93230933
+/home/data/saba/BNLx.SHR.Heart.totalRNA/rawReads/SHR_H_1_LV_total_RNA_cDNA_GCCAAT_L005_R2.fastq 100 93230933
+/home/data/saba/BNLx.SHR.Heart.totalRNA/rawReads/SHR_H_2_LV_total_RNA_cDNA_ACAGTG_L005_R1.fastq 100 90153294
+/home/data/saba/BNLx.SHR.Heart.totalRNA/rawReads/SHR_H_2_LV_total_RNA_cDNA_ACAGTG_L005_R2.fastq 100 90153294
+/home/data/saba/BNLx.SHR.Heart.totalRNA/rawReads/SHR_H_3_LV_total_RNA_cDNA_CGATGT_L006_R1.fastq 100 93942566
+/home/data/saba/BNLx.SHR.Heart.totalRNA/rawReads/SHR_H_3_LV_total_RNA_cDNA_CGATGT_L006_R2.fastq 100 93942566
+/home/data/saba/BNLx.SHR.Heart.totalRNA/rawReads/SHR_H_4_LV_total_RNA_cDNA_TGACCA_L006_R1.fastq 100 103778181
+/home/data/saba/BNLx.SHR.Heart.totalRNA/rawReads/SHR_H_4_LV_total_RNA_cDNA_TGACCA_L006_R2.fastq 100 103778181

@@ -1,0 +1,8 @@
+"tissue"	"type of RNA"	"number of samples"	"number of paired-end reads sequenced"	"number of paired-end reads after trimming for quality and adaptors"	"number of paired-end remaining after removing rRNA reads"	"percent of sequenced reads remaining after filtering"	"average number of filtered paired-end reads per sample"
+"brain"	"rRNA-depleted total"	6	"644,681,561"	"623,406,397"	"612,178,276"	"95.0%"	"102,029,713"
+"heart"	"rRNA-depleted total"	8	"789,673,173"	"761,077,657"	"705,284,402"	"89.3%"	" 88,160,550"
+"liver"	"rRNA-depleted total"	6	"582,920,694"	"575,340,281"	"500,003,660"	"85.8%"	" 83,333,943"
+"brain"	"small"	6	"         NA"	"         NA"	"         NA"	"NA%"	"         NA"
+"heart"	"small"	8	"         NA"	"         NA"	"         NA"	"NA%"	"         NA"
+"liver"	"small"	5	"         NA"	"         NA"	"         NA"	"NA%"	"         NA"
+"brain"	"polyA-selected"	6	"192,478,267"	"186,675,269"	"         NA"	"97.0%"	" 31,112,545"

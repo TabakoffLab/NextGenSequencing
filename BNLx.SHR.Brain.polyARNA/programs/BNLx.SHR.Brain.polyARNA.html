@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<!-- saved from url=(0014)about:internet -->
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=9" >
+
+<title>BNLx and SHR Brain polyA+-selected RNA</title>
+
+<style type="text/css">
+body, td {
+   font-family: sans-serif;
+   background-color: white;
+   font-size: 12px;
+   margin: 8px;
+}
+
+tt, code, pre {
+   font-family: 'DejaVu Sans Mono', 'Droid Sans Mono', 'Lucida Console', Consolas, Monaco, monospace;
+}
+
+h1 { 
+   font-size:2.2em; 
+}
+
+h2 { 
+   font-size:1.8em; 
+}
+
+h3 { 
+   font-size:1.4em; 
+}
+
+h4 { 
+   font-size:1.0em; 
+}
+
+h5 { 
+   font-size:0.9em; 
+}
+
+h6 { 
+   font-size:0.8em; 
+}
+
+a:visited {
+   color: rgb(50%, 0%, 50%);
+}
+
+pre {	
+   margin-top: 0;
+   max-width: 95%;
+   border: 1px solid #ccc;
+   white-space: pre-wrap;
+}
+
+pre code {
+   display: block; padding: 0.5em;
+}
+
+code.r, code.cpp {
+   background-color: #F8F8F8;
+}
+
+table, td, th {
+  border: none;
+}
+
+blockquote {
+   color:#666666;
+   margin:0;
+   padding-left: 1em;
+   border-left: 0.5em #EEE solid;
+}
+
+hr {
+   height: 0px;
+   border-bottom: none;
+   border-top-width: thin;
+   border-top-style: dotted;
+   border-top-color: #999999;
+}
+
+@media print {
+   * { 
+      background: transparent !important; 
+      color: black !important; 
+      filter:none !important; 
+      -ms-filter: none !important; 
+   }
+
+   body { 
+      font-size:12pt; 
+      max-width:100%; 
+   }
+       
+   a, a:visited { 
+      text-decoration: underline; 
+   }
+
+   hr { 
+      visibility: hidden;
+      page-break-before: always;
+   }
+
+   pre, blockquote { 
+      padding-right: 1em; 
+      page-break-inside: avoid; 
+   }
+
+   tr, img { 
+      page-break-inside: avoid; 
+   }
+
+   img { 
+      max-width: 100% !important; 
+   }
+
+   @page :left { 
+      margin: 15mm 20mm 15mm 10mm; 
+   }
+     
+   @page :right { 
+      margin: 15mm 10mm 15mm 20mm; 
+   }
+
+   p, h2, h3 { 
+      orphans: 3; widows: 3; 
+   }
+
+   h2, h3 { 
+      page-break-after: avoid; 
+   }
+}
+
+</style>
+
+
+
+
+
+</head>
+
+<body>
+<h1>BNLx and SHR Brain polyA+-selected RNA</h1>
+
+<ul>
+<li>6 brain polyA+-selected RNA samples, SHR1, SHR2, SHR3, BNLx1, BNLx2, and BNLx3
+
+<ul>
+<li>2X100 paired end reads using the unstranded protocol</li>
+</ul></li>
+</ul>
+
+<h2>1. Unzip raw reads - DONE</h2>
+
+<pre><code>qsub -q smp /home/data/saba/BNLx.SHR.Brain.polyARNA/programs/unzip.yucca.sh
+</code></pre>
+
+<h2>2. Consolidate reads by sample and determine number of reads sent for each sample - DONE</h2>
+
+<pre><code>qsub -q smp /home/data/saba/BNLx.SHR.Brain.polyARNA/programs/countRawReads.sh
+</code></pre>
+
+<h2>Raw Reads/Read Fragments</h2>
+
+<table><thead>
+<tr>
+<th align="center">sample</th>
+<th align="center">Number of Paired-End Reads</th>
+<th align="center">Number of Read Fragments</th>
+</tr>
+</thead><tbody>
+<tr>
+<td align="center">BNLx1</td>
+<td align="center">44,299,616</td>
+<td align="center">88,599,232</td>
+</tr>
+<tr>
+<td align="center">BNLx2</td>
+<td align="center">16,119,034</td>
+<td align="center">32,238,068</td>
+</tr>
+<tr>
+<td align="center">BNLx3</td>
+<td align="center">16,801,510</td>
+<td align="center">33,603,020</td>
+</tr>
+<tr>
+<td align="center">SHR1</td>
+<td align="center">55,548,038</td>
+<td align="center">111,096,076</td>
+</tr>
+<tr>
+<td align="center">SHR2</td>
+<td align="center">29,305,338</td>
+<td align="center">58,610,676</td>
+</tr>
+<tr>
+<td align="center">SHR3</td>
+<td align="center">30,404,731</td>
+<td align="center">60,809,462</td>
+</tr>
+</tbody></table>
+
+<p>Total Number of Paired End Reads: 192,478,267<br/>
+Total Number of Read Fragments:  384,956,534<br/>
+Average Number of Paired End Reads Per Sample: 32,079,711  </p>
+
+<h2>3. Trim reads for adaptors and for quality - DONE</h2>
+
+<pre><code>qsub -q smp /home/data/saba/BNLx.SHR.Brain.polyARNA/programs/trimReads.yucca.sh
+</code></pre>
+
+<h2>4. Count and characterize trimmed reads </h2>
+
+<pre><code>qsub -q smp /home/data/saba/BNLx.SHR.Brain.polyARNA/programs/countTrimmedReads.sh
+</code></pre>
+
+<h2>Trimmed Reads/Read Fragments</h2>
+
+<table><thead>
+<tr>
+<th align="center">sample</th>
+<th align="center">Number of Paired-End Reads</th>
+<th align="center">Number of Read Fragments</th>
+<th align="center">Average Read Fragment Length After Trimming (first read fragment)</th>
+<th align="center">Average Read Fragment Length After Trimming (second read fragment)</th>
+<th align="center">Number of Read Fragments After Trimming</th>
+<th align="center">Percent of Read Fragments That Remained After Trimming</th>
+</tr>
+</thead><tbody>
+<tr>
+<td align="center">BNLx1</td>
+<td align="center">44,299,616</td>
+<td align="center">88,599,232</td>
+<td align="center">95.2</td>
+<td align="center">95.1</td>
+<td align="center">85,970,888</td>
+<td align="center">97.0%</td>
+</tr>
+<tr>
+<td align="center">BNLx2</td>
+<td align="center">16,119,034</td>
+<td align="center">32,238,068</td>
+<td align="center">95.2</td>
+<td align="center">95.2</td>
+<td align="center">31,260,898</td>
+<td align="center">97.0%</td>
+</tr>
+<tr>
+<td align="center">BNLx3</td>
+<td align="center">16,801,510</td>
+<td align="center">33,603,020</td>
+<td align="center">95.2</td>
+<td align="center">95.1</td>
+<td align="center">32,494,372</td>
+<td align="center">96.7%</td>
+</tr>
+<tr>
+<td align="center">SHR1</td>
+<td align="center">55,548,038</td>
+<td align="center">111,096,076</td>
+<td align="center">95.1</td>
+<td align="center">95.0</td>
+<td align="center">107,682,452</td>
+<td align="center">96.9%</td>
+</tr>
+<tr>
+<td align="center">SHR2</td>
+<td align="center">29,305,338</td>
+<td align="center">58,610,676</td>
+<td align="center">95.6</td>
+<td align="center">95.6</td>
+<td align="center">5.7e+07</td>
+<td align="center">97.3%</td>
+</tr>
+<tr>
+<td align="center">SHR3</td>
+<td align="center">30,404,731</td>
+<td align="center">60,809,462</td>
+<td align="center">95.0</td>
+<td align="center">95.0</td>
+<td align="center">58,942,104</td>
+<td align="center">96.9%</td>
+</tr>
+</tbody></table>
+
+<p>Total Number of Paired End Reads After Trimming: 186,675,269<br/>
+Total Number of Read Fragments After Trimming:  373,350,538<br/>
+Average Number of Paired End Reads Per Sample After Trimming: 31,112,545  </p>
+
+<h2>5.  Align trimmed reads to strain specific genomes including mitochondrial chromosome - DONE</h2>
+
+<pre><code>qsub -q smp /home/data/saba/BNLx.SHR.Brain.polyARNA/programs/tophatAlign.01Jul14.sh
+</code></pre>
+
+<h2>6. Sort and merge BAM files by strain - RUNNING</h2>
+
+<pre><code>qsub -q smp /home/data/saba/BNLx.SHR.Brain.polyARNA/programs/sortAndMerge.brain.polyA.sh
+</code></pre>
+
+<h2>6.  Characterize aligned reads </h2>
+
+<p>Move summary reports to Tabastore3</p>
+
+<pre><code>cd /home/data/saba/BNLx.SHR.Brain.polyARNA/alignedReads
+get ./BNLx1/align_summary.txt align_summary.BNLx1.txt
+get ./BNLx2/align_summary.txt align_summary.BNLx2.txt
+get ./BNLx3/align_summary.txt align_summary.BNLx3.txt
+get ./SHR1/align_summary.txt align_summary.SHR1.txt
+get ./SHR2/align_summary.txt align_summary.SHR2.txt
+get ./SHR3/align_summary.txt align_summary.SHR3.txt
+</code></pre>
+
+<h3>Statistics on Alignment to Genome</h3>
+
+<table><thead>
+<tr>
+<th align="center">Label</th>
+<th align="center">BNLx1 (num)</th>
+<th align="center">BNLx1 (pct)</th>
+<th align="center">BNLx2 (num)</th>
+<th align="center">BNLx2 (pct)</th>
+<th align="center">BNLx3 (num)</th>
+<th align="center">BNLx3 (pct)</th>
+<th align="center">SHR1 (num)</th>
+<th align="center">SHR1 (pct)</th>
+<th align="center">SHR2 (num)</th>
+<th align="center">SHR2 (pct)</th>
+<th align="center">SHR3 (num)</th>
+<th align="center">SHR3 (pct)</th>
+</tr>
+</thead><tbody>
+<tr>
+<td align="center">number of paired-end reads</td>
+<td align="center">42,985,444</td>
+<td align="center">100.00%</td>
+<td align="center">15,630,449</td>
+<td align="center">100.00%</td>
+<td align="center">16,247,186</td>
+<td align="center">100.00%</td>
+<td align="center">53,841,226</td>
+<td align="center">100.00%</td>
+<td align="center">28,499,912</td>
+<td align="center">100.00%</td>
+<td align="center">29,471,052</td>
+<td align="center">100.00%</td>
+</tr>
+<tr>
+<td align="center">number of left reads mapped to genome</td>
+<td align="center">40,481,476</td>
+<td align="center">94.17%</td>
+<td align="center">14,744,521</td>
+<td align="center">94.33%</td>
+<td align="center">15,476,004</td>
+<td align="center">95.25%</td>
+<td align="center">50,771,471</td>
+<td align="center">94.30%</td>
+<td align="center">26,893,642</td>
+<td align="center">94.36%</td>
+<td align="center">27,733,894</td>
+<td align="center">94.11%</td>
+</tr>
+<tr>
+<td align="center">number of right reads mapped to genome</td>
+<td align="center">40,469,642</td>
+<td align="center">94.15%</td>
+<td align="center">14,737,386</td>
+<td align="center">94.29%</td>
+<td align="center">15,421,734</td>
+<td align="center">94.92%</td>
+<td align="center">50,660,555</td>
+<td align="center">94.09%</td>
+<td align="center">26,867,184</td>
+<td align="center">94.27%</td>
+<td align="center">27,760,560</td>
+<td align="center">94.20%</td>
+</tr>
+<tr>
+<td align="center">number of mapped left reads with multiple alignments</td>
+<td align="center">2,689,232</td>
+<td align="center">6.26%</td>
+<td align="center">939,602</td>
+<td align="center">6.01%</td>
+<td align="center">1,035,428</td>
+<td align="center">6.37%</td>
+<td align="center">3,528,662</td>
+<td align="center">6.55%</td>
+<td align="center">1,699,243</td>
+<td align="center">5.96%</td>
+<td align="center">1,845,508</td>
+<td align="center">6.26%</td>
+</tr>
+<tr>
+<td align="center">number of mapped right reads with multiple alignments</td>
+<td align="center">2,687,856</td>
+<td align="center">6.25%</td>
+<td align="center">938,504</td>
+<td align="center">6.00%</td>
+<td align="center">1,030,778</td>
+<td align="center">6.34%</td>
+<td align="center">3,517,911</td>
+<td align="center">6.53%</td>
+<td align="center">1,696,582</td>
+<td align="center">5.95%</td>
+<td align="center">1,846,515</td>
+<td align="center">6.27%</td>
+</tr>
+<tr>
+<td align="center">number of mapped left reads with more than 20 alignments</td>
+<td align="center">50,471</td>
+<td align="center">0.12%</td>
+<td align="center">21,760</td>
+<td align="center">0.14%</td>
+<td align="center">25,672</td>
+<td align="center">0.16%</td>
+<td align="center">69,276</td>
+<td align="center">0.13%</td>
+<td align="center">42,352</td>
+<td align="center">0.15%</td>
+<td align="center">46,928</td>
+<td align="center">0.16%</td>
+</tr>
+<tr>
+<td align="center">number of mapped right reads with more than 20 alignments</td>
+<td align="center">50,473</td>
+<td align="center">0.12%</td>
+<td align="center">21,757</td>
+<td align="center">0.14%</td>
+<td align="center">25,670</td>
+<td align="center">0.16%</td>
+<td align="center">69,263</td>
+<td align="center">0.13%</td>
+<td align="center">42,333</td>
+<td align="center">0.15%</td>
+<td align="center">46,933</td>
+<td align="center">0.16%</td>
+</tr>
+<tr>
+<td align="center">number of mapped read pairs</td>
+<td align="center">39,083,129</td>
+<td align="center">90.92%</td>
+<td align="center">14,251,140</td>
+<td align="center">91.18%</td>
+<td align="center">14,968,001</td>
+<td align="center">92.13%</td>
+<td align="center">48,801,839</td>
+<td align="center">90.64%</td>
+<td align="center">25,888,181</td>
+<td align="center">90.84%</td>
+<td align="center">26,765,773</td>
+<td align="center">90.82%</td>
+</tr>
+<tr>
+<td align="center">number of mapped read pairs with multiple alignments</td>
+<td align="center">2,575,831</td>
+<td align="center">5.99%</td>
+<td align="center">900,410</td>
+<td align="center">5.76%</td>
+<td align="center">994,114</td>
+<td align="center">6.12%</td>
+<td align="center">3,381,043</td>
+<td align="center">6.28%</td>
+<td align="center">1,629,029</td>
+<td align="center">5.72%</td>
+<td align="center">1,775,501</td>
+<td align="center">6.02%</td>
+</tr>
+<tr>
+<td align="center">number of mapped read pairs with discordant alignments</td>
+<td align="center">693,988</td>
+<td align="center">1.61%</td>
+<td align="center">258,450</td>
+<td align="center">1.65%</td>
+<td align="center">290,451</td>
+<td align="center">1.79%</td>
+<td align="center">888,924</td>
+<td align="center">1.65%</td>
+<td align="center">456,550</td>
+<td align="center">1.60%</td>
+<td align="center">387,508</td>
+<td align="center">1.31%</td>
+</tr>
+</tbody></table>
+
+<p><strong>Total Number of Read Fragments Aligned to Genome:</strong> 352,018,069</p>
+
+</body>
+
+</html>
+

@@ -1,0 +1,205 @@
+Create Exon Array Mask Based on Reconstruction
+========================================================
+
+```{r}
+rm(list=ls())
+options(stringsAsFactors=FALSE)
+setwd("/Volumes/LauraS/LXS/RNA-Seq/totalRNA.24Oct13/")
+
+recon <- read.table(file="reconstruction/transcripts.11Jun14.FINAL.gtf",sep="\t",header=FALSE)
+recon$V1 = paste("chr",recon$V1,sep="")
+
+recon$transcript_id = unlist(lapply(strsplit(recon$V9,split=";",fixed=TRUE),function(a) gsub(" transcript_id ","",a[2])))
+recon$gene_id = unlist(lapply(strsplit(recon$V9,split=";",fixed=TRUE),function(a) gsub("gene_id ","",a[1])))
+
+recon$exonID = paste(recon$V1,":",recon$V4,"-",recon$V5,sep="")
+recon$ID = paste(recon$exonID,";",recon$transcript_id,sep="")
+
+write.table(recon[,c("V1","V4","V5","ID","V6","V7")],file="arrayMask/data/total.exons.byStrand.bed",sep="\t",row.names=FALSE,col.names=FALSE,quote=FALSE)
+
+psLocs <- read.table(file="/Volumes/LauraS/Affymetrix/SNP.Masks/Exon.Array/Mouse/Locations/MoEx-1_0-st-v1.r2.dt1.mm10.all.MASKED.perl.psloc.txt",sep="\t",header=FALSE)
+
+psLocs$V6="."
+write.table(psLocs[,c("V2","V3","V4","V1","V6","V5")],file="arrayMask/data/probeSetLocations.wStrand.mouseExonArray.11Jun2014.bed",sep="\t",row.names=FALSE,col.names=FALSE,quote=FALSE)
+```
+
+2.  Overlap transcriptome reconstruction with mm10 version of exon array  
+----------------------
+
+```
+cd /Volumes/LauraS/LXS/RNA-Seq/totalRNA.24Oct13/arrayMask/data
+intersectBed -S -wo -f 1  -a probeSetLocations.wStrand.mouseExonArray.11Jun2014.bed -b total.exons.byStrand.bed > total.overlap.probes.byStrand.txt
+```
+
+```{r}
+rm(list=ls())
+options(stringsAsFactors=FALSE)
+setwd("/Volumes/LauraS/LXS/RNA-Seq/totalRNA.24Oct13/arrayMask/data")
+
+overlap <- read.table(file="total.overlap.probes.byStrand.txt",sep="\t",header=FALSE)
+
+##330,748 overlaps
+
+overlap$transcript_id = unlist(lapply(strsplit(overlap$V10,split=";",fixed=TRUE),function(a) a[2]))
+length(unique(overlap$transcript_id))
+## 29,366 transcripts with at least on overlapping probeset
+
+overlap <- overlap[!(overlap$V4 %in% overlap$V4[duplicated(overlap$V4)]),]
+length(unique(overlap$transcript_id))
+## 16,950 transcripts with a unique probe set cluster
+
+simplePGF <- read.table(file="/Volumes/LauraS/Affymetrix/SNP.Masks/Exon.Array/Mouse/Results/simplePGF.mm10.txt",sep="\t",header=TRUE)
+numProbes = aggregate(simplePGF$probeID,by=list(V1=simplePGF$probeSetID),function(a) length(unique(a)))
+
+pgfFile = merge(overlap[,c("V4","transcript_id")],numProbes,by.x="V4",by.y="V1")
+
+colnames(pgfFile) = c("probeset_id","transcript_cluster_id","probe_count")
+pgfFile <- pgfFile[order(pgfFile$transcript_cluster_id,pgfFile$probeset_id),]
+
+write.table(pgfFile,file="totalReconstruction.withStrand.isoformLevel.txt",sep="\t",row.names=FALSE,quote=FALSE)
+```
+
+Gene-Level Mask
+
+```{r}
+rm(list=ls())
+options(stringsAsFactors=FALSE)
+setwd("/Volumes/LauraS/LXS/RNA-Seq/totalRNA.24Oct13/arrayMask/data")
+
+overlap <- read.table(file="total.overlap.probes.byStrand.txt",sep="\t",header=FALSE)
+overlap$transcript_id = unlist(lapply(strsplit(overlap$V10,split=";",fixed=TRUE),function(a) a[2]))
+overlap$gene_id = unlist(lapply(strsplit(overlap$transcript_id,split=".",fixed=TRUE),function(a) paste("total",a[2],sep=".")))
+
+# number of genes - 21,261
+length(unique(overlap$gene_id))
+
+## remove duplicates of probe sets and genes
+overlap = overlap[!duplicated(overlap[,c("gene_id","V4")]),]
+
+overlap = overlap[!(overlap$V4 %in% overlap$V4[duplicated(overlap$V4)]),]
+length(unique(overlap$gene_id))
+## 17,308 genes with a unique probe set cluster
+
+simplePGF <- read.table(file="/Volumes/LauraS/Affymetrix/SNP.Masks/Exon.Array/Mouse/Results/simplePGF.mm10.txt",sep="\t",header=TRUE)
+numProbes = aggregate(simplePGF$probeID,by=list(V1=simplePGF$probeSetID),function(a) length(unique(a)))
+
+pgfFile = merge(overlap[,c("V4","gene_id")],numProbes,by.x="V4",by.y="V1")
+
+colnames(pgfFile) = c("probeset_id","transcript_cluster_id","probe_count")
+pgfFile <- pgfFile[order(pgfFile$transcript_cluster_id,pgfFile$probeset_id),]
+
+write.table(pgfFile,file="totalReconstruction.withStrand.geneLevel.txt",sep="\t",row.names=FALSE,quote=FALSE)
+```
+
+Examining Probe Set Level Data
+```
+cd /data/Tabastore3/LauraS/ForPhenoGen/LXS.Brain.fullPS.mm10
+R
+
+## start R code on server
+rm(list=ls())
+options(stringsAsFactors=FALSE)
+
+rma = read.table(file="rma.fullPS.LXS.PhenoGen.mm10.txt",header=TRUE,row.names=1,sep="\t")
+isoform = read.table(file="/data/Tabastore3/LauraS/LXS/RNA-Seq/totalRNA.24Oct13/arrayMask/data/totalReconstruction.withStrand.isoformLevel.txt",sep="\t",header=TRUE)
+gene = read.table(file="/data/Tabastore3/LauraS/LXS/RNA-Seq/totalRNA.24Oct13/arrayMask/data/totalReconstruction.withStrand.geneLevel.txt",sep="\t",header=TRUE)
+
+isoform.rma = rma[rownames(rma) %in% as.character(isoform$probeset_id),]
+gene.rma = rma[rownames(rma) %in% as.character(gene$probeset_id),]
+save(isoform.rma,gene.rma,file="/data/Tabastore3/LauraS/LXS/RNA-Seq/totalRNA.24Oct13/arrayMask/data/reducedExpr.Rdata")
+
+dabg = read.table(file="dabg.fullPS.LXS.PhenoGen.mm10.txt",header=TRUE,row.names=1,sep="\t")
+isoform.dabg = dabg[rownames(dabg) %in% as.character(isoform$probeset_id),]
+gene.dabg = dabg[rownames(dabg) %in% as.character(gene$probeset_id),]
+save(isoform.dabg,gene.dabg,file="/data/Tabastore3/LauraS/LXS/RNA-Seq/totalRNA.24Oct13/arrayMask/data/reducedDABG.Rdata")
+```
+
+### Collapse multiple probesets from same gene/isoform if highly correlated
+
+```{r}
+rm(list=ls())
+options(stringsAsFactors=FALSE)
+library(WGCNA)
+setwd("/Volumes/LauraS/LXS/RNA-Seq/totalRNA.24Oct13/arrayMask/")
+
+load("data/reducedExpr.Rdata")
+load("data/reducedDABG.Rdata")
+
+isoform = read.table(file="data/totalReconstruction.withStrand.isoformLevel.txt",sep="\t",header=TRUE)
+gene = read.table(file="data/totalReconstruction.withStrand.geneLevel.txt",sep="\t",header=TRUE)
+
+numPresent = rowSums(gene.dabg[,grep("LXS",colnames(gene.rma))]<0.0001)/sum(grepl("LXS",colnames(gene.rma)))
+datExpr = gene.rma[names(numPresent)[numPresent>0.5],grep("LXS",colnames(gene.rma))]
+gene = gene[gene$probeset_id %in% rownames(datExpr),]
+datExpr = datExpr[as.character(gene$probeset_id),]
+
+test = datExpr
+test.group = gene
+
+system.time(
+collapsed=data.frame()
+psByClust=data.frame()
+threshold=0.25
+for(i in unique(test.group$transcript_cluster_id)){
+  expr = test[test.group$transcript_cluster_id==i,]
+  ps=c()
+
+  if(nrow(expr)==1){
+    pca.z = data.frame(expr)
+    rownames(pca.z)=i
+    ps = rbind(ps,c(rownames(expr),i))
+    }
+  
+  if(nrow(expr)==2){
+    if(cor(t(expr))[1,2]>threshold){
+      pca.z=data.frame(t(prcomp(expr)$rotation[,1]))
+      rownames(pca.z)=i
+      ps = rbind(ps,cbind(rownames(expr),i))
+      }
+    
+    if(cor(t(expr))[1,2]<=threshold){
+      pca.z=data.frame(expr)
+      rownames(pca.z) = paste(i,".clust",1:2,sep="")
+      ps = rbind(ps,cbind(rownames(expr),paste(i,".clust",1:2,sep="")))
+      }
+  }
+  
+  if(nrow(expr)>=3){
+    dendro=hclust(as.dist(1-cor(t(expr))))
+    
+    if(min(dendro$height)>(1-threshold)){
+      pca.z=data.frame(expr)
+      rownames(pca.z) = paste(i,".clust",1:nrow(expr),sep="")
+      ps = rbind(ps,cbind(rownames(expr),rownames(pca.z)))
+      }
+    
+    if(max(dendro$height)<(1-threshold)){
+      pca.z=data.frame(t(prcomp(expr)$rotation[,1]))
+      rownames(pca.z)=i
+      ps = rbind(ps,cbind(rownames(expr),i))
+      }
+      
+    if(min(dendro$height)<(1-threshold) & max(dendro$height)>(1-threshold)){
+      clusters=rect.hclust(hclust(as.dist(1-cor(t(expr)))),h=(1-threshold))
+      pca.z=c()
+      for(x in c(1:length(clusters))){
+        z = expr[names(clusters[[x]]),]
+        if(nrow(z)>1) {
+          pca.z = rbind(pca.z,prcomp(z)$rotation[,1])
+          ps = rbind(ps,cbind(rownames(z),paste(i,".clust",x,sep="")))
+          }
+        if(nrow(z)==1){
+          pca.z = rbind(pca.z,z)
+          ps = rbind(ps,c(rownames(z),paste(i,".clust",x,sep="")))
+          }
+        }
+      if(nrow(pca.z)>1) rownames(pca.z) = paste(i,".clust",c(1:nrow(pca.z)),sep="")
+      if(nrow(pca.z)==1) rownames(pca.z) = i
+      }
+   }
+  collapsed=rbind(collapsed,pca.z)
+  colnames(ps)=c("V1","V2")
+  psByClust=rbind(psByClust,ps)
+}
+)
+save(collapsed,psByClust,file="Rdata/collapsed.18Jun14.v2.Rdata")

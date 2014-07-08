@@ -1,0 +1,176 @@
+BNLx and SHR Brain ribosomal RNA depleted total RNA
+=========================
+* 6 brain ribosomal RNA depleted total RNA samples, SHR1, SHR2, SHR3, BNLx1, BNLx2, and BNLx3
+  * 2X100 paired end reads using the unstranded protocol
+
+1. Unzip raw reads - DONE
+-----------------
+```
+qsub -q smp /home/data/saba/BNLx.SHR.Brain.totalRNA/programs/unzip.yucca.sh
+```
+
+2. Consolidate reads by sample and determine number of reads sent for each sample 
+-------------------------------------------------
+```
+qsub -q smp /home/data/saba/BNLx.SHR.Brain.totalRNA/programs/countRawReads.sh
+```
+
+```{r,echo=FALSE}
+rm(list=ls())
+options(stringsAsFactors=FALSE)
+setwd("/Volumes/LauraS/NextGenSeq/BNLx.SHR.Brain.totalRNA/")
+rawCounts = read.table(file="data/rawReadCounts.26Jun14.txt",sep=" ",header=FALSE,fill=TRUE)
+
+rawCounts$readFrag = as.numeric(rawCounts$V3)
+rawCounts$sample = unlist(lapply(strsplit(rawCounts$V1,split="/",fixed=TRUE),function(a) gsub(".R2.fq","",gsub(".R1.fq","",a[length(a)]))))
+
+readFragments = aggregate(rawCounts$readFrag,by=list(sample=rawCounts$sample),sum)
+readFragments$numPairedReads = prettyNum(readFragments$x/2,big.mark=",",scientific=FALSE)
+readFragments$numReadFragments = prettyNum(readFragments$x,big.mark=",",scientific=FALSE)
+
+readFragments=readFragments[,colnames(readFragments)!="x"]
+forPrint = readFragments[,c("sample","numPairedReads","numReadFragments")]
+colnames(forPrint) = c("sample","Number of Paired-End Reads","Number of Read Fragments")
+```
+
+Raw Reads/Read Fragments
+---------------------------
+
+```{r, results='asis',echo=FALSE}
+kable(forPrint,align=rep("c",ncol(readFragments)))
+```
+
+Total Number of Paired End Reads: `r prettyNum(sum(rawCounts$readFrag)/2,big.mark=",",scientific=FALSE)`  
+Total Number of Read Fragments:  `r prettyNum(sum(rawCounts$readFrag),big.mark=",",scientific=FALSE)`  
+Average Number of Paired End Reads Per Sample: `r prettyNum(sum(rawCounts$readFrag)/nrow(rawCounts),big.mark=",",scientific=FALSE)`  
+
+
+3. Trim reads for adaptors and for quality - DONE
+---------------
+```
+qsub -q smp /home/data/saba/BNLx.SHR.Brain.totalRNA/programs/trimReads.yucca.sh
+```
+
+
+4.  Characterize trimmed reads - DONE
+-----------
+```
+qsub -q smp /home/data/saba/BNLx.SHR.Brain.totalRNA/programs/countTrimmedReads.sh
+```
+```{r,echo=FALSE}
+options(stringsAsFactors=FALSE)
+setwd("/Volumes/LauraS/NextGenSeq/BNLx.SHR.Brain.totalRNA/")
+
+trimmed = read.table(file="data/trimmedReadCounts.26Jun14.txt",sep="",header=FALSE)
+trimmed$file = unlist(lapply(strsplit(trimmed$V1,split="/",fixed=TRUE),function(a) a[length(a)]))
+trimmed$sample = unlist(lapply(strsplit(trimmed$file,split=".",fixed=TRUE),function(a) a[1]))
+trimmed$read = unlist(lapply(strsplit(trimmed$file,split=".",fixed=TRUE),function(a) unlist(lapply(strsplit(a[2],split="_",fixed=TRUE),function(a) a[1]))))
+
+bySample = merge(trimmed[trimmed$read=="R1",c("sample","V2","V3")],trimmed[trimmed$read=="R2",c("sample","V2")],by="sample")
+bySample$numReadFrag = bySample$V3*2
+colnames(bySample) = c("sample","avgFragLength.R1","numReads","avgFragLength.R2","numReadFrag")
+
+bySample = merge(readFragments,bySample,by="sample")
+bySample$pctReadsAfterTrim = paste(sprintf("%.1f",round(100*bySample$numReads/as.numeric(gsub(",","",bySample$numPairedReads)),1)),"%",sep="")
+
+forPrint2 = bySample[,c("sample","numPairedReads","numReadFragments","avgFragLength.R1","avgFragLength.R2","numReadFrag","pctReadsAfterTrim")]
+forPrint2$avgFragLength.R1 = sprintf("%.1f",round(forPrint2$avgFragLength.R1,1))
+forPrint2$avgFragLength.R2 = sprintf("%.1f",round(forPrint2$avgFragLength.R2,1))
+forPrint2$numReadFrag = prettyNum(forPrint2$numReadFrag,big.mark=",")
+
+colnames(forPrint2) = c("sample","Number of Paired-End Reads","Number of Read Fragments","Average Read Fragment Length After Trimming (first read fragment)","Average Read Fragment Length After Trimming (second read fragment)","Number of Read Fragments After Trimming","Percent of Read Fragments That Remained After Trimming")
+```
+
+Trimmed Reads/Read Fragments
+---------------------------
+
+```{r, results='asis',echo=FALSE}
+kable(forPrint2,align=rep("c",ncol(forPrint2)))
+```
+
+Total Number of Paired End Reads After Trimming: `r prettyNum(sum(bySample$numReads),big.mark=",",scientific=FALSE)`  
+Total Number of Read Fragments After Trimming:  `r prettyNum(sum(bySample$numReadFrag),big.mark=",",scientific=FALSE)`  
+Average Number of Paired End Reads Per Sample After Trimming: `r prettyNum(mean(bySample$numReads),big.mark=",",scientific=FALSE)`  
+
+5.  Align trimmed reads to ribosomal RNA - DONE
+-------------------------
+```
+qsub -q smp /home/data/saba/BNLx.SHR.Brain.totalRNA/programs/alignTo.rRNA.brain.01Jul14.sh
+```
+
+*tranfer files to phenogen server*  
+get BNLx1.rRNA/align_summary.txt rRNA.summary.BNLx1.txt  
+get BNLx2.rRNA/align_summary.txt rRNA.summary.BNLx2.txt  
+get BNLx3.rRNA/align_summary.txt rRNA.summary.BNLx3.txt  
+get SHR1.rRNA/align_summary.txt rRNA.summary.SHR1.txt  
+get SHR2.rRNA/align_summary.txt rRNA.summary.SHR2.txt  
+get SHR3.rRNA/align_summary.txt rRNA.summary.SHR3.txt  
+
+```{r,echo=FALSE}
+rm(list=ls())
+setwd("/Volumes/LauraS/NextGenSeq/BNLx.SHR.Brain.totalRNA/data")
+options(stringsAsFactors=FALSE)
+
+sampleList = paste(rep(c("BNLx","SHR"),each=3),c(1:3),sep="")
+
+alignStats = c()
+for(i in sampleList){
+  x = read.table(file=paste("rRNA.summary.",i,".txt",sep=""),sep="\t",header=FALSE)
+  sample = i
+  numReads = as.numeric(gsub(":","",gsub("Input","",x[2,1])))       
+  mappedLeft = as.numeric(gsub(":","",gsub("Mapped","",unlist(lapply(strsplit(x[3,1],split="(",fixed=TRUE),function(a) a[1])))))
+  mappedRight = as.numeric(gsub(":","",gsub("Mapped ","",unlist(lapply(strsplit(x[7,1],split="(",fixed=TRUE),function(a) a[1])))))
+  mappedPairs = as.numeric(gsub("Aligned pairs: ","",x[10,1]))  
+  alignStats = rbind(alignStats,data.frame(sample,numReads,mappedLeft,mappedRight,mappedPairs))
+}
+
+alignStats$numReadFrag = (alignStats$mappedLeft + alignStats$mappedRight)
+alignStats$numDeletedPairedReads = (alignStats$mappedLeft + alignStats$mappedRight - alignStats$mappedPairs)
+
+alignStats = alignStats[,c("sample","numReads","numReadFrag","mappedPairs","numDeletedPairedReads")]
+
+alignTable = data.frame(sample=alignStats$sample,numTrimmedReads=prettyNum(alignStats$numReads,big.mark=","),numDeleted=prettyNum(alignStats$numDeletedPairedReads,big.mark=","),pctRiboReads=as.numeric(alignStats$numDeletedPairedReads)/as.numeric(alignStats$numReads),numRemaining=prettyNum(alignStats$numReads-alignStats$numDeletedPairedReads,big.mark=","))
+
+alignTable$pctRiboReads = paste(sprintf("%.1f",round(100*alignTable$pctRiboReads,1)),"%",sep="")
+colnames(alignTable) = c("Sample","Number of Paired-End Reads After Trimming","Number of Paired-End Reads with at Least One Fragment Aligned to rRNA","Percent of Paired-End Reads Aligned to rRNA","Number of Paired-End Reads NOT Aligned to rRNA")
+```
+
+```{r, results='asis',echo=FALSE}
+kable(alignTable,align=rep("c",ncol(alignTable)))
+```
+
+Total Number of Paired End Reads After Eliminating rRNA Aligned Reads: `r prettyNum(sum(alignStats$numReads-alignStats$numDeletedPairedReads),big.mark=",",scientific=FALSE)`    
+Average Number of Paired End Reads Per Sample After Eliminating rRNA Aligned Reads: `r prettyNum(mean(alignStats$numReads-alignStats$numDeletedPairedReads),big.mark=",",scientific=FALSE)`  
+
+6.  Convert unmapped reads (BAM file) back to fastQ format - DONE
+------------------------------------------------------
+```
+qsub -q smp /home/data/saba/BNLx.SHR.Brain.totalRNA/programs/convertToFastQ.brain.sh
+```
+
+7.  Align non-ribosomal trimmed reads to strain specific genomes including mitochondrial chromosome - RUNNING
+----------------
+```
+qsub -q smp /home/data/saba/BNLx.SHR.Brain.totalRNA/programs/tophatAlign.brain.sh
+```
+
+***STOPPED HERE***
+
+
+
+8.  Sort and merge BAM files by strain
+----------------
+```
+qsub -q smp /home/data/saba/BNLx.SHR.Brain.totalRNA/programs/sortAndMerge.brain.sh
+```
+
+9.  Strain-Specific Transcriptome Reconstruction (Ensembl-Guided)
+--------------------------
+```
+qsub -q smp /home/data/saba/BNLx.SHR.Brain.totalRNA/programs/reconSHR.brain.sh
+qsub -q smp /home/data/saba/BNLx.SHR.Brain.totalRNA/programs/reconBNLx.brain.sh
+```
+
+10.  Generate BigWig files
+-------------------------
+

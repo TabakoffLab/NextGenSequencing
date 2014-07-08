@@ -193,6 +193,60 @@ tophat2 --library-type fr-firststrand -o /home/saba/ILS.ISS.Brain.totalRNA/align
 
 7.  Characterize Aligned Reads
 -----------------------
+```
+cd /home/saba/ILS.ISS.Brain.totalRNA/alignedReads
+qsub -q smp /home/saba/ILS.ISS.Brain.totalRNA/programs/countAlignedReads.03Jun14.sh
+```
+
+```{r}
+setwd("/Volumes/LauraS/LXS/RNA-Seq/totalRNA.24Oct13")
+aligned = read.table(file="data/countAligned.03Jun14.txt",sep="",header=FALSE)
+
+aligned$sample = unlist(lapply(strsplit(aligned$V1,split="/",fixed=TRUE),function(a) a[6]))
+  
+aF = aligned[aligned$V2=="aligned.first",c("sample","V3","V4")]
+aS = aligned[aligned$V2=="aligned.second",c("sample","V3","V4")]
+cF = aligned[aligned$V2=="controls.first",c("sample","V3","V4")]
+cS = aligned[aligned$V2=="controls.second",c("sample","V3","V4")]
+
+colnames(aF) = c("sample","aligned.first.unique","aligned.first.all")
+colnames(aS) = c("sample","aligned.second.unique","aligned.second.all")
+colnames(cF) = c("sample","controls.first.unique","controls.first.all")
+colnames(cS) = c("sample","controls.second.unique","controls.second.all")
+
+alignTable = merge(aF,aS,by="sample")
+alignTable = merge(alignTable,cF,by="sample")
+alignTable = merge(alignTable,cS,by="sample")
+
+fullTable$sample = gsub("LB","",gsub("_","",fullTable$sample,fixed=TRUE))
+newTable = merge(fullTable,alignTable,by="sample")
+
+newTable$numAlignedReadFrag = newTable$aligned.first.all + newTable$aligned.second.all
+newTable$numAlignedUniqueReadFrag = newTable$aligned.first.unique + newTable$aligned.second.unique
+newTable$numControlReadFrag = newTable$controls.first.all + newTable$controls.second.all
+
+newTable$pctAligned = newTable$numAlignedReadFrag / as.numeric(gsub(",","",newTable$numTrimmedReadFragments,fixed=TRUE))
+newTable$pctUnique = newTable$numAlignedUniqueReadFrag / newTable$numAlignedReadFrag
+newTable$pctControl = newTable$numControlReadFrag / newTable$numAlignedReadFrag
+newTable$pctControl.v2 = newTable$numControlReadFrag / as.numeric(gsub(",","",newTable$numTrimmedReadFragments,fixed=TRUE))
+
+printTable = newTable[,c("sample","numReadFragments","numTrimmedReadFragments","pctRemovedByTrimming","numAlignedReadFrag","pctAligned","numAlignedUniqueReadFrag","pctUnique","numControlReadFrag","pctControl")]
+printTable$numAlignedReadFrag = prettyNum(printTable$numAlignedReadFrag,big.mark=",")
+printTable$numAlignedUniqueReadFrag = prettyNum(printTable$numAlignedUniqueReadFrag,big.mark=",")
+printTable$numControlReadFrag = prettyNum(printTable$numControlReadFrag,big.mark=",")
+
+printTable$pctAligned = paste(sprintf("%.1f",round(100*printTable$pctAligned,1)),"%",sep="")
+printTable$pctUnique = paste(sprintf("%.1f",round(100*printTable$pctUnique,1)),"%",sep="")
+printTable$pctControl = paste(sprintf("%.2f",round(100*printTable$pctControl,2)),"%",sep="")
+
+colnames(printTable) = c("sample","Number of Read Fragments Generated","Number of Read Fragments After Trimming","Percent of Read Fragments Removed During Trimming","Number of Read Fragments Aligned to Genome or Spike-Ins","Percent of Trimmed Read Fragments Aligned","Number of Read Fragments Aligned To Only 1 Location","Percent of Aligned Read Fragments That Align To Only 1 Location","Number of Read Fragments Aligned to Spike-In Controls","Percent of Aligned Read Fragments That Align to Spike-In Controls")
+```
+
+### Alignment Stats
+
+```{r, results='asis',echo=FALSE}
+kable(printTable,align=rep("c",ncol(printTable)))
+```
 
 8.  Sort and Merge Aligned Reads By Strain
 -------------------------------------------
@@ -212,10 +266,20 @@ qsub -q smp-q /home/saba/ILS.ISS.Brain.totalRNA/programs/transRecon.LXS.brain.22
 --------------------------------------------------
 
 
-Create BigWig Files
+11. Create BigWig Files
 ------------------
-
 
 ```
 qsub -q smp /home/saba/ILS.ISS.Brain.totalRNA/programs/createBigWig.sh
+# move to phenogen folder
+cp /data/Tabastore3/LauraS/LXS/RNA-Seq/totalRNA.24Oct13/alignedReads/*.bw /data/ucsc/
 ```
+
+Calling BigWig Files from UCSC Browser
+```
+track type=bigWig name="ILS.plus" description="total RNA from ILS Brain - PLUS" bigDataUrl=http://ucsc:JU7etr5t@phenogen.ucdenver.edu/ucsc/ILS.genome.plus.bw
+track type=bigWig name="ILS.minus" description="total RNA from ILS Brain - MINUS" bigDataUrl=http://ucsc:JU7etr5t@phenogen.ucdenver.edu/ucsc/ILS.genome.minus.bw
+track type=bigWig name="ISS.plus" description="total RNA from ISS Brain - PLUS" bigDataUrl=http://ucsc:JU7etr5t@phenogen.ucdenver.edu/ucsc/ISS.genome.plus.bw
+track type=bigWig name="ISS.minus" description="total RNA from ISS Brain - MINUS" bigDataUrl=http://ucsc:JU7etr5t@phenogen.ucdenver.edu/ucsc/ISS.genome.minus.bw
+
+

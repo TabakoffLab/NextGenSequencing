@@ -1,0 +1,59 @@
+Update RefSeq and Ensembl GTF Files
+=======================
+GTF from RefSeq has transcripts that align to multiple places in the genome and some that align "random" chromosomes.
+GTF from Ensembl has transcripts that align to "random" and "Un" chromosomes.
+
+
+```{r}
+rm(list=ls())
+options(stringsAsFactors=FALSE)
+setwd("/Volumes/LauraS/gtfFiles/")
+
+#######################
+##  local functions  ##
+#######################
+
+gtfVar <- function(a,b){
+   z = unlist(lapply(strsplit(a,split="; ",fixed=TRUE),function(c) gsub(" ","",gsub(b,"",c[grep(b,c)]))))
+   return(z)
+}
+
+####################
+##  RefSeq Genes  ##
+####################
+
+refSeq = read.table(file="refSeqGene.RGSC5.0.rn5.gtf",sep="\t",header=FALSE)
+
+# remove alignments to random chromosomes
+table(refSeq$V1)
+refSeq = refSeq[-grep("random",refSeq$V1),]
+
+# remove transcripts labeled 'dup'
+refSeq$gene_id = gtfVar(refSeq$V9,"gene_id")
+refSeq$transcript_id = gtfVar(refSeq$V9,"transcript_id")
+refSeq = refSeq[-grep("dup",refSeq$transcript_id),]
+
+# remove transcripts aligned to multiple chromosomes
+nonSpec = refSeq[!duplicated(refSeq[,c("V1","gene_id")]),]
+nonSpec = unique(nonSpec[duplicated(nonSpec$gene_id),"gene_id"])
+refSeq = refSeq[!(refSeq$gene_id %in% nonSpec),]
+
+# write out new gtf file
+write.table(refSeq[,paste("V",1:9,sep="")],file="refSeqGene.RGSC5.0.rn5.cleaned.gtf",sep="\t",row.names=FALSE,col.names=FALSE,quote=FALSE)
+
+#####################
+##  Ensembl Genes  ##
+#####################
+
+ensembl = read.table(file="ensGene.RGSC5.0.rn5.gtf",sep="\t",header=FALSE)
+
+# remove alignments to random chromosomes and 'Un' chromosome
+table(ensembl$V1)
+ensembl = ensembl[-grep("random",ensembl$V1),]
+ensembl = ensembl[-grep("Un",ensembl$V1),]
+
+# write out new gtf file
+write.table(ensembl[,paste("V",1:9,sep="")],file="ensGene.RGSC5.0.rn5.cleaned.gtf",sep="\t",row.names=FALSE,col.names=FALSE,quote=FALSE)
+
+```
+

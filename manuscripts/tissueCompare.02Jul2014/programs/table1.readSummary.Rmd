@@ -1,0 +1,97 @@
+Compare RNA-Seq Across Rat Tissues
+========================================================
+Goal: compare the transcript structure and quantity across three tissues in the BNLx and SHR strains
+
+Data:  
+*ribosomal RNA-depleted total RNA in brain, heart (left ventricle), and liver
+*small RNA in brain, heart(left ventricle), and liver
+*polyA+-selected RNA in brain
+
+```{r,echo=FALSE}
+rm(list=ls())
+options(stringsAsFactors=FALSE)
+setwd("/Volumes/LauraS/NextGenSeq")
+
+##  Local Functions  ##
+
+## get counts for rRNA-depletion
+rRNA.nums = function(prefix,sampleList){
+alignStats = c()
+for(i in sampleList){
+  x = read.table(file=paste(prefix,"/data/rRNA.summary.",i,".txt",sep=""),sep="\t",header=FALSE)
+  sample = i
+  numReads = as.numeric(gsub(":","",gsub("Input","",x[2,1])))       
+  mappedLeft = as.numeric(gsub(":","",gsub("Mapped","",unlist(lapply(strsplit(x[3,1],split="(",fixed=TRUE),function(a) a[1])))))
+  mappedRight = as.numeric(gsub(":","",gsub("Mapped ","",unlist(lapply(strsplit(x[7,1],split="(",fixed=TRUE),function(a) a[1])))))
+  mappedPairs = as.numeric(gsub("Aligned pairs: ","",x[10,1]))  
+  alignStats = rbind(alignStats,data.frame(sample,numReads,mappedLeft,mappedRight,mappedPairs))
+}
+
+alignStats$minusPairs = (alignStats$mappedLeft + alignStats$mappedRight - alignStats$mappedPairs)
+alignStats$remaining = alignStats$numReads - alignStats$minusPairs
+return(alignStats)
+}
+```
+
+
+Table 1. Number of reads gathered
+```{r}
+
+#Long RNA
+raw.brain.total = read.table(file="BNLx.SHR.Brain.totalRNA/data/rawReadCounts.26Jun14.txt",sep=" ",header=FALSE)
+trim.brain.total = read.table(file="BNLx.SHR.Brain.totalRNA/data/trimmedReadCounts.26Jun14.txt",sep=" ",header=FALSE)
+reduced.brain.total=rRNA.nums("BNLx.SHR.Brain.totalRNA",paste(rep(c("BNLx","SHR"),each=3),c(1:3),sep=""))
+
+
+raw.brain.polyA = read.table(file="BNLx.SHR.Brain.polyARNA/data/rawReadCounts.27Jun14.txt",sep=" ",header=FALSE)
+trim.brain.polyA = read.table(file="BNLx.SHR.Brain.polyARNA/data/trimmedReadCounts.27Jun14.txt",sep=" ",header=FALSE)
+
+raw.heart = read.table(file="BNLx.SHR.Heart.totalRNA/data/rawReadCounts.02Jul14.txt",sep=" ",header=FALSE)
+trim.heart = read.table(file="BNLx.SHR.Heart.totalRNA/data/trimmedReadCounts.01Jun14.txt",sep=" ",header=FALSE)
+reduced.heart=rRNA.nums("BNLx.SHR.Heart.totalRNA",paste(rep(c("BNLx","SHR"),each=4),c(1:4),sep=""))
+
+
+raw.liver = read.table(file="BNLx.SHR.Liver.totalRNA.UCD/data/rawReadCounts.02Jul14.txt",sep=" ",header=FALSE)
+trim.liver = read.table(file="BNLx.SHR.Liver.totalRNA.UCD/data/trimmedReadCounts.02Jul14.txt",sep=" ",header=FALSE)
+reduced.liver=rRNA.nums("BNLx.SHR.Liver.totalRNA.UCD",paste(rep(c("BNLx","SHR"),each=3),c(1:3,1,25,5),sep=""))
+
+base = read.table(file="manuscripts/tissueCompare.02Jul2014/documents/dataSets.initiate.txt",sep="\t",header=TRUE)
+base$numRaw = NA
+base$numTrimmed = NA
+base$numNo.rRNA = NA
+
+base$numRaw[base$tissue=="brain" & base$typeRNA=="rRNA-depleted total"] = sum(raw.brain.total$V3)/2
+base$numRaw[base$tissue=="brain" & base$typeRNA=="polyA-selected"] = sum(raw.brain.polyA$V3)/2
+base$numRaw[base$tissue=="liver" & base$typeRNA=="rRNA-depleted total"] = sum(raw.liver$V3)/2
+base$numRaw[base$tissue=="heart" & base$typeRNA=="rRNA-depleted total"] = sum(raw.heart$V3)/2
+
+base$numTrimmed[base$tissue=="brain" & base$typeRNA=="rRNA-depleted total"] = sum(trim.brain.total$V3)/2
+base$numTrimmed[base$tissue=="brain" & base$typeRNA=="polyA-selected"] = sum(trim.brain.polyA$V3)/2
+base$numTrimmed[base$tissue=="liver" & base$typeRNA=="rRNA-depleted total"] = sum(trim.liver$V3)/2
+base$numTrimmed[base$tissue=="heart" & base$typeRNA=="rRNA-depleted total"] = sum(trim.heart$V3)/2
+
+base$numNo.rRNA[base$tissue=="brain" & base$typeRNA=="rRNA-depleted total"] = sum(reduced.brain.total$remaining)
+base$numNo.rRNA[base$tissue=="liver" & base$typeRNA=="rRNA-depleted total"] = sum(reduced.liver$remaining)
+base$numNo.rRNA[base$tissue=="heart" & base$typeRNA=="rRNA-depleted total"] = sum(reduced.heart$remaining)
+
+base$pctAttempted = base$numNo.rRNA / base$numRaw
+base$pctAttempted[base$typeRNA=="polyA-selected"] = base$numTrimmed[base$typeRNA=="polyA-selected"] / base$numRaw[base$typeRNA=="polyA-selected"]
+
+base$avgAttemptedPerSample = base$numNo.rRNA / base$numSamples
+base$avgAttemptedPerSample[base$typeRNA=="polyA-selected"] = base$numTrimmed[base$typeRNA=="polyA-selected"] / base$numSamples[base$typeRNA=="polyA-selected"]
+
+export.base = base
+export.base$numRaw = prettyNum(export.base$numRaw,big.mark=",",scientific=FALSE)
+export.base$numTrimmed = prettyNum(export.base$numTrimmed,big.mark=",",scientific=FALSE)
+export.base$numNo.rRNA = prettyNum(export.base$numNo.rRNA,big.mark=",",scientific=FALSE)
+export.base$avgAttemptedPerSample = prettyNum(round(export.base$avgAttemptedPerSample),big.mark=",",scientific=FALSE)
+export.base$pctAttempted = paste(sprintf("%.1f",round(export.base$pctAttempted*100,1)),"%",sep="")
+
+colnames(export.base) = c("tissue","type of RNA", "number of samples","number of paired-end reads sequenced","number of paired-end reads after trimming for quality and adaptors","number of paired-end remaining after removing rRNA reads","percent of sequenced reads remaining after filtering","average number of filtered paired-end reads per sample")
+
+write.table(export.base,file="manuscripts/tissueCompare.02Jul2014/documents/table1.dataSummary.07Jul14.txt",sep="\t",row.names=FALSE)
+
+
+
+
+```

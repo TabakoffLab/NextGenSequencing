@@ -1,0 +1,8 @@
+tissue	typeRNA	numSamples
+brain	rRNA-depleted total	6
+heart	rRNA-depleted total	8
+liver	rRNA-depleted total	6
+brain	small	6
+heart	small	8
+liver	small	5
+brain	polyA-selected	6

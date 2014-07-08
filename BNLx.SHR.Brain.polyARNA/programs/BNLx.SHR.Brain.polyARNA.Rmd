@@ -1,0 +1,221 @@
+BNLx and SHR Brain polyA+-selected RNA
+=========================
+* 6 brain polyA+-selected RNA samples, SHR1, SHR2, SHR3, BNLx1, BNLx2, and BNLx3
+  * 2X100 paired end reads using the unstranded protocol
+
+1. Unzip raw reads - DONE
+-----------------
+```
+qsub -q smp /home/data/saba/BNLx.SHR.Brain.polyARNA/programs/unzip.yucca.sh
+```
+
+2. Consolidate reads by sample and determine number of reads sent for each sample - DONE
+-------------------------------------------------
+```
+qsub -q smp /home/data/saba/BNLx.SHR.Brain.polyARNA/programs/countRawReads.sh
+```
+
+```{r,echo=FALSE,eval=TRUE}
+rm(list=ls())
+options(stringsAsFactors=FALSE)
+setwd("/Volumes/LauraS/NextGenSeq/BNLx.SHR.Brain.polyARNA/")
+rawCounts = read.table(file="data/rawReadCounts.27Jun14.txt",sep=" ",header=FALSE,fill=TRUE)
+
+rawCounts$readFrag = as.numeric(rawCounts$V3)
+rawCounts$sample = unlist(lapply(strsplit(rawCounts$V1,split="/",fixed=TRUE),function(a) gsub(".R2.fq","",gsub(".R1.fq","",a[length(a)]))))
+
+readFragments = aggregate(rawCounts$readFrag,by=list(sample=rawCounts$sample),sum)
+readFragments$numPairedReads = prettyNum(readFragments$x/2,big.mark=",",scientific=FALSE)
+readFragments$numReadFragments = prettyNum(readFragments$x,big.mark=",",scientific=FALSE)
+
+readFragments=readFragments[,colnames(readFragments)!="x"]
+forPrint = readFragments[,c("sample","numPairedReads","numReadFragments")]
+colnames(forPrint) = c("sample","Number of Paired-End Reads","Number of Read Fragments")
+```
+
+Raw Reads/Read Fragments
+---------------------------
+
+```{r, results='asis',echo=FALSE}
+kable(forPrint,align=rep("c",ncol(readFragments)))
+```
+
+Total Number of Paired End Reads: `r prettyNum(sum(rawCounts$readFrag)/2,big.mark=",",scientific=FALSE)`  
+Total Number of Read Fragments:  `r prettyNum(sum(rawCounts$readFrag),big.mark=",",scientific=FALSE)`  
+Average Number of Paired End Reads Per Sample: `r prettyNum(sum(rawCounts$readFrag)/nrow(rawCounts),big.mark=",",scientific=FALSE)`  
+
+
+
+3. Trim reads for adaptors and for quality - DONE
+---------------
+```
+qsub -q smp /home/data/saba/BNLx.SHR.Brain.polyARNA/programs/trimReads.yucca.sh
+```
+
+4. Count and characterize trimmed reads 
+---------------------------------
+```
+qsub -q smp /home/data/saba/BNLx.SHR.Brain.polyARNA/programs/countTrimmedReads.sh
+```
+
+```{r,echo=FALSE}
+options(stringsAsFactors=FALSE)
+setwd("/Volumes/LauraS/NextGenSeq/BNLx.SHR.Brain.polyARNA/")
+
+trimmed = read.table(file="data/trimmedReadCounts.27Jun14.txt",sep="",header=FALSE)
+trimmed$file = unlist(lapply(strsplit(trimmed$V1,split="/",fixed=TRUE),function(a) a[length(a)]))
+trimmed$sample = unlist(lapply(strsplit(trimmed$file,split=".",fixed=TRUE),function(a) a[1]))
+trimmed$read = unlist(lapply(strsplit(trimmed$file,split=".",fixed=TRUE),function(a) unlist(lapply(strsplit(a[2],split="_",fixed=TRUE),function(a) a[1]))))
+
+bySample = merge(trimmed[trimmed$read=="R1",c("sample","V2","V3")],trimmed[trimmed$read=="R2",c("sample","V2")],by="sample")
+bySample$numReadFrag = bySample$V3*2
+colnames(bySample) = c("sample","avgFragLength.R1","numReads","avgFragLength.R2","numReadFrag")
+
+bySample = merge(readFragments,bySample,by="sample")
+bySample$pctReadsAfterTrim = paste(sprintf("%.1f",round(100*bySample$numReads/as.numeric(gsub(",","",bySample$numPairedReads)),1)),"%",sep="")
+
+forPrint2 = bySample[,c("sample","numPairedReads","numReadFragments","avgFragLength.R1","avgFragLength.R2","numReadFrag","pctReadsAfterTrim")]
+forPrint2$avgFragLength.R1 = sprintf("%.1f",round(forPrint2$avgFragLength.R1,1))
+forPrint2$avgFragLength.R2 = sprintf("%.1f",round(forPrint2$avgFragLength.R2,1))
+forPrint2$numReadFrag = prettyNum(forPrint2$numReadFrag,big.mark=",")
+
+colnames(forPrint2) = c("sample","Number of Paired-End Reads","Number of Read Fragments","Average Read Fragment Length After Trimming (first read fragment)","Average Read Fragment Length After Trimming (second read fragment)","Number of Read Fragments After Trimming","Percent of Read Fragments That Remained After Trimming")
+```
+
+Trimmed Reads/Read Fragments
+---------------------------
+
+```{r, results='asis',echo=FALSE}
+kable(forPrint2,align=rep("c",ncol(forPrint2)))
+```
+
+Total Number of Paired End Reads After Trimming: `r prettyNum(sum(bySample$numReads),big.mark=",",scientific=FALSE)`  
+Total Number of Read Fragments After Trimming:  `r prettyNum(sum(bySample$numReadFrag),big.mark=",",scientific=FALSE)`  
+Average Number of Paired End Reads Per Sample After Trimming: `r prettyNum(mean(bySample$numReads),big.mark=",",scientific=FALSE)`  
+
+
+5.  Align trimmed reads to strain specific genomes including mitochondrial chromosome - DONE
+----------------
+```
+qsub -q smp /home/data/saba/BNLx.SHR.Brain.polyARNA/programs/tophatAlign.01Jul14.sh
+```
+
+6. Sort and merge BAM files by strain - DONE
+---------------
+```
+qsub -q smp /home/data/saba/BNLx.SHR.Brain.polyARNA/programs/sortAndMerge.brain.polyA.sh
+```
+
+
+6.  Characterize aligned reads 
+------------------------------
+Move summary reports to Tabastore3
+
+```
+cd /home/data/saba/BNLx.SHR.Brain.polyARNA/alignedReads
+get ./BNLx1/align_summary.txt align_summary.BNLx1.txt
+get ./BNLx2/align_summary.txt align_summary.BNLx2.txt
+get ./BNLx3/align_summary.txt align_summary.BNLx3.txt
+get ./SHR1/align_summary.txt align_summary.SHR1.txt
+get ./SHR2/align_summary.txt align_summary.SHR2.txt
+get ./SHR3/align_summary.txt align_summary.SHR3.txt
+```
+
+```{r,echo=FALSE}
+sampleList=c("BNLx1","BNLx2","BNLx3","SHR1","SHR2","SHR3")
+
+alignStats = c()
+for(i in sampleList){
+  x = read.table(file=paste("/Volumes/LauraS/NextGenSeq/BNLx.SHR.Brain.polyARNA/data/align_summary.",i,".txt",sep=""),sep="\t",header=FALSE)
+  sample = i
+  numReads = as.numeric(gsub(":","",gsub("Input","",x[2,1])))       
+  mappedLeft = as.numeric(gsub(":","",gsub("Mapped","",unlist(lapply(strsplit(x[3,1],split="(",fixed=TRUE),function(a) a[1])))))
+  mappedRight = as.numeric(gsub(":","",gsub("Mapped ","",unlist(lapply(strsplit(x[7,1],split="(",fixed=TRUE),function(a) a[1])))))
+  multiLeft = as.numeric(gsub("of these: ","",unlist(lapply(strsplit(x[4,1],split="(",fixed=TRUE),function(a) a[1]))))
+  multiRight = as.numeric(gsub("of these: ","",unlist(lapply(strsplit(x[8,1],split="(",fixed=TRUE),function(a) a[1]))))
+  lotsLeft = as.numeric(gsub(" have >20)","",unlist(lapply(strsplit(x[4,1],split="(",fixed=TRUE),function(a) a[3]))))
+  lotsRight = as.numeric(gsub(" have >20)","",unlist(lapply(strsplit(x[8,1],split="(",fixed=TRUE),function(a) a[3]))))
+  mappedPairs = as.numeric(gsub("Aligned pairs: ","",x[10,1]))  
+  multiPairs = as.numeric(gsub("of these: ","",unlist(lapply(strsplit(x[11,1],split="(",fixed=TRUE),function(a) a[1]))))
+  discordPairs = as.numeric(gsub("and: ","",unlist(lapply(strsplit(x[12,1],split="(",fixed=TRUE),function(a) a[1]))))
+
+  alignStats = rbind(alignStats,data.frame(sample,numReads,mappedLeft,mappedRight,multiLeft,multiRight,lotsLeft,lotsRight,mappedPairs,multiPairs,discordPairs))
+}
+
+alignTable = data.frame(t(alignStats))
+colnames(alignTable) = alignTable[1,]
+alignTable = alignTable[-1,]
+
+alignTable$BNLx1.pct = as.numeric(alignTable$BNLx1)/as.numeric(alignTable["numReads","BNLx1"])
+alignTable$BNLx2.pct = as.numeric(alignTable$BNLx2)/as.numeric(alignTable["numReads","BNLx2"])
+alignTable$BNLx3.pct = as.numeric(alignTable$BNLx3)/as.numeric(alignTable["numReads","BNLx3"])
+alignTable$SHR1.pct = as.numeric(alignTable$SHR1)/as.numeric(alignTable["numReads","SHR1"])
+alignTable$SHR2.pct = as.numeric(alignTable$SHR2)/as.numeric(alignTable["numReads","SHR2"])
+alignTable$SHR3.pct = as.numeric(alignTable$SHR3)/as.numeric(alignTable["numReads","SHR3"])
+
+## format numbers
+for(i in sampleList){
+  alignTable[,i] = prettyNum(alignTable[,i],big.mark=",",scientific=FALSE)
+  alignTable[,paste(i,".pct",sep="")] = paste(sprintf("%.2f", round(alignTable[,paste(i,".pct",sep="")]*100,2)),"%",sep="")
+  }
+
+## add labels
+labels = read.table(file="/Volumes/LauraS/NextGenSeq/misc/alignLabels.txt",sep="\t",header=TRUE)
+alignTable = merge(labels,alignTable,by.x="var",by.y=0)
+alignTable = alignTable[order(alignTable$orderNum),]
+alignTable = alignTable[,c("Label",paste(rep(sampleList,each=2),rep(c("",".pct"),length(sampleList)),sep=""))]
+colnames(alignTable) = c("Label",paste(rep(sampleList,each=2),rep(c(" (num)"," (pct)"),length(sampleList)),sep=""))
+```
+
+### Statistics on Alignment to Genome
+```{r, results='asis',echo=FALSE}
+kable(alignTable,align=rep("c",ncol(alignTable)),row.names=FALSE)
+```
+
+**Total Number of Read Fragments Aligned to Genome:** `r prettyNum(sum(alignStats[,c("mappedLeft","mappedRight")]),big.mark=",",scientific=FALSE)`
+
+### Characteristics of Alignments
+```
+qsub -q smp /home/data/saba/BNLx.SHR.Brain.polyARNA/programs/countByChrom.brain.polyA.sh
+```
+
+```{r,echo=FALSE,eval=FALSE}
+#rm(list=ls())
+options(stringsAsFactors=FALSE)
+setwd("/Volumes/LauraS/NextGenSeq/BNLx.SHR.Brain.polyARNA/")
+
+sampleList=c("BNLx1","BNLx2","BNLx3","SHR1","SHR2","SHR3")
+
+for(sample in sampleList){
+  x = read.table(file=paste("data/countByChr.",sample,".brain.polyA.txt",sep=""),header=FALSE,sep="\t")
+  colnames(x) = c("id","length",sample,"V4")
+  x = x[,-4]
+  if(sample==sampleList[1]) chrCnts = x
+  if(sample!=sampleList[1]) chrCnts = merge(chrCnts,x,by=c("id","length"))
+}
+
+chromo = chrCnts[grep("chr",chrCnts$id),]
+pctBySampleChr = apply(chromo[,-c(1:2)],1,function(a) a/colSums(chromo[,-c(1:2)]))
+colnames(pctBySampleChr) = chromo[,1]
+pctBySampleChr = pctBySampleChr[,paste("chr",c(1:20,"X","M"),sep="")]
+boxplot(pctBySampleChr,ylab="percent of alignments",xlab="chromosome",main="Distribution Among Samples of Percent of Alignments By Chromosome")
+
+apply(pctBySampleChr,2,function(a) max(a)-min(a))
+
+```
+
+
+7. Generate BigWig Files
+--------------------------
+```
+qsub -q smp /home/data/saba/BNLx.SHR.Brain.polyARNA/programs/createBigWig.brain.polyA.sh
+```
+
+8.  Strain-Specific Transcriptome Reconstruction (Ensembl-Guided)
+--------------------------
+```
+qsub -q smp /home/data/saba/BNLx.SHR.Brain.polyARNA/programs/reconSHR.brain.polyA.sh
+qsub -q smp /home/data/saba/BNLx.SHR.Brain.polyARNA/programs/reconBNLx.brain.polyA.sh
+```
+
+

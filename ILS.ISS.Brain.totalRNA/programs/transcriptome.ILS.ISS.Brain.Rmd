@@ -1,4 +1,4 @@
-Compare Transcriptome-Guided Reconstructions Between BN-Lx and SHR
+Compare Transcriptome-Guided Reconstructions Between ILS and ISS
 ========================================================
 
 Add "chr" to gtf file to be able to visualize in the UCSC genome browser
@@ -19,12 +19,20 @@ ILS$transcript_id = unlist(lapply(strsplit(ILS$V9,split="; "),function(a) gsub("
 ILS$gene_id = unlist(lapply(strsplit(ILS$V9,split="; "),function(a) gsub("gene_id ","",a[grep("gene_id",a)])))
 ILS$fpkm = as.numeric(unlist(lapply(strsplit(ILS$V9,split="; "),function(a) gsub("FPKM ","",a[grep("FPKM",a)]))))
 
+# transcripts with duplicate transcript_id and unique gene_id
+dups = ILS[!duplicated(ILS[,c("transcript_id","V1")]),c("transcript_id","V1")]
+dups = dups[dups$transcript_id %in% dups$transcript_id[duplicated(dups$transcript_id)],]
+dups = dups[order(dups$transcript_id),]
+dups$rep=unlist(aggregate(dups$transcript_id,by=list(dups$transcript_id),function(a) c(1:length(a)))$x)
+
+ILS = merge(ILS,dups,by=c("transcript_id","V1"),all=TRUE)
+ILS$transcript_id[!is.na(ILS$rep)] = paste(ILS$transcript_id[!is.na(ILS$rep)],ILS$rep[!is.na(ILS$rep)],sep=".")
+
 ILS.exons = ILS[ILS$V3=="exon",]
 ILS.exons$length = ILS.exons$V5 - ILS.exons$V4 + 1
 
 tmp = cbind(aggregate(ILS.exons$length,by=list(ILS.exons$transcript_id),sum),aggregate(ILS.exons$transcript_id,by=list(ILS.exons$transcript_id),length)$x)
 colnames(tmp) = c("transcript_id","length","numExons")
-
 
 ILS.transcripts = ILS[ILS$V3=="transcript",]
 ILS.transcripts = merge(ILS.transcripts, tmp,by="transcript_id")
@@ -35,6 +43,9 @@ ISS <- read.table(file="reconstruction/ISS.total.ensemblGuided/transcripts.gtf",
 ISS$transcript_id = unlist(lapply(strsplit(ISS$V9,split="; "),function(a) gsub("transcript_id ","",a[grep("transcript_id",a)])))
 ISS$gene_id = unlist(lapply(strsplit(ISS$V9,split="; "),function(a) gsub("gene_id ","",a[grep("gene_id",a)])))
 ISS$fpkm = as.numeric(unlist(lapply(strsplit(ISS$V9,split="; "),function(a) gsub("FPKM ","",a[grep("FPKM",a)]))))
+
+ISS = merge(ISS,dups,by=c("transcript_id","V1"),all=TRUE)
+ISS$transcript_id[!is.na(ISS$rep)] = paste(ISS$transcript_id[!is.na(ISS$rep)],ISS$rep[!is.na(ISS$rep)],sep=".")
 
 ISS.exons = ISS[ISS$V3=="exon",]
 ISS.exons$length = ISS.exons$V5 - ISS.exons$V4 + 1
@@ -96,7 +107,6 @@ ISS.transcripts$transcript_id = gsub("CUFF","ISS",ISS.transcripts$ISS.transcript
 transcripts = merge(ISS.transcripts[ISS.transcripts$ISS.fpkm>1,],ILS.transcripts[ILS.transcripts$ILS.fpkm>1,],by="transcript_id",all=TRUE)
 
 ##  Convert to BED File  ##
-
 ILS.v2 = ILS
 ILS.v2$transcript_id = gsub("CUFF","ILS",ILS.v2$transcript_id)
 ILS.v2$gene_id = gsub("CUFF","ILS",ILS.v2$gene_id)
@@ -106,20 +116,19 @@ ISS.v2$transcript_id = gsub("CUFF","ISS",ISS.v2$transcript_id)
 ISS.v2$gene_id = gsub("CUFF","ISS",ISS.v2$gene_id)
 
 combinedGTF = rbind(ILS.v2,ISS.v2)
-combinedGTF = combinedGTF[,!(colnames(combinedGTF) %in% c("V9","fpkm"))]
+combinedGTF = combinedGTF[,!(colnames(combinedGTF) %in% c("V9","fpkm","gene_id"))]
 combinedGTF = combinedGTF[!duplicated(combinedGTF),]
 combinedGTF = combinedGTF[combinedGTF$transcript_id %in% transcripts$transcript_id,]
 
 gtf <- combinedGTF[combinedGTF$V3=="exon",]
 gtf <- gtf[order(gtf$transcript_id,gtf$V4,gtf$V5),]
 
-print(paste("Number of Genes ",length(unique(gtf$gene_id)),sep=""))
 print(paste("Number of Transcripts ",length(unique(gtf$transcript_id)),sep=""))
 
 ##  create one per transcript ##
 start <- aggregate(gtf$V4,by=list(gtf$transcript_id),function(a) paste(a,collapse=","))
 stop <- aggregate(gtf$V5,by=list(gtf$transcript_id),function(a) paste(a,collapse=","))
-transcripts <- gtf[!duplicated(gtf[,c("transcript_id","V1")]),c("transcript_id","gene_id","V1","V6","V7")]
+transcripts <- gtf[!duplicated(gtf[,c("transcript_id","V1")]),c("transcript_id","V1","V6","V7")]
 onePerTrans <- merge(start,stop,by=1)
 onePerTrans <- merge(transcripts,onePerTrans,by=1)
 
@@ -128,7 +137,7 @@ onePerTrans$start <- as.integer(unlist(lapply(strsplit(onePerTrans$x.x,split=","
 onePerTrans$stop <- as.integer(unlist(lapply(strsplit(onePerTrans$x.y,split=",",fixed=TRUE),function(a) max(as.numeric(a)))))
 
 ## export as BED style file for overlap  ##
-write.table(onePerTrans[,c("V1","start","stop","transcript_id","V6","V7")],file="data/combined.01May14.v1.bed",sep="\t",quote=FALSE,row.names=FALSE,col.names=FALSE)
+write.table(onePerTrans[,c("V1","start","stop","transcript_id","V6","V7")],file="data/combined.04Jun14.v1.bed",sep="\t",quote=FALSE,row.names=FALSE,col.names=FALSE)
 ```
 
 
@@ -141,7 +150,7 @@ BEDtools version = bedtools v2.16.2-zip-5db7ff9
 export PATH=/usr/local/bedtools2/bin:$PATH
  
 cd /data/Tabastore3/LauraS/LXS/RNA-Seq/totalRNA.24Oct13/data
-intersectBed -a combined.01May14.v1.bed -b combined.01May14.v1.bed -wo > overlap.refSeqGuided.txt
+intersectBed -a combined.04Jun14.v1.bed -b combined.04Jun14.v1.bed -wo > overlap.refSeqGuided.txt
 ```
 
 4.  Identify novel transcripts that were identified in both BN-Lx and SHR 
@@ -178,8 +187,6 @@ findJunct <- function(starts,stops){
 overlap$exonJunct.A = apply(overlap[,c("exonStarts.A","exonStops.A")],1,function(a) findJunct(a[1],a[2]))
 overlap$exonJunct.B = apply(overlap[,c("exonStarts.B","exonStops.B")],1,function(a) findJunct(a[1],a[2]))
 
-
-
 ## remove overlap that is on the opposite strand
 overlap <- overlap[overlap$strand.A=="." | overlap$strand.B=="." | overlap$strand.A==overlap$strand.B,]
 
@@ -198,13 +205,13 @@ for(i in 1:nrow(overlap)){
 overlap = overlap[intronCheck==0,]
 
 ##  remove overlap with annotated genes/transcripts  ##
-overlap = overlap[!(grepl("NM",overlap$transcript_id.B) | grepl("NM",overlap$transcript_id.A)),]
+overlap = overlap[!(grepl("N",overlap$transcript_id.B) | grepl("N",overlap$transcript_id.A)),]
 
 ##  remove within strain overlap ##
 overlap = overlap[!(grepl("ILS",overlap$transcript_id.B) & grepl("ILS",overlap$transcript_id.A)),]
 overlap = overlap[!(grepl("ISS",overlap$transcript_id.B) & grepl("ISS",overlap$transcript_id.A)),]
 
-## transcripts without any overlap - 37,084 transcripts
+## transcripts without any overlap - 39,167 transcripts
 noOverlap = onePerTrans[!(onePerTrans$transcript_id %in% unique(c(overlap$transcript_id.A,overlap$transcript_id.B))),]
 
 ##  perfect overlap - 190 transcripts
@@ -250,7 +257,7 @@ matched.toAdd = matched[,colnames(onePerTrans)]
 new.transcripts = onePerTrans[!(onePerTrans$transcript_id %in% c(matched$transcript_id.A,matched$transcript_id.B)),]
 new.transcripts = rbind(new.transcripts,matched.toAdd)
 
-write.table(new.transcripts[,c("V1","start","stop","transcript_id","V6","V7")],file="data/newTotal.02May14.v2.bed",sep="\t",quote=FALSE,row.names=FALSE,col.names=FALSE)
+write.table(new.transcripts[,c("V1","start","stop","transcript_id","V6","V7")],file="data/newTotal.04Jun14.bed",sep="\t",quote=FALSE,row.names=FALSE,col.names=FALSE)
 ```
 
 5.  Identify overlap between transcripts in order to identify transcripts from the same gene
@@ -260,7 +267,7 @@ BEDtools Version = bedtools v2.16.2-zip-5db7ff9
 ```
 export PATH=/usr/local/bedtools2/bin:$PATH
 cd /data/Tabastore3/LauraS/LXS/RNA-Seq/totalRNA.24Oct13/data
-intersectBed -a newTotal.02May14.v2.bed -b newTotal.02May14.v2.bed -wo > overlap.total.forGeneID.txt
+intersectBed -a newTotal.04Jun14.bed -b newTotal.04Jun14.bed -wo > overlap.total.forGeneID.txt
 ```
 
 6.  Match transcripts to genes and create new GTF file  
@@ -283,7 +290,7 @@ findJunct <- function(starts,stops){
   
 new.transcripts$exonJunct = apply(new.transcripts[,c("x.x","x.y")],1,function(a) findJunct(a[1],a[2]))
 
-overlap = read.table(file="Data/overlap.polyA.forGeneID.txt",sep="\t",header=FALSE)
+overlap = read.table(file="data/overlap.total.forGeneID.txt",sep="\t",header=FALSE)
 overlap = overlap[overlap$V4!=overlap$V10,]
 overlap = overlap[overlap$V6=="." | overlap$V12=="." | overlap$V6==overlap$V12,]
 
@@ -310,20 +317,20 @@ graph.polyA <- graph.data.frame(edges)
 graph.polyA <- igraph.to.graphNEL(graph.polyA)
 
 compList <- connectedComp(graph.polyA)
-names(compList) <- paste("polyA",c(1:length(compList)),sep=".")
+names(compList) <- paste("total",c(1:length(compList)),sep=".")
 
 multiTrans <- sapply(names(compList),function(a) cbind(gene_id.new=a,transcript_id.new=paste(a,c(1:length(compList[[a]])),sep="."),id=compList[[a]]))
 multiTrans <- data.frame(do.call(rbind,multiTrans))
 
 singleTrans <- data.frame(id=new.transcripts$transcript_id[!(new.transcripts$transcript_id %in% multiTrans$id)])
-singleTrans$gene_id.new = paste("polyA",c((length(compList)+1):(length(compList)+nrow(singleTrans))),sep=".")
+singleTrans$gene_id.new = paste("total",c((length(compList)+1):(length(compList)+nrow(singleTrans))),sep=".")
 singleTrans$transcript_id.new = paste(singleTrans$gene_id.new,1,sep=".")
 
 updated <- merge(new.transcripts,rbind(multiTrans,singleTrans),by.x="transcript_id",by.y="id")
 
 ##  Create New GTF File  ##
 
-byExon = data.frame(do.call(rbind,apply(updated,1,function(tmp) data.frame(transcript_id.new = as.character(tmp[13]),V4=unlist(strsplit(as.character(tmp[6]),split=",")),V5=unlist(strsplit(as.character(tmp[7]),split=","))))))
+byExon = data.frame(do.call(rbind,apply(updated,1,function(tmp) data.frame(transcript_id.new = as.character(tmp[12]),V4=unlist(strsplit(as.character(tmp[5]),split=",")),V5=unlist(strsplit(as.character(tmp[6]),split=","))))))
 
 gtf = merge(updated,byExon,by="transcript_id.new")
 gtf$V2 = "CuffLinks"
@@ -333,269 +340,155 @@ gtf$V9 = paste('gene_id "',gtf$gene_id.new,'"; transcript_id "',gtf$transcript_i
 
 gtf = gtf[,paste("V",c(1:9),sep="")]
 
-write.table(gtf,file="polyA/polyA.reconstruction/transcript.polyA.24Mar14.gtf",row.names=FALSE,col.names=FALSE,quote=FALSE,sep="\t")
+write.table(gtf,file="reconstruction/transcripts.05Jun14.v1.gtf",row.names=FALSE,col.names=FALSE,quote=FALSE,sep="\t")
 ```
 
-7. Use CuffLink To Check FPKM In New GTF
+7. Use SailFish To Check Quantification In New GTF
 ---------------------------------------
 
-```
-export PATH=$HOME/bin:$PATH
-export PYTHONPATH=$HOME/bin:$PYTHONPATH
-
-cd /data/Tabastore3/LauraS/BNLx.SHR/RNA-Seq/polyA/polyA.alignedReads
-cufflinks -u --seed 5464 -G /data/Tabastore3/LauraS/BNLx.SHR/RNA-Seq/polyA/polyA.reconstruction/transcript.polyA.24Mar14.gtf -p 4 -o /data/Tabastore3/LauraS/BNLx.SHR/RNA-Seq/polyA/polyA.reconstruction/BNLx.polyA.fpkm BNLx.polyA.bam
-cufflinks -u --seed 5465 -G /data/Tabastore3/LauraS/BNLx.SHR/RNA-Seq/polyA/polyA.reconstruction/transcript.polyA.24Mar14.gtf -p 4 -o /data/Tabastore3/LauraS/BNLx.SHR/RNA-Seq/polyA/polyA.reconstruction/SHR.polyA.fpkm SHR.polyA.bam
+### Extract sequence of transcripts
 ```
 
-8.  After re-quantifying with new GTF, eliminate transcripts with less than 1 FPKM in both strains and rename transcripts based on their combined (across strains) FPKM value, i.e., the transcript label '.1' is the major transcript
---------------------------------------------------
+# index genome
+cd /Volumes/LauraS/index
+samtools faidx mm10.cleaned.wSpikes.v2.fa
 
-```{r,eval=FALSE}
-BNLx.count = read.table(file="polyA/polyA.reconstruction/BNLx.polyA.fpkm/transcripts.gtf",sep="\t",header=FALSE)
-BNLx.count = BNLx.count[BNLx.count$V3=="transcript",]
-BNLx.count$transcript_id = unlist(lapply(strsplit(BNLx.count$V9,split="; "),function(a) gsub("transcript_id ","",a[grep("transcript",a)])))
-BNLx.count$gene_id = unlist(lapply(strsplit(BNLx.count$V9,split="; "),function(a) gsub("gene_id ","",a[grep("gene",a)])))
-BNLx.count$BNLx.fpkm = as.numeric(unlist(lapply(strsplit(BNLx.count$V9,split="; "),function(a) gsub("FPKM ","",a[grep("FPKM",a)]))))
+# generate fasta file of transcript sequences
+cd /Volumes/LauraS/LXS/RNA-Seq/totalRNA.24Oct13/reconstruction
+gffread -w transcripts.05Jun14.v1.fa -g /Volumes/LauraS/index/mm10.cleaned.wSpikes.v2.fa transcripts.05Jun14.v1.gtf
+```
 
+### Quantify Using SailFish
+```
+qsub -q smp /home/saba/ILS.ISS.Brain.totalRNA/programs/sailFish.quant.v1.sh
+```
 
-SHR.count = read.table(file="polyA/polyA.reconstruction/SHR.polyA.fpkm/transcripts.gtf",sep="\t",header=FALSE)
-SHR.count = SHR.count[SHR.count$V3=="transcript",]
-SHR.count$transcript_id = unlist(lapply(strsplit(SHR.count$V9,split="; "),function(a) gsub("transcript_id ","",a[grep("transcript",a)])))
-SHR.count$gene_id = unlist(lapply(strsplit(SHR.count$V9,split="; "),function(a) gsub("gene_id ","",a[grep("gene",a)])))
-SHR.count$SHR.fpkm = as.numeric(unlist(lapply(strsplit(SHR.count$V9,split="; "),function(a) gsub("FPKM ","",a[grep("FPKM",a)]))))
+```{r}
+rm(list=ls())
+options(stringsAsFactors=FALSE)
+setwd("/Volumes/LauraS/LXS/RNA-Seq/totalRNA.24Oct13/")
+ILS1.count = read.table(file="quantification/sailFish.v1/ILS1/quant.sf",sep="\t",header=FALSE)
+ILS2.count = read.table(file="quantification/sailFish.v1/ILS2/quant.sf",sep="\t",header=FALSE)
+ILS3.count = read.table(file="quantification/sailFish.v1/ILS3/quant.sf",sep="\t",header=FALSE)
+ISS1.count = read.table(file="quantification/sailFish.v1/ISS1/quant.sf",sep="\t",header=FALSE)
+ISS2.count = read.table(file="quantification/sailFish.v1/ISS2/quant.sf",sep="\t",header=FALSE)
+ISS3.count = read.table(file="quantification/sailFish.v1/ISS3/quant.sf",sep="\t",header=FALSE)
 
-counts = merge(BNLx.count,SHR.count,by=c("gene_id","transcript_id"))
-counts$sumFPKM = counts$BNLx.fpkm+counts$SHR.fpkm
-counts = counts[counts$BNLx.fpkm>1 | counts$SHR.fpkm>1,c("gene_id","transcript_id","BNLx.fpkm","SHR.fpkm","sumFPKM")]
-counts = counts[order(counts$gene_id,counts$sumFPKM,decreasing=TRUE),]
+colnames(ILS1.count) = c("transcript_id","length",paste("ILS1",c("TPM","RPKM","KPKM","EstNumKmers","EstNumReads"),sep="."))
+colnames(ILS2.count) = c("transcript_id","length",paste("ILS2",c("TPM","RPKM","KPKM","EstNumKmers","EstNumReads"),sep="."))
+colnames(ILS3.count) = c("transcript_id","length",paste("ILS3",c("TPM","RPKM","KPKM","EstNumKmers","EstNumReads"),sep="."))
+colnames(ISS1.count) = c("transcript_id","length",paste("ISS1",c("TPM","RPKM","KPKM","EstNumKmers","EstNumReads"),sep="."))
+colnames(ISS2.count) = c("transcript_id","length",paste("ISS2",c("TPM","RPKM","KPKM","EstNumKmers","EstNumReads"),sep="."))
+colnames(ISS3.count) = c("transcript_id","length",paste("ISS3",c("TPM","RPKM","KPKM","EstNumKmers","EstNumReads"),sep="."))
 
-## rename transcripts based on FPKM  ##
-newID = data.frame(do.call(rbind,aggregate(counts$transcript_id,by=list(gene_id=counts$gene_id),function(a) cbind(a,paste("polyA",strsplit(a,split=".",fixed=TRUE)[[1]][2],1:length(a),sep=".")))$x))
+counts = merge(ILS1.count,ILS2.count,by=c("transcript_id","length"))
+counts = merge(counts,ILS3.count,by=c("transcript_id","length"))
+counts = merge(counts,ISS1.count,by=c("transcript_id","length"))
+counts = merge(counts,ISS2.count,by=c("transcript_id","length"))
+counts = merge(counts,ISS3.count,by=c("transcript_id","length"))
+
+counts$numSamplesGrt1 = rowSums(counts[,grep("TPM",colnames(counts))]>1)
+counts = counts[counts$numSamplesGrt1!=0,]
+
+counts$gene_id = paste("total",unlist(lapply(strsplit(counts$transcript_id,split=".",fixed=TRUE),function(a) a[2])),sep=".")
+
+counts$sumTPM = rowSums(counts[,grep("TPM",colnames(counts))])
+counts = counts[order(counts$gene_id,counts$sumTPM,decreasing=TRUE),]
+
+## rename transcripts based on TPM  ##
+newID = data.frame(do.call(rbind,aggregate(counts$transcript_id,by=list(gene_id=counts$gene_id),function(a) cbind(a,paste("total",strsplit(a,split=".",fixed=TRUE)[[1]][2],1:length(a),sep=".")))$x))
 colnames(newID) = c("transcript_id","transcript_id.new")
 
 ##  reduce GTF file  ##
-orig.gtf = read.table(file="polyA/polyA.reconstruction/transcript.polyA.24Mar14.gtf",header=FALSE,sep="\t")
+orig.gtf = read.table(file="reconstruction/transcripts.05Jun14.v1.gtf",header=FALSE,sep="\t")
 orig.gtf$transcript_id = unlist(lapply(strsplit(orig.gtf$V9,split="; "),function(a) gsub("transcript_id ","",a[grep("transcript",a)])))
 orig.gtf$gene_id = unlist(lapply(strsplit(orig.gtf$V9,split="; "),function(a) gsub("gene_id ","",a[grep("gene",a)])))
 
 new.gtf = merge(orig.gtf,newID,by="transcript_id")
 new.gtf$V9 = paste('gene_id "',new.gtf$gene_id,'"; transcript_id "',new.gtf$transcript_id.new,'";',sep="")
-write.table(new.gtf[,paste("V",c(1:9),sep="")],file="polyA/polyA.reconstruction/transcript.polyA.reduced.24Mar14.gtf",row.names=FALSE,col.names=FALSE,quote=FALSE,sep="\t")
+write.table(new.gtf[,paste("V",c(1:9),sep="")],file="reconstruction/transcripts.05Jun14.v2.gtf",row.names=FALSE,col.names=FALSE,quote=FALSE,sep="\t")
 ```
 
-9.  Re-quantify again based on reduced GTF
-----------------------------------
-
-```
-export PATH=$HOME/bin:$PATH
-export PYTHONPATH=$HOME/bin:$PYTHONPATH
-
-cd /data/Tabastore3/LauraS/BNLx.SHR/RNA-Seq/polyA/polyA.alignedReads
-
-cufflinks -u --seed 5466 -G /data/Tabastore3/LauraS/BNLx.SHR/RNA-Seq/polyA/polyA.reconstruction/transcript.polyA.reduced.24Mar14.gtf -p 4 -o /data/Tabastore3/LauraS/BNLx.SHR/RNA-Seq/polyA/polyA.reconstruction/BNLx.polyA.reduced.fpkm BNLx.polyA.bam
-
-cufflinks -u --seed 5467 -G /data/Tabastore3/LauraS/BNLx.SHR/RNA-Seq/polyA/polyA.reconstruction/transcript.polyA.reduced.24Mar14.gtf -p 4 -o /data/Tabastore3/LauraS/BNLx.SHR/RNA-Seq/polyA/polyA.reconstruction/SHR.polyA.reduced.fpkm SHR.polyA.bam
-
+# generate fasta file of transcript sequences
+cd /Volumes/LauraS/LXS/RNA-Seq/totalRNA.24Oct13/reconstruction
+gffread -w transcripts.05Jun14.v2.fa -g /Volumes/LauraS/index/mm10.cleaned.wSpikes.v2.fa transcripts.05Jun14.v2.gtf
 ```
 
-
-10.  After re-quantifying with new GTF, eliminate transcripts with less than 1 FPKM in both strains and rename transcripts based on their combined (across strains) FPKM value, i.e., the transcript label '.1' is the major transcript
---------------------------------------------------
-
-```{r,eval=FALSE}
-rm(list=ls())
-options(stringsAsFactors=FALSE)
-
-BNLx.count = read.table(file="polyA/polyA.reconstruction/BNLx.polyA.reduced.fpkm/transcripts.gtf",sep="\t",header=FALSE)
-BNLx.count = BNLx.count[BNLx.count$V3=="transcript",]
-BNLx.count$transcript_id = unlist(lapply(strsplit(BNLx.count$V9,split="; "),function(a) gsub("transcript_id ","",a[grep("transcript",a)])))
-BNLx.count$gene_id = unlist(lapply(strsplit(BNLx.count$V9,split="; "),function(a) gsub("gene_id ","",a[grep("gene",a)])))
-BNLx.count$BNLx.fpkm = as.numeric(unlist(lapply(strsplit(BNLx.count$V9,split="; "),function(a) gsub("FPKM ","",a[grep("FPKM",a)]))))
-
-
-SHR.count = read.table(file="polyA/polyA.reconstruction/SHR.polyA.reduced.fpkm/transcripts.gtf",sep="\t",header=FALSE)
-SHR.count = SHR.count[SHR.count$V3=="transcript",]
-SHR.count$transcript_id = unlist(lapply(strsplit(SHR.count$V9,split="; "),function(a) gsub("transcript_id ","",a[grep("transcript",a)])))
-SHR.count$gene_id = unlist(lapply(strsplit(SHR.count$V9,split="; "),function(a) gsub("gene_id ","",a[grep("gene",a)])))
-SHR.count$SHR.fpkm = as.numeric(unlist(lapply(strsplit(SHR.count$V9,split="; "),function(a) gsub("FPKM ","",a[grep("FPKM",a)]))))
-
-counts = merge(BNLx.count,SHR.count,by=c("gene_id","transcript_id"))
-counts$sumFPKM = counts$BNLx.fpkm+counts$SHR.fpkm
-counts = counts[counts$BNLx.fpkm>1 | counts$SHR.fpkm>1,c("gene_id","transcript_id","BNLx.fpkm","SHR.fpkm","sumFPKM")]
-counts = counts[order(counts$gene_id,counts$sumFPKM,decreasing=TRUE),]
-
-## rename transcripts based on FPKM  ##
-newID = data.frame(do.call(rbind,aggregate(counts$transcript_id,by=list(gene_id=counts$gene_id),function(a) cbind(a,paste("polyA",strsplit(a,split=".",fixed=TRUE)[[1]][2],1:length(a),sep=".")))$x))
-colnames(newID) = c("transcript_id","transcript_id.new")
-
-##  reduce GTF file  ##
-orig.gtf = read.table(file="polyA/polyA.reconstruction/transcript.polyA.reduced.24Mar14.gtf",header=FALSE,sep="\t")
-orig.gtf$transcript_id = unlist(lapply(strsplit(orig.gtf$V9,split=";"),function(a) gsub(" transcript_id ","",a[grep("transcript",a)])))
-orig.gtf$gene_id = unlist(lapply(strsplit(orig.gtf$V9,split="; "),function(a) gsub("gene_id ","",a[grep("gene",a)])))
-
-new.gtf = merge(orig.gtf,newID,by="transcript_id")
-new.gtf$V9 = paste('gene_id "',new.gtf$gene_id,'"; transcript_id "',new.gtf$transcript_id.new,'";',sep="")
-write.table(new.gtf[,paste("V",c(1:9),sep="")],file="polyA/polyA.reconstruction/transcript.polyA.reduced.v2.25Mar14.gtf",row.names=FALSE,col.names=FALSE,quote=FALSE,sep="\t")
+### Quantify Using SailFish
+```
+qsub -q smp /home/saba/ILS.ISS.Brain.totalRNA/programs/sailFish.quant.v2.sh
 ```
 
-
-
-11.  Re-quantify again based on reduced GTF
-----------------------------------
-
+### Move files around
 ```
-export PATH=$HOME/bin:$PATH
-export PYTHONPATH=$HOME/bin:$PYTHONPATH
+cd /data/Tabastore3/LauraS/LXS/RNA-Seq/totalRNA.24Oct13/quantification/
+mkdir sailFish.v2
+cd sailFish.v2
+mkdir ISS1 ISS2 ISS3 ILS1 ILS2 ILS3
+chmod a+rw *
 
-cd /data/Tabastore3/LauraS/BNLx.SHR/RNA-Seq/polyA/polyA.alignedReads
+cd /Volumes/LauraS/LXS/RNA-Seq/totalRNA.24Oct13/quantification/sailFish.v2
 
-cufflinks -u --seed 5468 -G /data/Tabastore3/LauraS/BNLx.SHR/RNA-Seq/polyA/polyA.reconstruction/transcript.polyA.reduced.v2.25Mar14.gtf -p 4 -o /data/Tabastore3/LauraS/BNLx.SHR/RNA-Seq/polyA/polyA.reconstruction/BNLx.polyA.reduced.v2.fpkm BNLx.polyA.bam
-
-cufflinks -u --seed 5469 -G /data/Tabastore3/LauraS/BNLx.SHR/RNA-Seq/polyA/polyA.reconstruction/transcript.polyA.reduced.v2.25Mar14.gtf -p 4 -o /data/Tabastore3/LauraS/BNLx.SHR/RNA-Seq/polyA/polyA.reconstruction/SHR.polyA.reduced.v2.fpkm SHR.polyA.bam
-
+cd /home/saba/ILS.ISS.Brain.totalRNA/quantification/sailFish.v2
+get ISS1/quant.sf ISS1/quant.sf
+get ISS2/quant.sf ISS2/quant.sf
+get ISS3/quant.sf ISS3/quant.sf
+get ILS1/quant.sf ILS1/quant.sf
+get ILS2/quant.sf ILS2/quant.sf
+get ILS3/quant.sf ILS3/quant.sf
 ```
-
-12. After re-quantifying with new GTF, eliminate transcripts with less than 1 FPKM in both strains and rename transcripts based on their combined (across strains) FPKM value, i.e., the transcript label '.1' is the major transcript
---------------------------------------------------
-
-```{r,eval=FALSE}
-BNLx.count = read.table(file="polyA/polyA.reconstruction/BNLx.polyA.reduced.v2.fpkm/transcripts.gtf",sep="\t",header=FALSE)
-BNLx.count = BNLx.count[BNLx.count$V3=="transcript",]
-BNLx.count$transcript_id = unlist(lapply(strsplit(BNLx.count$V9,split="; "),function(a) gsub("transcript_id ","",a[grep("transcript",a)])))
-BNLx.count$gene_id = unlist(lapply(strsplit(BNLx.count$V9,split="; "),function(a) gsub("gene_id ","",a[grep("gene",a)])))
-BNLx.count$BNLx.fpkm = as.numeric(unlist(lapply(strsplit(BNLx.count$V9,split="; "),function(a) gsub("FPKM ","",a[grep("FPKM",a)]))))
-
-
-SHR.count = read.table(file="polyA/polyA.reconstruction/SHR.polyA.reduced.v2.fpkm/transcripts.gtf",sep="\t",header=FALSE)
-SHR.count = SHR.count[SHR.count$V3=="transcript",]
-SHR.count$transcript_id = unlist(lapply(strsplit(SHR.count$V9,split="; "),function(a) gsub("transcript_id ","",a[grep("transcript",a)])))
-SHR.count$gene_id = unlist(lapply(strsplit(SHR.count$V9,split="; "),function(a) gsub("gene_id ","",a[grep("gene",a)])))
-SHR.count$SHR.fpkm = as.numeric(unlist(lapply(strsplit(SHR.count$V9,split="; "),function(a) gsub("FPKM ","",a[grep("FPKM",a)]))))
-
-counts = merge(BNLx.count,SHR.count,by=c("gene_id","transcript_id"))
-counts$sumFPKM = counts$BNLx.fpkm+counts$SHR.fpkm
-
-sum(counts$BNLx.fpkm<1 & counts$SHR.fpkm<1)
-sum(counts$sumFPKM<1)
-counts[counts$BNLx.fpkm<1 & counts$SHR.fpkm<1,]
-
-counts = counts[counts$BNLx.fpkm>1 | counts$SHR.fpkm>1,c("gene_id","transcript_id","BNLx.fpkm","SHR.fpkm","sumFPKM")]
-counts = counts[order(counts$gene_id,counts$sumFPKM,decreasing=TRUE),]
-
-## rename transcripts based on FPKM  ##
-newID = data.frame(do.call(rbind,aggregate(counts$transcript_id,by=list(gene_id=counts$gene_id),function(a) cbind(a,paste("polyA",strsplit(a,split=".",fixed=TRUE)[[1]][2],1:length(a),sep=".")))$x))
-colnames(newID) = c("transcript_id","transcript_id.new")
-
-##  reduce GTF file  ##
-orig.gtf = read.table(file="polyA/polyA.reconstruction/transcript.polyA.reduced.v2.25Mar14.gtf",header=FALSE,sep="\t")
-orig.gtf$transcript_id = unlist(lapply(strsplit(orig.gtf$V9,split=";"),function(a) gsub(" transcript_id ","",a[grep("transcript",a)])))
-orig.gtf$gene_id = unlist(lapply(strsplit(orig.gtf$V9,split="; "),function(a) gsub("gene_id ","",a[grep("gene",a)])))
-
-new.gtf = merge(orig.gtf,newID,by="transcript_id")
-new.gtf$V9 = paste('gene_id "',new.gtf$gene_id,'"; transcript_id "',new.gtf$transcript_id.new,'";',sep="")
-write.table(new.gtf[,paste("V",c(1:9),sep="")],file="polyA/polyA.reconstruction/transcript.polyA.reduced.v3.25Mar14.gtf",row.names=FALSE,col.names=FALSE,quote=FALSE,sep="\t")
-```
-
-13.  Re-quantify again based on reduced GTF
-----------------------------------
-
-```
-export PATH=$HOME/bin:$PATH
-export PYTHONPATH=$HOME/bin:$PYTHONPATH
-
-cd /data/Tabastore3/LauraS/BNLx.SHR/RNA-Seq/polyA/polyA.alignedReads
-
-cufflinks -u --seed 5468 -G /data/Tabastore3/LauraS/BNLx.SHR/RNA-Seq/polyA/polyA.reconstruction/transcript.polyA.reduced.v3.25Mar14.gtf -p 4 -o /data/Tabastore3/LauraS/BNLx.SHR/RNA-Seq/polyA/polyA.reconstruction/BNLx.polyA.reduced.v3.fpkm BNLx.polyA.bam
-
-cufflinks -u --seed 5469 -G /data/Tabastore3/LauraS/BNLx.SHR/RNA-Seq/polyA/polyA.reconstruction/transcript.polyA.reduced.v3.25Mar14.gtf -p 4 -o /data/Tabastore3/LauraS/BNLx.SHR/RNA-Seq/polyA/polyA.reconstruction/SHR.polyA.reduced.v3.fpkm SHR.polyA.bam
-
-```
-
-14. After re-quantifying with new GTF, eliminate transcripts with less than 1 FPKM in both strains and rename transcripts based on their combined (across strains) FPKM value, i.e., the transcript label '.1' is the major transcript
---------------------------------------------------
-
-```{r,eval=FALSE}
-BNLx.count = read.table(file="polyA/polyA.reconstruction/BNLx.polyA.reduced.v3.fpkm/transcripts.gtf",sep="\t",header=FALSE)
-BNLx.count = BNLx.count[BNLx.count$V3=="transcript",]
-BNLx.count$transcript_id = unlist(lapply(strsplit(BNLx.count$V9,split="; "),function(a) gsub("transcript_id ","",a[grep("transcript",a)])))
-BNLx.count$gene_id = unlist(lapply(strsplit(BNLx.count$V9,split="; "),function(a) gsub("gene_id ","",a[grep("gene",a)])))
-BNLx.count$BNLx.fpkm = as.numeric(unlist(lapply(strsplit(BNLx.count$V9,split="; "),function(a) gsub("FPKM ","",a[grep("FPKM",a)]))))
-
-
-SHR.count = read.table(file="polyA/polyA.reconstruction/SHR.polyA.reduced.v3.fpkm/transcripts.gtf",sep="\t",header=FALSE)
-SHR.count = SHR.count[SHR.count$V3=="transcript",]
-SHR.count$transcript_id = unlist(lapply(strsplit(SHR.count$V9,split="; "),function(a) gsub("transcript_id ","",a[grep("transcript",a)])))
-SHR.count$gene_id = unlist(lapply(strsplit(SHR.count$V9,split="; "),function(a) gsub("gene_id ","",a[grep("gene",a)])))
-SHR.count$SHR.fpkm = as.numeric(unlist(lapply(strsplit(SHR.count$V9,split="; "),function(a) gsub("FPKM ","",a[grep("FPKM",a)]))))
-
-counts = merge(BNLx.count,SHR.count,by=c("gene_id","transcript_id"))
-counts$sumFPKM = counts$BNLx.fpkm+counts$SHR.fpkm
-
-sum(counts$BNLx.fpkm<1 & counts$SHR.fpkm<1)
-sum(counts$sumFPKM<1)
-```
-
-ALL TRANSCRIPTS WITH FPKM>1 IN AT LEAST ONE STRAIN
-
-cd /data/Tabastore3/LauraS/BNLx.SHR/RNA-Seq/polyA/polyA.reconstruction/
-mv transcript.polyA.reduced.v3.25Mar14.gtf transcript.polyA.clean.26Mar14.gtf
-mv BNLx.polyA.reduced.v3.fpkm BNLx.polyA.cleaned.fpkm
-mv SHR.polyA.reduced.v3.fpkm SHR.polyA.cleaned.fpkm
-
-rm transcript.polyA.reduced.*
-rm BNLx.polyA.reduced.*/*
-rm SHR.polyA.reduced.*/*
-rmdir BNLx.polyA.reduced.*
-rmdir SHR.polyA.reduced.*
-
-
 
 ```{r}
 rm(list=ls())
 options(stringsAsFactors=FALSE)
-setwd("/Volumes/LauraS/LXS/RNA-Seq/totalRNA.24Oct13")
+setwd("/Volumes/LauraS/LXS/RNA-Seq/totalRNA.24Oct13/")
+ILS1.count = read.table(file="quantification/sailFish.v2/ILS1/quant.sf",sep="\t",header=FALSE)
+ILS2.count = read.table(file="quantification/sailFish.v2/ILS2/quant.sf",sep="\t",header=FALSE)
+ILS3.count = read.table(file="quantification/sailFish.v2/ILS3/quant.sf",sep="\t",header=FALSE)
+ISS1.count = read.table(file="quantification/sailFish.v2/ISS1/quant.sf",sep="\t",header=FALSE)
+ISS2.count = read.table(file="quantification/sailFish.v2/ISS2/quant.sf",sep="\t",header=FALSE)
+ISS3.count = read.table(file="quantification/sailFish.v2/ISS3/quant.sf",sep="\t",header=FALSE)
 
-ILS <- read.table(file="reconstruction/ILS.total.ensemblGuided/transcripts.gtf",sep="\t",header=FALSE)
-ILS$transcript_id = unlist(lapply(strsplit(ILS$V9,split="; "),function(a) gsub("transcript_id ","",a[grep("transcript_id",a)])))
-ILS$gene_id = unlist(lapply(strsplit(ILS$V9,split="; "),function(a) gsub("gene_id ","",a[grep("gene_id",a)])))
-ILS$fpkm = as.numeric(unlist(lapply(strsplit(ILS$V9,split="; "),function(a) gsub("FPKM ","",a[grep("FPKM",a)]))))
+colnames(ILS1.count) = c("transcript_id","length",paste("ILS1",c("TPM","RPKM","KPKM","EstNumKmers","EstNumReads"),sep="."))
+colnames(ILS2.count) = c("transcript_id","length",paste("ILS2",c("TPM","RPKM","KPKM","EstNumKmers","EstNumReads"),sep="."))
+colnames(ILS3.count) = c("transcript_id","length",paste("ILS3",c("TPM","RPKM","KPKM","EstNumKmers","EstNumReads"),sep="."))
+colnames(ISS1.count) = c("transcript_id","length",paste("ISS1",c("TPM","RPKM","KPKM","EstNumKmers","EstNumReads"),sep="."))
+colnames(ISS2.count) = c("transcript_id","length",paste("ISS2",c("TPM","RPKM","KPKM","EstNumKmers","EstNumReads"),sep="."))
+colnames(ISS3.count) = c("transcript_id","length",paste("ISS3",c("TPM","RPKM","KPKM","EstNumKmers","EstNumReads"),sep="."))
 
-ILS = ILS[ILS$fpkm!=0,]
-ILS = ILS[!grepl("ERCC",ILS$V1),]
-ILS$V1 = paste("chr",ILS$V1,sep="")
+counts = merge(ILS1.count,ILS2.count,by=c("transcript_id","length"))
+counts = merge(counts,ILS3.count,by=c("transcript_id","length"))
+counts = merge(counts,ISS1.count,by=c("transcript_id","length"))
+counts = merge(counts,ISS2.count,by=c("transcript_id","length"))
+counts = merge(counts,ISS3.count,by=c("transcript_id","length"))
 
-tmp = ILS[,c("V1","transcript_id")]
-tmp = tmp[!duplicated(tmp),]
-tmp = tmp[duplicated(tmp$transcript_id),]
+counts$numSamplesGrt1 = rowSums(counts[,grep("TPM",colnames(counts))]>1)
+counts = counts[counts$numSamplesGrt1!=0,]
 
-for(i in 1:nrow(tmp)){
-  ILS$V9[ILS$transcript_id==tmp[i,"transcript_id"] & ILS$V1==tmp[i,"V1"]] = gsub(tmp[i,"transcript_id"],paste(tmp[i,],collapse="_"), ILS$V9[ILS$transcript_id==tmp[i,"transcript_id"] & ILS$V1==tmp[i,"V1"]])
-  }
+counts$gene_id = paste("total",unlist(lapply(strsplit(counts$transcript_id,split=".",fixed=TRUE),function(a) a[2])),sep=".")
 
-write.table(ILS[,paste("V",1:9,sep="")],file="reconstruction/ILS.total.ensemblGuided/transcripts.forUCSC.gtf",sep="\t",quote=FALSE,row.names=FALSE,col.names=FALSE)
+counts$sumTPM = rowSums(counts[,grep("TPM",colnames(counts))])
+counts = counts[order(counts$gene_id,counts$sumTPM,decreasing=TRUE),]
 
-ISS <- read.table(file="reconstruction/ISS.total.ensemblGuided/transcripts.gtf",sep="\t",header=FALSE)
-ISS$transcript_id = unlist(lapply(strsplit(ISS$V9,split="; "),function(a) gsub("transcript_id ","",a[grep("transcript_id",a)])))
-ISS$gene_id = unlist(lapply(strsplit(ISS$V9,split="; "),function(a) gsub("gene_id ","",a[grep("gene_id",a)])))
-ISS$fpkm = as.numeric(unlist(lapply(strsplit(ISS$V9,split="; "),function(a) gsub("FPKM ","",a[grep("FPKM",a)]))))
+## rename transcripts based on TPM  ##
+newID = data.frame(do.call(rbind,aggregate(counts$transcript_id,by=list(gene_id=counts$gene_id),function(a) cbind(a,paste("total",strsplit(a,split=".",fixed=TRUE)[[1]][2],1:length(a),sep=".")))$x))
+colnames(newID) = c("transcript_id","transcript_id.new")
 
-ISS = ISS[ISS$fpkm!=0,]
-ISS = ISS[!grepl("ERCC",ISS$V1),]
-ISS$V1 = paste("chr",ISS$V1,sep="")
+##  reduce GTF file  ##
+orig.gtf = read.table(file="reconstruction/transcripts.05Jun14.v2.gtf",header=FALSE,sep="\t")
+orig.gtf$transcript_id = unlist(lapply(strsplit(orig.gtf$V9,split="; "),function(a) gsub("transcript_id ","",a[grep("transcript",a)])))
+orig.gtf$transcript_id = gsub(";","",orig.gtf$transcript_id) 
+orig.gtf$gene_id = unlist(lapply(strsplit(orig.gtf$V9,split="; "),function(a) gsub("gene_id ","",a[grep("gene",a)])))
 
-tmp = ISS[,c("V1","transcript_id")]
-tmp = tmp[!duplicated(tmp),]
-tmp = tmp[duplicated(tmp$transcript_id),]
+new.gtf = merge(orig.gtf,newID,by="transcript_id")
+new.gtf$V9 = paste('gene_id "',new.gtf$gene_id,'"; transcript_id "',new.gtf$transcript_id.new,'";',sep="")
+new.gtf = new.gtf[,paste("V",c(1:9),sep="")]
 
-for(i in 1:nrow(tmp)){
-  ISS$V9[ISS$transcript_id==tmp[i,"transcript_id"] & ISS$V1==tmp[i,"V1"]] = gsub(tmp[i,"transcript_id"],paste(tmp[i,],collapse="_"), ISS$V9[ISS$transcript_id==tmp[i,"transcript_id"] & ISS$V1==tmp[i,"V1"]])
-  }
+write.table(new.gtf,file="reconstruction/transcripts.11Jun14.FINAL.gtf",row.names=FALSE,col.names=FALSE,quote=FALSE,sep="\t")
 
-write.table(ISS[,paste("V",1:9,sep="")],file="reconstruction/ISS.total.ensemblGuided/transcripts.forUCSC.gtf",sep="\t",quote=FALSE,row.names=FALSE,col.names=FALSE)
-
-ILS[ILS$transcript_id %in% c("NM_001081979","NM_010788"),]
-ISS[ISS$transcript_id %in% c("NM_001081979","NM_010788"),]
-
-
+new.gtf$V1 = paste("chr",new.gtf$V1,sep="")
+forUCSC = new.gtf[-grep("ERCC",new.gtf$V1),]
+write.table(forUCSC,file="reconstruction/transcripts.11Jun14.FINAL.forUCSC.gtf",row.names=FALSE,col.names=FALSE,quote=FALSE,sep="\t")
 ```
+
+

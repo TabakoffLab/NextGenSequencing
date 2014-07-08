@@ -1,0 +1,12 @@
+/home/data/saba/BNLx.SHR.Brain.polyARNA/rawReads/BNLx1.R1.fq 100 44299616
+/home/data/saba/BNLx.SHR.Brain.polyARNA/rawReads/BNLx1.R2.fq 100 44299616
+/home/data/saba/BNLx.SHR.Brain.polyARNA/rawReads/BNLx2.R1.fq 100 16119034
+/home/data/saba/BNLx.SHR.Brain.polyARNA/rawReads/BNLx2.R2.fq 100 16119034
+/home/data/saba/BNLx.SHR.Brain.polyARNA/rawReads/BNLx3.R1.fq 100 16801510
+/home/data/saba/BNLx.SHR.Brain.polyARNA/rawReads/BNLx3.R2.fq 100 16801510
+/home/data/saba/BNLx.SHR.Brain.polyARNA/rawReads/SHR1.R1.fq 100 55548038
+/home/data/saba/BNLx.SHR.Brain.polyARNA/rawReads/SHR1.R2.fq 100 55548038
+/home/data/saba/BNLx.SHR.Brain.polyARNA/rawReads/SHR2.R1.fq 100 29305338
+/home/data/saba/BNLx.SHR.Brain.polyARNA/rawReads/SHR2.R2.fq 100 29305338
+/home/data/saba/BNLx.SHR.Brain.polyARNA/rawReads/SHR3.R1.fq 100 30404731
+/home/data/saba/BNLx.SHR.Brain.polyARNA/rawReads/SHR3.R2.fq 100 30404731

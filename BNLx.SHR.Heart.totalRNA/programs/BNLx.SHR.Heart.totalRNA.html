@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<!-- saved from url=(0014)about:internet -->
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=9" >
+
+<title>BN-Lx and SHR left ventricle total RNA RNA-Seq</title>
+
+<style type="text/css">
+body, td {
+   font-family: sans-serif;
+   background-color: white;
+   font-size: 12px;
+   margin: 8px;
+}
+
+tt, code, pre {
+   font-family: 'DejaVu Sans Mono', 'Droid Sans Mono', 'Lucida Console', Consolas, Monaco, monospace;
+}
+
+h1 { 
+   font-size:2.2em; 
+}
+
+h2 { 
+   font-size:1.8em; 
+}
+
+h3 { 
+   font-size:1.4em; 
+}
+
+h4 { 
+   font-size:1.0em; 
+}
+
+h5 { 
+   font-size:0.9em; 
+}
+
+h6 { 
+   font-size:0.8em; 
+}
+
+a:visited {
+   color: rgb(50%, 0%, 50%);
+}
+
+pre {	
+   margin-top: 0;
+   max-width: 95%;
+   border: 1px solid #ccc;
+   white-space: pre-wrap;
+}
+
+pre code {
+   display: block; padding: 0.5em;
+}
+
+code.r, code.cpp {
+   background-color: #F8F8F8;
+}
+
+table, td, th {
+  border: none;
+}
+
+blockquote {
+   color:#666666;
+   margin:0;
+   padding-left: 1em;
+   border-left: 0.5em #EEE solid;
+}
+
+hr {
+   height: 0px;
+   border-bottom: none;
+   border-top-width: thin;
+   border-top-style: dotted;
+   border-top-color: #999999;
+}
+
+@media print {
+   * { 
+      background: transparent !important; 
+      color: black !important; 
+      filter:none !important; 
+      -ms-filter: none !important; 
+   }
+
+   body { 
+      font-size:12pt; 
+      max-width:100%; 
+   }
+       
+   a, a:visited { 
+      text-decoration: underline; 
+   }
+
+   hr { 
+      visibility: hidden;
+      page-break-before: always;
+   }
+
+   pre, blockquote { 
+      padding-right: 1em; 
+      page-break-inside: avoid; 
+   }
+
+   tr, img { 
+      page-break-inside: avoid; 
+   }
+
+   img { 
+      max-width: 100% !important; 
+   }
+
+   @page :left { 
+      margin: 15mm 20mm 15mm 10mm; 
+   }
+     
+   @page :right { 
+      margin: 15mm 10mm 15mm 20mm; 
+   }
+
+   p, h2, h3 { 
+      orphans: 3; widows: 3; 
+   }
+
+   h2, h3 { 
+      page-break-after: avoid; 
+   }
+}
+
+</style>
+
+
+
+
+
+</head>
+
+<body>
+<h1>BN-Lx and SHR left ventricle total RNA RNA-Seq</h1>
+
+<ul>
+<li>4 samples per strain (SHR1, SHR2, SHR3, SHR4, BNLx1, BNLx2, BNLx3, BNLx4)</li>
+<li>ribosomal RNA depleted total RNA</li>
+<li>2X100 reads using the stranded protocol</li>
+<li>sequencing done by Beckman Coulter Genomics - received May 22, 2014</li>
+<li>synthetic spike-in were added to each sample (SHR1, SHR3, BNLx2, and BNLx4 have mix 1; SHR2, SHR4, BNLx1, and BNLx3 have mix 2)
+
+<ul>
+<li>Information regarding the spike-ins can be found here: <a href="http://products.invitrogen.com/ivgn/product/4456739">http://products.invitrogen.com/ivgn/product/4456739</a></li>
+</ul></li>
+</ul>
+
+<h2>1. Unzip Files - DONE</h2>
+
+<pre><code>qsub -q smp /home/saba/BNLx.SHR.Heart.totalRNA/programs/unzip.yucca.sh
+</code></pre>
+
+<h2>2. Determine number of reads sent for each sample - DONE</h2>
+
+<pre><code>qsub -q smp /home/data/saba/BNLx.SHR.Heart.totalRNA/programs/countRawReads.heart.sh
+</code></pre>
+
+<h2>Raw Reads/Read Fragments</h2>
+
+<table><thead>
+<tr>
+<th align="center">sample</th>
+<th align="center">Number of Paired-End Reads</th>
+<th align="center">Number of Read Fragments</th>
+</tr>
+</thead><tbody>
+<tr>
+<td align="center">BNLx1</td>
+<td align="center">102,416,734</td>
+<td align="center">204,833,468</td>
+</tr>
+<tr>
+<td align="center">BNLx2</td>
+<td align="center">105,346,919</td>
+<td align="center">210,693,838</td>
+</tr>
+<tr>
+<td align="center">BNLx3</td>
+<td align="center">101,549,816</td>
+<td align="center">203,099,632</td>
+</tr>
+<tr>
+<td align="center">BNLx4</td>
+<td align="center">99,254,730</td>
+<td align="center">198,509,460</td>
+</tr>
+<tr>
+<td align="center">SHR1</td>
+<td align="center">93,230,933</td>
+<td align="center">186,461,866</td>
+</tr>
+<tr>
+<td align="center">SHR2</td>
+<td align="center">90,153,294</td>
+<td align="center">180,306,588</td>
+</tr>
+<tr>
+<td align="center">SHR3</td>
+<td align="center">93,942,566</td>
+<td align="center">187,885,132</td>
+</tr>
+<tr>
+<td align="center">SHR4</td>
+<td align="center">103,778,181</td>
+<td align="center">207,556,362</td>
+</tr>
+</tbody></table>
+
+<p>Total Number of Paired End Reads: 789,673,173<br/>
+Total Number of Read Fragments:  1,579,346,346<br/>
+Average Number of Paired End Reads Per Sample: 98,709,147  </p>
+
+<h2>3. Trim reads for adaptors and for quality - DONE</h2>
+
+<pre><code>qsub -q smp /home/saba/BNLx.SHR.Heart.totalRNA/programs/trimReads.yucca.sh
+</code></pre>
+
+<h2>4. Characterize Trimmed Reads - DONE</h2>
+
+<pre><code>qsub -q smp /home/saba/BNLx.SHR.Heart.totalRNA/programs/countTrimmedReads.sh
+</code></pre>
+
+<h2>Trimmed Reads/Read Fragments</h2>
+
+<table><thead>
+<tr>
+<th align="center">sample</th>
+<th align="center">Number of Paired-End Reads</th>
+<th align="center">Number of Read Fragments</th>
+<th align="center">Average Read Fragment Length After Trimming (first read fragment)</th>
+<th align="center">Average Read Fragment Length After Trimming (second read fragment)</th>
+<th align="center">Number of Read Fragments After Trimming</th>
+<th align="center">Percent of Read Fragments That Remained After Trimming</th>
+</tr>
+</thead><tbody>
+<tr>
+<td align="center">BNLx1</td>
+<td align="center">102,416,734</td>
+<td align="center">204,833,468</td>
+<td align="center">96.9</td>
+<td align="center">94.1</td>
+<td align="center">198,942,138</td>
+<td align="center">97.1%</td>
+</tr>
+<tr>
+<td align="center">BNLx2</td>
+<td align="center">105,346,919</td>
+<td align="center">210,693,838</td>
+<td align="center">98.4</td>
+<td align="center">95.6</td>
+<td align="center">204,310,380</td>
+<td align="center">97.0%</td>
+</tr>
+<tr>
+<td align="center">BNLx3</td>
+<td align="center">101,549,816</td>
+<td align="center">203,099,632</td>
+<td align="center">96.5</td>
+<td align="center">93.1</td>
+<td align="center">192,526,482</td>
+<td align="center">94.8%</td>
+</tr>
+<tr>
+<td align="center">BNLx4</td>
+<td align="center">99,254,730</td>
+<td align="center">198,509,460</td>
+<td align="center">96.8</td>
+<td align="center">93.9</td>
+<td align="center">190,600,766</td>
+<td align="center">96.0%</td>
+</tr>
+<tr>
+<td align="center">SHR1</td>
+<td align="center">93,230,933</td>
+<td align="center">186,461,866</td>
+<td align="center">97.9</td>
+<td align="center">94.6</td>
+<td align="center">180,414,634</td>
+<td align="center">96.8%</td>
+</tr>
+<tr>
+<td align="center">SHR2</td>
+<td align="center">90,153,294</td>
+<td align="center">180,306,588</td>
+<td align="center">96.3</td>
+<td align="center">93.3</td>
+<td align="center">175,320,928</td>
+<td align="center">97.2%</td>
+</tr>
+<tr>
+<td align="center">SHR3</td>
+<td align="center">93,942,566</td>
+<td align="center">187,885,132</td>
+<td align="center">97.7</td>
+<td align="center">94.2</td>
+<td align="center">180,684,706</td>
+<td align="center">96.2%</td>
+</tr>
+<tr>
+<td align="center">SHR4</td>
+<td align="center">103,778,181</td>
+<td align="center">207,556,362</td>
+<td align="center">98.2</td>
+<td align="center">94.8</td>
+<td align="center">199,355,280</td>
+<td align="center">96.0%</td>
+</tr>
+</tbody></table>
+
+<p>Total Number of Paired End Reads After Trimming: 761,077,657<br/>
+Total Number of Read Fragments After Trimming:  1,522,155,314<br/>
+Average Number of Paired End Reads Per Sample After Trimming: 95,134,707  </p>
+
+<h2>5. Align to ribosomal RNA - RUNNING</h2>
+
+<pre><code>qsub -q smp /home/data/saba/BNLx.SHR.Heart.totalRNA/programs/alignTo.rRNA.heart.01Jul14.sh
+</code></pre>
+
+<p><strong>move files</strong></p>
+
+<pre><code>get SHR1.rRNA/align_summary.txt rRNA.summary.SHR1.txt
+get SHR2.rRNA/align_summary.txt rRNA.summary.SHR2.txt
+get SHR3.rRNA/align_summary.txt rRNA.summary.SHR3.txt
+get SHR4.rRNA/align_summary.txt rRNA.summary.SHR4.txt
+get BNLx1.rRNA/align_summary.txt rRNA.summary.BNLx1.txt
+get BNLx2.rRNA/align_summary.txt rRNA.summary.BNLx2.txt
+get BNLx3.rRNA/align_summary.txt rRNA.summary.BNLx3.txt
+get BNLx4.rRNA/align_summary.txt rRNA.summary.BNLx4.txt
+</code></pre>
+
+<h2>Proportion of Reads Aligned to rRNA</h2>
+
+<table><thead>
+<tr>
+<th align="center">Sample</th>
+<th align="center">Number of Paired-End Reads After Trimming</th>
+<th align="center">Number of Paired-End Reads with at Least One Fragment Aligned to rRNA</th>
+<th align="center">Percent of Paired-End Reads Aligned to rRNA</th>
+<th align="center">Number of Paired-End Reads NOT Aligned to rRNA</th>
+</tr>
+</thead><tbody>
+<tr>
+<td align="center">BNLx1</td>
+<td align="center">99,471,069</td>
+<td align="center">3,577,529</td>
+<td align="center">3.6%</td>
+<td align="center">95,893,540</td>
+</tr>
+<tr>
+<td align="center">BNLx2</td>
+<td align="center">102,155,190</td>
+<td align="center">6,192,366</td>
+<td align="center">6.1%</td>
+<td align="center">95,962,824</td>
+</tr>
+<tr>
+<td align="center">BNLx3</td>
+<td align="center">96,263,241</td>
+<td align="center">3,687,942</td>
+<td align="center">3.8%</td>
+<td align="center">92,575,299</td>
+</tr>
+<tr>
+<td align="center">BNLx4</td>
+<td align="center">95,300,383</td>
+<td align="center">5,035,410</td>
+<td align="center">5.3%</td>
+<td align="center">90,264,973</td>
+</tr>
+<tr>
+<td align="center">SHR1</td>
+<td align="center">90,207,317</td>
+<td align="center">8,244,503</td>
+<td align="center">9.1%</td>
+<td align="center">81,962,814</td>
+</tr>
+<tr>
+<td align="center">SHR2</td>
+<td align="center">87,660,464</td>
+<td align="center">3,898,849</td>
+<td align="center">4.4%</td>
+<td align="center">83,761,615</td>
+</tr>
+<tr>
+<td align="center">SHR3</td>
+<td align="center">90,342,353</td>
+<td align="center">17,765,222</td>
+<td align="center">19.7%</td>
+<td align="center">72,577,131</td>
+</tr>
+<tr>
+<td align="center">SHR4</td>
+<td align="center">99,677,640</td>
+<td align="center">7,391,434</td>
+<td align="center">7.4%</td>
+<td align="center">92,286,206</td>
+</tr>
+</tbody></table>
+
+<h2>6.  Convert unmapped.bam file into fastq files - DONE</h2>
+
+<pre><code>qsub -q smp /home/data/saba/BNLx.SHR.Heart.totalRNA/programs/convertToFastQ.heart.sh
+</code></pre>
+
+<h2>7. Align to strain-specific genome - RUNNING</h2>
+
+<pre><code>qsub -q smp /home/data/saba/BNLx.SHR.Heart.totalRNA/programs/updateRatGenome.wChrM.sh
+qsub -q smp /home/data/saba/BNLx.SHR.Heart.totalRNA/programs/tophatAlign.heart.sh
+</code></pre>
+
+<p><strong><em>STOPPED HERE</em></strong></p>
+
+<h2>8. Sort and merge BAM files by strain</h2>
+
+<pre><code>qsub -q smp /home/data/saba/BNLx.SHR.Heart.totalRNA/programs/sortAndMerge.heart.sh
+</code></pre>
+
+<h2>9. Create BigWig Files</h2>
+
+<pre><code>qsub -q smp /home/data/saba/BNLx.SHR.Heart.totalRNA/programs/createBigWig.heart.sh
+</code></pre>
+
+<p>UCSC Browser Tracks
+track type=bigWig name=&ldquo;SHR.plus.heart&rdquo; description=&ldquo;SHR Total RNA Heart - plus strand&rdquo; bigDataUrl=http://ucsc:<a href="mailto:JU7etr5t@phenogen.ucdenver.edu">JU7etr5t@phenogen.ucdenver.edu</a>/ucsc/SHR.heart.genome.plus.bw</p>
+
+<p>track type=bigWig name=&ldquo;SHR.minus.heart&rdquo; description=&ldquo;SHR Total RNA Heart - minus strand&rdquo; bigDataUrl=http://ucsc:<a href="mailto:JU7etr5t@phenogen.ucdenver.edu">JU7etr5t@phenogen.ucdenver.edu</a>/ucsc/SHR.heart.genome.minus.bw</p>
+
+<p>track type=bigWig name=&ldquo;BNLx.plus.heart&rdquo; description=&ldquo;BNLx Total RNA Heart - plus strand&rdquo; bigDataUrl=http://ucsc:<a href="mailto:JU7etr5t@phenogen.ucdenver.edu">JU7etr5t@phenogen.ucdenver.edu</a>/ucsc/BNLx.heart.genome.plus.bw</p>
+
+<p>track type=bigWig name=&ldquo;BNLx.minus.heart&rdquo; description=&ldquo;BNLx Total RNA Heart - minus strand&rdquo; bigDataUrl=http://ucsc:<a href="mailto:JU7etr5t@phenogen.ucdenver.edu">JU7etr5t@phenogen.ucdenver.edu</a>/ucsc/BNLx.heart.genome.minus.bw</p>
+
+<h2>10. Characterize aligned reads</h2>
+
+<p><strong>move files</strong></p>
+
+<pre><code>cd /home/data/saba/BNLx.SHR.Heart.totalRNA/alignedReads
+get ./BNLx1.withMT/align_summary.txt align_summary.BNLx1.txt
+get ./BNLx2.withMT/align_summary.txt align_summary.BNLx2.txt
+get ./BNLx3.withMT/align_summary.txt align_summary.BNLx3.txt
+get ./BNLx4.withMT/align_summary.txt align_summary.BNLx4.txt
+get ./SHR1.withMT/align_summary.txt align_summary.SHR1.txt
+get ./SHR2.withMT/align_summary.txt align_summary.SHR2.txt
+get ./SHR3.withMT/align_summary.txt align_summary.SHR3.txt
+get ./SHR4.withMT/align_summary.txt align_summary.SHR4.txt
+</code></pre>
+
+<h3>Statistics on Alignment to Genome</h3>
+
+<h3>Characteristics of Alignments</h3>
+
+<pre><code>qsub -q smp /home/data/saba/BNLx.SHR.Heart.totalRNA/programs/countByChrom.heart.sh
+</code></pre>
+
+<h3>Synthetic spike-in summary</h3>
+
+<h2>9. Transcriptome Reconstruction (Ensembl-Guided)</h2>
+
+<pre><code>qsub -q smp /home/data/saba/BNLx.SHR.Heart.totalRNA/programs/reconSHR.heart.sh
+qsub -q smp /home/data/saba/BNLx.SHR.Heart.totalRNA/programs/reconBNLx.heart.sh
+</code></pre>
+
+</body>
+
+</html>
+

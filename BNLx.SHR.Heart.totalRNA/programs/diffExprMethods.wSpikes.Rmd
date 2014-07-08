@@ -1,0 +1,272 @@
+Differential Expression in BNLx/SHR Heart Samples
+========================================================
+
+
+```{r}
+rm(list=ls())
+options(stringsAsFactors=FALSE)
+setwd("/Volumes/LauraS/BNLx.SHR/RNA-Seq.Heart/totalRNA")
+
+ercc = read.table(file="/Volumes/LauraS/BxH.HxB.Rats/RNA-Seq/spikeSource/ERCC_Controls_Analysis.txt",sep="\t",header=TRUE)
+zeroDiff = ercc[ercc$log2.Mix.1.Mix.2.==0,"ERCC.ID"]
+
+sampleList = paste(rep(c("BNLx","SHR"),each=4),c(1:4),sep="")
+
+for(i in sampleList){
+  x = read.table(file=paste("quantitation/sailfish.Ensembl/",i,"/quant_bias_corrected.sf",sep=""),sep="\t",header=FALSE)
+  colnames(x) = c("transcript","length",paste(i,c("TPM","RPKM","KPKM","EstimatedNumKmers","EstimatedNumReads"),sep="."))
+  if(i==sampleList[1]) sailfish = x
+  if(i!=sampleList[1]) sailfish = merge(sailfish,x,by=c("transcript","length"))
+  }
+
+## Differential Expression
+library(limma)
+library(DESeq) 
+
+estCounts = sailfish[,grep("EstimatedNumReads",colnames(sailfish))]
+rownames(estCounts) = sailfish$transcript
+estCounts = estCounts[rowSums(estCounts!=0)>0,]
+counts = round(estCounts,0)
+
+samples = gsub(".EstimatedNumReads","",colnames(estCounts))
+strain = as.factor(rep(c("BNLx","SHR"),each=4))
+design = model.matrix(~ strain)
+
+mix = as.factor(paste("mix",c(2,1,2,1,1,2,1,2),sep=""))
+mix.design = model.matrix(~ mix)
+
+
+##  DESeq Size Factors - total Data
+cds = newCountDataSet(counts, mix)
+cds = estimateSizeFactors(cds)
+
+#controls = newCountDataSet(counts[rownames(counts) %in% ercc$ERCC.ID,],mix)
+#sizeFactors(controls) = sizeFactors(cds)
+#controls =estimateDispersions(controls)
+
+#res = nbinomTest(controls,"mix2","mix1")
+#results = merge(res,ercc,by.x="id",by.y="ERCC.ID")
+#boxplot(log2FoldChange ~ log2.Mix.1.Mix.2.,data=results)
+#abline(h=-1)
+#abline(h=-0.58)
+#abline(h=0)
+#abline(h=2)
+
+
+
+##Controls
+#controls=estimateSizeFactors(controls)
+#controls=estimateDispersions(controls)
+
+#res = nbinomTest(controls,"mix2","mix1")
+#results = merge(res,ercc,by.x="id",by.y="ERCC.ID")
+#boxplot(log2FoldChange ~ log2.Mix.1.Mix.2.,data=results)
+#abline(h=-1)
+#abline(h=-0.58)
+#abline(h=0)
+#abline(h=2)
+
+
+
+##  DESeq Size Factors - controls only
+cds.controls = newCountDataSet(counts[grep("ERCC",rownames(counts)),], mix)
+cds.controls = estimateSizeFactors(cds.controls)
+
+##  DESeq Size Factors - zero controls only
+cds.zero = newCountDataSet(counts[rownames(counts) %in% zeroDiff,], mix)
+cds.zero = estimateSizeFactors(cds.zero)
+
+##  Normalization Factor Estimates
+sf.all = sizeFactors(cds)
+sf.controls = sizeFactors(cds.controls)
+sf.zero = sizeFactors(cds.zero)
+totalCount = colSums(counts)
+controlCount = colSums(counts[grep("ERCC",rownames(counts)),])
+zeroCount = colSums(counts[rownames(counts) %in% zeroDiff,])
+
+cor(cbind(sf.all,sf.controls,sf.zero,totalCount,controlCount,zeroCount))
+
+##  Voom Expression Estimates
+
+v.sf.all = voom(estCounts,design=design,normalize.method="none",lib.size=sf.all)
+v.sf.controls = voom(estCounts,design=design,normalize.method="none",lib.size=sf.controls)
+v.sf.zero = voom(estCounts,design=design,normalize.method="none",lib.size=sf.zero)
+v.totalCnt = voom(estCounts,design=design,normalize.method="none",lib.size=totalCount)
+v.controlCnt = voom(estCounts,design=design,normalize.method="none",lib.size=controlCount)
+v.zeroCnt = voom(estCounts,design=design,normalize.method="none",lib.size=zeroCount)
+v.none = voom(estCounts,design=design,normalize.method="none",lib.size=rep(1,8))
+
+summary(prcomp(v.sf.all$E,scale=TRUE))
+summary(aov(as.numeric(prcomp(v.sf.all$E,scale=TRUE)$rotation[,1]) ~ strain))
+summary(aov(as.numeric(prcomp(v.sf.all$E,scale=TRUE)$rotation[,2]) ~ strain))
+
+plot(hclust(as.dist(1-cor(v.sf.all$E)),method="average"))
+
+
+#strain effect
+
+fitSummary = function(a){
+  fit = lmFit(a$E,design=design,weights=a$weights)
+  eBayes.results = eBayes(fit)
+  results = data.frame(transcript=rownames(a$E),strainDiff=eBayes.results$coefficients[,2],strainEffectPvalue=eBayes.results$p.value[,2])
+  results$FDR = p.adjust(results$strainEffectPvalue,method="BH")
+  diffExp.summary = c(sum(results$FDR<0.05),sum(results$strainDiff<0)/nrow(results))
+  return(diffExp.summary)
+  }
+
+generalCompare = rbind(fitSummary(v.sf.all),fitSummary(v.sf.controls),fitSummary(v.sf.zero),fitSummary(v.totalCnt),fitSummary(v.controlCnt),fitSummary(v.zeroCnt))
+rownames(generalCompare) = c("sf.all","sf.controls","sf.zero","cnt.all","cnt.controls","cnt.zero")
+
+compareControls = function(a){
+fit = lmFit(a$E,design=mix.design,weights=a$weights)
+eBayes.results = eBayes(fit)
+results = data.frame(transcript=rownames(a$E),strainDiff=eBayes.results$coefficients[,2],strainEffectPvalue=eBayes.results$p.value[,2])
+results$FDR = p.adjust(results$strainEffectPvalue,method="BH")
+
+diffExp.control = merge(results,ercc,by.x="transcript",by.y="ERCC.ID")
+out = rbind(summary(lm(strainDiff~log2.Mix.1.Mix.2.,data=diffExp.control))$coefficients,summary(lm(strainDiff~ -1 + as.factor(log2.Mix.1.Mix.2.),data=diffExp.control))$coefficients)
+print(out)
+return(diffExp.control)
+}
+
+
+diffExp=compareControls(v.sf.all)
+boxplot(strainDiff ~ log2.Mix.1.Mix.2.,data=diffExp,main="Spike-Ins NOT Included In Normalization",names=c("1","0.58","0","-2"),ylab="Estimated Log2 Difference In Expression",xlab="Expected Log2 Difference in Expression")
+abline(h=-2,col="red")
+abline(h=0,col="green")
+abline(h=0.58,col="blue")
+abline(h=1,col="yellow")
+
+
+
+
+
+
+diffExp2=compareControls(v.sf.controls)
+boxplot(strainDiff ~ log2.Mix.1.Mix.2.,data=diffExp,main="v.sf.controls")
+abline(h=-2)
+abline(h=0)
+abline(h=0.58)
+abline(h=1)
+
+diffExp3 = compareControls(v.sf.zero)
+boxplot(strainDiff ~ log2.Mix.1.Mix.2.,data=diffExp,main="v.sf.zero")
+abline(h=-2)
+abline(h=0)
+abline(h=0.58)
+abline(h=1)
+
+diffExp=compareControls(v.totalCnt)
+boxplot(strainDiff ~ log2.Mix.1.Mix.2.,data=diffExp,main="v.totalCnt")
+abline(h=-2)
+abline(h=0)
+abline(h=0.58)
+abline(h=1)
+
+diffExp=compareControls(v.controlCnt)
+boxplot(strainDiff ~ log2.Mix.1.Mix.2.,data=diffExp,main="v.controlCnt")
+abline(h=-2)
+abline(h=0)
+abline(h=0.58)
+abline(h=1)
+
+diffExp=compareControls(v.zeroCnt)
+boxplot(strainDiff ~ log2.Mix.1.Mix.2.,data=diffExp,main="v.zeroCnt")
+abline(h=-2)
+abline(h=0)
+abline(h=0.58)
+abline(h=1)
+
+## Using linear regression for normalization
+head(v.sf.controls$E)
+
+normalized=matrix(NA,nr=nrow(v.sf.controls$E),nc=ncol(v.sf.controls$E))
+
+i=1
+for(i in 1:8){
+  if(mix[i]=="mix1") conc=log2(ercc$concentration.in.Mix.1..attomoles.ul.)
+  if(mix[i]=="mix2") conc=log2(ercc$concentration.in.Mix.2..attomoles.ul.)
+  names(conc)=ercc$ERCC.ID
+
+  contExp = merge(v.sf.controls$E[,i],conc,by=0)
+  coeff=lm(y ~ x,data=contExp)$coefficients
+  normalized[,i]=coeff[1] + coeff[2]*v.sf.controls$E[,i]
+  }
+rownames(normalized) = rownames(v.sf.controls$E)
+
+
+fit = lmFit(normalized,design=design,weights=v.sf.controls$weights)
+eBayes.results = eBayes(fit)
+results = data.frame(transcript=rownames(normalized),strainDiff=eBayes.results$coefficients[,2],strainEffectPvalue=eBayes.results$p.value[,2])
+results$FDR = p.adjust(results$strainEffectPvalue,method="BH")
+
+
+fit = lmFit(normalized,design=mix.design,weights=v.sf.controls$weights)
+eBayes.results = eBayes(fit)
+results = data.frame(transcript=rownames(normalized),strainDiff=eBayes.results$coefficients[,2],strainEffectPvalue=eBayes.results$p.value[,2])
+results$FDR = p.adjust(results$strainEffectPvalue,method="BH")
+diffExp.control = merge(results,ercc,by.x="transcript",by.y="ERCC.ID")
+
+rbind(summary(lm(strainDiff~log2.Mix.1.Mix.2.,data=diffExp.control))$coefficients,summary(lm(strainDiff~ -1 + as.factor(log2.Mix.1.Mix.2.),data=diffExp.control))$coefficients)
+
+boxplot(strainDiff ~ log2.Mix.1.Mix.2.,data=diffExp.control,main="v.sf.all")
+abline(h=-2)
+abline(h=0)
+abline(h=0.58)
+abline(h=1)
+
+
+###  Using Total Reads for SF Estimate
+normalized=matrix(NA,nr=nrow(v.none$E),nc=ncol(v.none$E))
+
+for(i in 1:8){
+  if(mix[i]=="mix1") conc=log2(ercc$concentration.in.Mix.1..attomoles.ul.)
+  if(mix[i]=="mix2") conc=log2(ercc$concentration.in.Mix.2..attomoles.ul.)
+  names(conc)=ercc$ERCC.ID
+
+  contExp = merge(v.none$E[,i],conc,by=0)
+  coeff=lm(y ~ x,data=contExp)$coefficients
+  normalized[,i]=coeff[1] + coeff[2]*v.none$E[,i]
+  }
+rownames(normalized) = rownames(v.none$E)
+
+
+fit = lmFit(normalized[rowSums(normalized>0)==8,],design=design,weights=v.none$weights[rowSums(normalized>0)==8,])
+eBayes.results = eBayes(fit)
+results = data.frame(transcript=rownames(normalized)[rowSums(normalized>0)==8],strainDiff=eBayes.results$coefficients[,2],strainEffectPvalue=eBayes.results$p.value[,2])
+results$FDR = p.adjust(results$strainEffectPvalue,method="BH")
+c(sum(results$FDR<0.05),sum(results$strainDiff<0)/nrow(results))
+
+fit = lmFit(normalized,design=mix.design,weights=v.none$weights)
+eBayes.results = eBayes(fit)
+results = data.frame(transcript=rownames(normalized),strainDiff=eBayes.results$coefficients[,2],strainEffectPvalue=eBayes.results$p.value[,2])
+results$FDR = p.adjust(results$strainEffectPvalue,method="BH")
+diffExp.control = merge(results,ercc,by.x="transcript",by.y="ERCC.ID")
+
+rbind(summary(lm(strainDiff~log2.Mix.1.Mix.2.,data=diffExp.control))$coefficients,summary(lm(strainDiff~ -1 + as.factor(log2.Mix.1.Mix.2.),data=diffExp.control))$coefficients)
+
+boxplot(strainDiff ~ log2.Mix.1.Mix.2.,data=diffExp.control,main="Normalized With Spike-Ins",names=c("1","0.58","0","-2"),ylab="Estimated Log2 Difference In Expression",xlab="Expected Log2 Difference in Expression")
+abline(h=-2,col="red")
+abline(h=0,col="green")
+abline(h=0.58,col="blue")
+abline(h=1,col="yellow")
+
+
+
+
+
+
+
+
+```
+
+You can also embed plots, for example:
+
+```{r}
+cds = newCountDataSet(counts, strain)
+cds = estimateSizeFactors(cds)
+cds = estimateDispersions(cds)
+
+res = nbinomTest(cds,"BNLx","SHR")
+```
+

@@ -1,0 +1,197 @@
+Title
+========================================================
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring web pages (click the **Help** toolbar button for more details on using R Markdown).
+
+When you click the **Knit HTML** button a web page will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r,eval=TRUE,message=FALSE}
+rm(list=ls())
+options(stringsAsFactors=FALSE)
+setwd("/Volumes/LauraS/LXS/RNA-Seq/totalRNA.24Oct13/")
+
+gtf = read.table(file="/Volumes/LauraS/LXS/RNA-Seq/totalRNA.24Oct13/reconstruction/transcripts.11Jun14.FINAL.gtf",sep="\t",header=FALSE)
+controls = gtf[grep("ERCC",gtf$V1),]
+controls$transcript_id = unlist(lapply(strsplit(controls$V9,split=";"),function(a) gsub(" ","",gsub("transcript_id ","",a[grep("transcript",a)]))))
+
+ercc = read.table(file="/Volumes/LauraS/BxH.HxB.Rats/RNA-Seq/spikeSource/ERCC_Controls_Analysis.txt",sep="\t",header=TRUE)
+
+zeroDiff = ercc[ercc$log2.Mix.1.Mix.2.==0,"ERCC.ID"]
+zeroDiff = controls[controls$V1 %in% zeroDiff,]
+
+sampleList = paste(rep(c("ISS","ILS"),each=3),c(1:3),sep="")
+
+for(i in sampleList){
+  x = read.table(file=paste("quantification/sailFish.FINAL/",i,"/quant_bias_corrected.sf",sep=""),sep="\t",header=FALSE)
+  colnames(x) = c("transcript","length",paste(i,c("TPM","RPKM","KPKM","EstimatedNumKmers","EstimatedNumReads"),sep="."))
+  if(i==sampleList[1]) sailfish = x
+  if(i!=sampleList[1]) sailfish = merge(sailfish,x,by=c("transcript","length"))
+  }
+
+## Differential Expression
+library(limma)
+library(DESeq) 
+
+estCounts = sailfish[,grep("EstimatedNumReads",colnames(sailfish))]
+rownames(estCounts) = sailfish$transcript
+estCounts = estCounts[rowSums(estCounts!=0)>0,]
+counts = round(estCounts,0)
+
+samples = gsub(".EstimatedNumReads","",colnames(estCounts))
+strain = as.factor(rep(c("ISS","ILS"),each=3))
+design = model.matrix(~ strain)
+
+##  DESeq Size Factors - total Data
+cds = newCountDataSet(counts, strain)
+cds = estimateSizeFactors(cds)
+
+##  DESeq Size Factors - controls only
+cds.controls = newCountDataSet(counts[rownames(counts) %in% controls$transcript_id,], strain)
+cds.controls = estimateSizeFactors(cds.controls)
+
+##  DESeq Size Factors - zero controls only
+cds.zero = newCountDataSet(counts[rownames(counts) %in% zeroDiff$transcript_id,], strain)
+cds.zero = estimateSizeFactors(cds.zero)
+
+##  Normalization Factor Estimates
+sf.all = sizeFactors(cds)
+sf.controls = sizeFactors(cds.controls)
+sf.zero = sizeFactors(cds.zero)
+totalCount = colSums(counts)
+controlCount = colSums(counts[rownames(counts) %in% controls$transcript_id,])
+zeroCount = colSums(counts[rownames(counts) %in% zeroDiff$transcript_id,])
+
+cor(cbind(sf.all,sf.controls,sf.zero,totalCount,controlCount,zeroCount))
+
+##  Voom Expression Estimates
+
+v.sf.all = voom(estCounts,design=design,normalize.method="none",lib.size=sf.all)
+v.sf.controls = voom(estCounts,design=design,normalize.method="none",lib.size=sf.controls)
+v.sf.zero = voom(estCounts,design=design,normalize.method="none",lib.size=sf.zero)
+v.totalCnt = voom(estCounts,design=design,normalize.method="none",lib.size=totalCount)
+v.controlCnt = voom(estCounts,design=design,normalize.method="none",lib.size=controlCount)
+v.zeroCnt = voom(estCounts,design=design,normalize.method="none",lib.size=zeroCount)
+
+##  Examine Principal Components 
+
+
+summary(prcomp(v.sf.all$E,scale=TRUE))
+summary(aov(as.numeric(prcomp(v.sf.all$E,scale=TRUE)$rotation[,1]) ~ strain))
+summary(aov(as.numeric(prcomp(v.sf.all$E,scale=TRUE)$rotation[,2]) ~ strain))
+
+summary(prcomp(v.sf.controls$E,scale=TRUE))
+summary(aov(as.numeric(prcomp(v.sf.controls$E,scale=TRUE)$rotation[,1]) ~ strain))
+summary(aov(as.numeric(prcomp(v.sf.controls$E,scale=TRUE)$rotation[,2]) ~ strain))
+
+summary(prcomp(v.sf.zero$E,scale=TRUE))
+summary(aov(as.numeric(prcomp(v.sf.zero$E,scale=TRUE)$rotation[,1]) ~ strain))
+summary(aov(as.numeric(prcomp(v.sf.zero$E,scale=TRUE)$rotation[,2]) ~ strain))
+
+summary(prcomp(v.totalCnt$E,scale=TRUE))
+summary(aov(as.numeric(prcomp(v.totalCnt$E,scale=TRUE)$rotation[,1]) ~ strain))
+summary(aov(as.numeric(prcomp(v.totalCnt$E,scale=TRUE)$rotation[,2]) ~ strain))
+
+##They are all the same???
+
+### combine data to examine clustering
+
+set1 = v.sf.all$E
+set2 = v.sf.controls$E 
+set3 = v.sf.zero$E 
+set4 = v.totalCnt$E
+set5 = v.controlCnt$E
+set6 = v.zeroCnt$E
+
+combined = cbind(set1,set2,set3,set4,set5,set6)
+colnames(combined)=paste(c("ISS1","ISS2","ISS3","ILS1","ILS2","ILS3"),".set",rep(1:6,each=6),sep="")
+## all samples are perfectly correlated because they are multiplied by a factor, Duh!
+
+
+## Differential Expression
+
+options(stringsAsFactors=FALSE)
+setwd("/Volumes/LauraS/LXS/RNA-Seq/totalRNA.24Oct13")
+
+#strain effect
+
+fitSummary = function(a){
+  fit = lmFit(a$E,design=design,weights=a$weights)
+  eBayes.results = eBayes(fit)
+  results = data.frame(transcript=rownames(a$E),strainDiff=eBayes.results$coefficients[,2],strainEffectPvalue=eBayes.results$p.value[,2])
+  results$FDR = p.adjust(results$strainEffectPvalue,method="BH")
+  diffExp.summary = c(sum(results$FDR<0.05),sum(results$strainDiff<0)/nrow(results))
+  return(diffExp.summary)
+  }
+
+generalCompare = rbind(fitSummary(v.sf.all),fitSummary(v.sf.controls),fitSummary(v.sf.zero),fitSummary(v.totalCnt),fitSummary(v.controlCnt),fitSummary(v.zeroCnt))
+rownames(generalCompare) = c("sf.all","sf.controls","sf.zero","cnt.all","cnt.controls","cnt.zero")
+
+compareControls = function(a){
+fit = lmFit(a$E,design=design,weights=a$weights)
+eBayes.results = eBayes(fit)
+results = data.frame(transcript=rownames(a$E),strainDiff=eBayes.results$coefficients[,2],strainEffectPvalue=eBayes.results$p.value[,2])
+results$FDR = p.adjust(results$strainEffectPvalue,method="BH")
+
+diffExp.control = merge(results,controls,by.x="transcript",by.y="transcript_id")
+diffExp.control = merge(diffExp.control,ercc,by.x="V1",by.y="ERCC.ID")
+out = rbind(summary(lm(strainDiff~log2.Mix.1.Mix.2.,data=diffExp.control))$coefficients,summary(lm(strainDiff~ -1 + as.factor(log2.Mix.1.Mix.2.),data=diffExp.control))$coefficients)
+print(out)
+return(diffExp.control)
+}
+
+
+byControlSF = compareControls(v.sf.controls)
+byZerosSF = compareControls(v.sf.zero)
+byTotCnt = compareControls(v.totalCnt)
+byContCnt = compareControls(v.controlCnt)
+byZeroCnt = compareControls(v.zeroCnt)
+
+head(byTotCnt)
+
+boxplot(strainDiff ~ log2.Mix.1.Mix.2.,data=byTotCnt,ylim=c(-1.5,3))
+abline(h=-1)
+abline(h=-0.58)
+abline(h=0)
+abline(h=2)
+
+
+boxplot(strainDiff ~ log2.Mix.1.Mix.2.,data=byContCnt)
+abline(h=-1)
+abline(h=-0.58)
+abline(h=0)
+abline(h=2)
+
+boxplot(strainDiff ~ log2.Mix.1.Mix.2.,data=byControlSF)
+abline(h=-1)
+abline(h=-0.58)
+abline(h=0)
+abline(h=2)
+
+
+```{r}
+#Mecp2
+results[results$geneID=="total.4679",]
+
+#Kcnmb4
+results[results$geneID=="total.59962",]
+
+# Ikbkb
+results[results$geneID=="total.3933",]
+
+# Gpr88
+results[results$geneID=="total.60042",]
+
+# Dgkz
+results[results$geneID=="total.61699",]
+
+# Gnb1
+results[results$geneID=="total.4836",]
+
+```
+
+You can also embed plots, for example:
+
+```{r fig.width=7, fig.height=6}
+plot(cars)
+```
+

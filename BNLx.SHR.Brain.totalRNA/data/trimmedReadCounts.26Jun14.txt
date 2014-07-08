@@ -1,0 +1,12 @@
+/home/data/saba/BNLx.SHR.Brain.totalRNA/trimmedReads/BNLx1.R1_val_1.fq 96.6529 87720118
+/home/data/saba/BNLx.SHR.Brain.totalRNA/trimmedReads/BNLx1.R2_val_2.fq 94.8831 87720118
+/home/data/saba/BNLx.SHR.Brain.totalRNA/trimmedReads/BNLx2.R1_val_1.fq 97.6542 94695526
+/home/data/saba/BNLx.SHR.Brain.totalRNA/trimmedReads/BNLx2.R2_val_2.fq 96.0286 94695526
+/home/data/saba/BNLx.SHR.Brain.totalRNA/trimmedReads/BNLx3.R1_val_1.fq 98.1019 101779696
+/home/data/saba/BNLx.SHR.Brain.totalRNA/trimmedReads/BNLx3.R2_val_2.fq 96.6046 101779696
+/home/data/saba/BNLx.SHR.Brain.totalRNA/trimmedReads/SHR1.R1_val_1.fq 97.661 95291317
+/home/data/saba/BNLx.SHR.Brain.totalRNA/trimmedReads/SHR1.R2_val_2.fq 95.7725 95291317
+/home/data/saba/BNLx.SHR.Brain.totalRNA/trimmedReads/SHR2.R1_val_1.fq 97.8321 94318988
+/home/data/saba/BNLx.SHR.Brain.totalRNA/trimmedReads/SHR2.R2_val_2.fq 96.4315 94318988
+/home/data/saba/BNLx.SHR.Brain.totalRNA/trimmedReads/SHR3.R1_val_1.fq 97.6746 149600752
+/home/data/saba/BNLx.SHR.Brain.totalRNA/trimmedReads/SHR3.R2_val_2.fq 95.8698 149600752

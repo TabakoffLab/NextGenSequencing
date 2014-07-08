@@ -133,7 +133,47 @@ fullTable$pctRemovedByTrimming = paste(prettyNum(100 * (1 - (as.numeric(gsub(","
 | ISS_3LB |  ISS   |   65,171,258   |   130,342,516    |         97.3         |       129,805,906       |        0.41%         |
 
 
-5.  Align reads to mm10 reference genome
+5.  Generate Strain-Specific Genomes Including Spike-In Sequences
+-------------------------------------------
+
+"clean" the reference genome
+
+```
+## eliminate any chromosome that starts with 'JH' or 'GL' or 'MT'
+sed '/>JH/,/>/{//!d}' mm10.fa | sed '/>JH/d' | sed '/>GL/,/>/{//!d}' | sed '/>GL/d' | sed '/>MT/,/>/{//!d}' | sed '/>MT/d' > mm10.revised.fa
+
+## separate chromosome Y because it had uneven lines
+sed -n '/>Y/,/>/p' mm10.revised.fa > mm10.revised.chrY.fa
+sed '/>Y/,/>/{//!d}' mm10.revised.fa | sed '/>Y/d' > mm10.revised.wo.chrY.fa
+```
+
+Convert fasta file for spike-ins from 50 bp returns to 60 bp returns
+
+```
+library(seqinr)
+spikes = read.fasta(file="/Volumes/LauraS/BxH.HxB.Rats/RNA-Seq/spikeSource/ERCC92.fa",seqtype="DNA",forceDNAtolower=FALSE)
+write.fasta(spikes,names(spikes),file.out="/Volumes/LauraS/BxH.HxB.Rats/RNA-Seq/spikeSource/ERCC92.v2.fa")
+
+genome = read.fasta(file="/Volumes/LauraS/BXD/RNA-Seq/GeneNetwork/index/mm10.revised.chrY.fa",seqtype="DNA",forceDNAtolower=FALSE)
+write.fasta(genome,names(genome),file.out="/Volumes/LauraS/BXD/RNA-Seq/GeneNetwork/index/mm10.revised.chrY.v2.fa")
+
+```
+
+Concatenate spikes with mm10 genome
+
+```
+cd /data/Tabastore3/LauraS/index
+cat /data/Tabastore3/LauraS/BXD/RNA-Seq/GeneNetwork/index/mm10.revised.wo.chrY.fa /data/Tabastore3/LauraS/BXD/RNA-Seq/GeneNetwork/index/mm10.revised.chrY.v2.fa /data/Tabastore3/LauraS/BxH.HxB.Rats/RNA-Seq/spikeSource/ERCC92.v2.fa > mm10.cleaned.wSpikes.fa
+awk '{if($1~">") print $1; else print $0}' mm10.cleaned.wSpikes.fa > mm10.cleaned.wSpikes.v2.fa
+```
+
+Create Bowtie2 Index
+
+```
+bowtie2-build BNLx_rn5_wSpikes.fa BNLx_rn5_wSpikes
+```
+
+6.  Align reads to mm10 reference genome
 ---------------------------------
 
 ```
@@ -154,3 +194,105 @@ tophat2 --library-type fr-firststrand -o /home/saba/ILS.ISS.Brain.totalRNA/align
 tophat2 --library-type fr-firststrand -o /home/saba/ILS.ISS.Brain.totalRNA/alignedReads/ISS3 -p 16 /home/saba/index/mm10.revised.wSpikes /home/saba/ILS.ISS.Brain.totalRNA/trimmedReads/ISS_3LB_ATGTCA_L004_R1_001_val_1.fq,/home/saba/ILS.ISS.Brain.totalRNA/trimmedReads/ISS_3LB_ATGTCA_L004_R1_002_val_1.fq,/home/saba/ILS.ISS.Brain.totalRNA/trimmedReads/ISS_3LB_ATGTCA_L004_R1_003_val_1.fq,/home/saba/ILS.ISS.Brain.totalRNA/trimmedReads/ISS_3LB_ATGTCA_L004_R1_004_val_1.fq,/home/saba/ILS.ISS.Brain.totalRNA/trimmedReads/ISS_3LB_ATGTCA_L004_R1_005_val_1.fq,/home/saba/ILS.ISS.Brain.totalRNA/trimmedReads/ISS_3LB_ATGTCA_L004_R1_006_val_1.fq,/home/saba/ILS.ISS.Brain.totalRNA/trimmedReads/ISS_3LB_ATGTCA_L005_R1_001_val_1.fq,/home/saba/ILS.ISS.Brain.totalRNA/trimmedReads/ISS_3LB_ATGTCA_L005_R1_002_val_1.fq,/home/saba/ILS.ISS.Brain.totalRNA/trimmedReads/ISS_3LB_ATGTCA_L005_R1_003_val_1.fq,/home/saba/ILS.ISS.Brain.totalRNA/trimmedReads/ISS_3LB_ATGTCA_L005_R1_004_val_1.fq,/home/saba/ILS.ISS.Brain.totalRNA/trimmedReads/ISS_3LB_ATGTCA_L005_R1_005_val_1.fq,/home/saba/ILS.ISS.Brain.totalRNA/trimmedReads/ISS_3LB_ATGTCA_L005_R1_006_val_1.fq,/home/saba/ILS.ISS.Brain.totalRNA/trimmedReads/ISS_3LB_ATGTCA_L006_R1_001_val_1.fq,/home/saba/ILS.ISS.Brain.totalRNA/trimmedReads/ISS_3LB_ATGTCA_L006_R1_002_val_1.fq,/home/saba/ILS.ISS.Brain.totalRNA/trimmedReads/ISS_3LB_ATGTCA_L006_R1_003_val_1.fq,/home/saba/ILS.ISS.Brain.totalRNA/trimmedReads/ISS_3LB_ATGTCA_L006_R1_004_val_1.fq,/home/saba/ILS.ISS.Brain.totalRNA/trimmedReads/ISS_3LB_ATGTCA_L006_R1_005_val_1.fq,/home/saba/ILS.ISS.Brain.totalRNA/trimmedReads/ISS_3LB_ATGTCA_L006_R1_006_val_1.fq /home/saba/ILS.ISS.Brain.totalRNA/trimmedReads/ISS_3LB_ATGTCA_L004_R2_001_val_2.fq,/home/saba/ILS.ISS.Brain.totalRNA/trimmedReads/ISS_3LB_ATGTCA_L004_R2_002_val_2.fq,/home/saba/ILS.ISS.Brain.totalRNA/trimmedReads/ISS_3LB_ATGTCA_L004_R2_003_val_2.fq,/home/saba/ILS.ISS.Brain.totalRNA/trimmedReads/ISS_3LB_ATGTCA_L004_R2_004_val_2.fq,/home/saba/ILS.ISS.Brain.totalRNA/trimmedReads/ISS_3LB_ATGTCA_L004_R2_005_val_2.fq,/home/saba/ILS.ISS.Brain.totalRNA/trimmedReads/ISS_3LB_ATGTCA_L004_R2_006_val_2.fq,/home/saba/ILS.ISS.Brain.totalRNA/trimmedReads/ISS_3LB_ATGTCA_L005_R2_001_val_2.fq,/home/saba/ILS.ISS.Brain.totalRNA/trimmedReads/ISS_3LB_ATGTCA_L005_R2_002_val_2.fq,/home/saba/ILS.ISS.Brain.totalRNA/trimmedReads/ISS_3LB_ATGTCA_L005_R2_003_val_2.fq,/home/saba/ILS.ISS.Brain.totalRNA/trimmedReads/ISS_3LB_ATGTCA_L005_R2_004_val_2.fq,/home/saba/ILS.ISS.Brain.totalRNA/trimmedReads/ISS_3LB_ATGTCA_L005_R2_005_val_2.fq,/home/saba/ILS.ISS.Brain.totalRNA/trimmedReads/ISS_3LB_ATGTCA_L005_R2_006_val_2.fq,/home/saba/ILS.ISS.Brain.totalRNA/trimmedReads/ISS_3LB_ATGTCA_L006_R2_001_val_2.fq,/home/saba/ILS.ISS.Brain.totalRNA/trimmedReads/ISS_3LB_ATGTCA_L006_R2_002_val_2.fq,/home/saba/ILS.ISS.Brain.totalRNA/trimmedReads/ISS_3LB_ATGTCA_L006_R2_003_val_2.fq,/home/saba/ILS.ISS.Brain.totalRNA/trimmedReads/ISS_3LB_ATGTCA_L006_R2_004_val_2.fq,/home/saba/ILS.ISS.Brain.totalRNA/trimmedReads/ISS_3LB_ATGTCA_L006_R2_005_val_2.fq,/home/saba/ILS.ISS.Brain.totalRNA/trimmedReads/ISS_3LB_ATGTCA_L006_R2_006_val_2.fq
 ```
 
+7.  Characterize Aligned Reads
+-----------------------
+```
+cd /home/saba/ILS.ISS.Brain.totalRNA/alignedReads
+qsub -q smp /home/saba/ILS.ISS.Brain.totalRNA/programs/countAlignedReads.03Jun14.sh
+```
+
+
+```r
+setwd("/Volumes/LauraS/LXS/RNA-Seq/totalRNA.24Oct13")
+aligned = read.table(file = "data/countAligned.03Jun14.txt", sep = "", header = FALSE)
+
+aligned$sample = unlist(lapply(strsplit(aligned$V1, split = "/", fixed = TRUE), 
+    function(a) a[6]))
+
+aF = aligned[aligned$V2 == "aligned.first", c("sample", "V3", "V4")]
+aS = aligned[aligned$V2 == "aligned.second", c("sample", "V3", "V4")]
+cF = aligned[aligned$V2 == "controls.first", c("sample", "V3", "V4")]
+cS = aligned[aligned$V2 == "controls.second", c("sample", "V3", "V4")]
+
+colnames(aF) = c("sample", "aligned.first.unique", "aligned.first.all")
+colnames(aS) = c("sample", "aligned.second.unique", "aligned.second.all")
+colnames(cF) = c("sample", "controls.first.unique", "controls.first.all")
+colnames(cS) = c("sample", "controls.second.unique", "controls.second.all")
+
+alignTable = merge(aF, aS, by = "sample")
+alignTable = merge(alignTable, cF, by = "sample")
+alignTable = merge(alignTable, cS, by = "sample")
+
+fullTable$sample = gsub("LB", "", gsub("_", "", fullTable$sample, fixed = TRUE))
+newTable = merge(fullTable, alignTable, by = "sample")
+
+newTable$numAlignedReadFrag = newTable$aligned.first.all + newTable$aligned.second.all
+newTable$numAlignedUniqueReadFrag = newTable$aligned.first.unique + newTable$aligned.second.unique
+newTable$numControlReadFrag = newTable$controls.first.all + newTable$controls.second.all
+
+newTable$pctAligned = newTable$numAlignedReadFrag/as.numeric(gsub(",", "", newTable$numTrimmedReadFragments, 
+    fixed = TRUE))
+newTable$pctUnique = newTable$numAlignedUniqueReadFrag/newTable$numAlignedReadFrag
+newTable$pctControl = newTable$numControlReadFrag/newTable$numAlignedReadFrag
+newTable$pctControl.v2 = newTable$numControlReadFrag/as.numeric(gsub(",", "", 
+    newTable$numTrimmedReadFragments, fixed = TRUE))
+
+printTable = newTable[, c("sample", "numReadFragments", "numTrimmedReadFragments", 
+    "pctRemovedByTrimming", "numAlignedReadFrag", "pctAligned", "numAlignedUniqueReadFrag", 
+    "pctUnique", "numControlReadFrag", "pctControl")]
+printTable$numAlignedReadFrag = prettyNum(printTable$numAlignedReadFrag, big.mark = ",")
+printTable$numAlignedUniqueReadFrag = prettyNum(printTable$numAlignedUniqueReadFrag, 
+    big.mark = ",")
+printTable$numControlReadFrag = prettyNum(printTable$numControlReadFrag, big.mark = ",")
+
+printTable$pctAligned = paste(sprintf("%.1f", round(100 * printTable$pctAligned, 
+    1)), "%", sep = "")
+printTable$pctUnique = paste(sprintf("%.1f", round(100 * printTable$pctUnique, 
+    1)), "%", sep = "")
+printTable$pctControl = paste(sprintf("%.2f", round(100 * printTable$pctControl, 
+    2)), "%", sep = "")
+
+colnames(printTable) = c("sample", "Number of Read Fragments Generated", "Number of Read Fragments After Trimming", 
+    "Percent of Read Fragments Removed During Trimming", "Number of Read Fragments Aligned to Genome or Spike-Ins", 
+    "Percent of Trimmed Read Fragments Aligned", "Number of Read Fragments Aligned To Only 1 Location", 
+    "Percent of Aligned Read Fragments That Align To Only 1 Location", "Number of Read Fragments Aligned to Spike-In Controls", 
+    "Percent of Aligned Read Fragments That Align to Spike-In Controls")
+```
+
+
+### Alignment Stats
+
+| sample | Number of Read Fragments Generated | Number of Read Fragments After Trimming | Percent of Read Fragments Removed During Trimming | Number of Read Fragments Aligned to Genome or Spike-Ins | Percent of Trimmed Read Fragments Aligned | Number of Read Fragments Aligned To Only 1 Location | Percent of Aligned Read Fragments That Align To Only 1 Location | Number of Read Fragments Aligned to Spike-In Controls | Percent of Aligned Read Fragments That Align to Spike-In Controls |
+|:------:|:----------------------------------:|:---------------------------------------:|:-------------------------------------------------:|:-------------------------------------------------------:|:-----------------------------------------:|:---------------------------------------------------:|:---------------------------------------------------------------:|:-----------------------------------------------------:|:-----------------------------------------------------------------:|
+|  ILS1  |            156,352,754             |               155,760,826               |                       0.38%                       |                       119,401,619                       |                   76.7%                   |                     111,979,196                     |                              93.8%                              |                         722,450                       |                               0.61%                               |
+|  ILS2  |            134,598,194             |               134,219,316               |                       0.28%                       |                       102,639,677                       |                   76.5%                   |                      96,120,663                     |                              93.6%                              |                         468,506                       |                               0.46%                               |
+|  ILS3  |            143,451,896             |               143,117,546               |                       0.23%                       |                       111,916,879                       |                   78.2%                   |                     105,243,379                     |                              94.0%                              |                         749,800                       |                               0.67%                               |
+|  ISS1  |            143,650,748             |               142,883,024               |                       0.53%                       |                       112,827,399                       |                   79.0%                   |                     106,655,846                     |                              94.5%                              |                         829,283                       |                               0.74%                               |
+|  ISS2  |            187,031,294             |               186,218,350               |                       0.43%                       |                       147,651,926                       |                   79.3%                   |                     138,993,513                     |                              94.1%                              |                         983,562                       |                               0.67%                               |
+|  ISS3  |            130,342,516             |               129,805,906               |                       0.41%                       |                       100,710,665                       |                   77.6%                   |                      94,746,862                     |                              94.1%                              |                       1,041,531                       |                               1.03%                               |
+
+
+8.  Sort and Merge Aligned Reads By Strain
+-------------------------------------------
+
+```
+qsub -q smp-q /home/saba/ILS.ISS.Brain.totalRNA/programs/sortAndMerge.21Apr14.sh
+```
+
+9.  Transcriptome/Genome Guided Reconstruction
+-------------------------------------------
+
+```
+qsub -q smp-q /home/saba/ILS.ISS.Brain.totalRNA/programs/transRecon.LXS.brain.22Apr14.sh
+```
+
+10. Manual Merge of Strain-Specific Transcriptomes
+--------------------------------------------------
+
+
+11. Create BigWig Files
+------------------
+
+```
+qsub -q smp /home/saba/ILS.ISS.Brain.totalRNA/programs/createBigWig.sh
+```
