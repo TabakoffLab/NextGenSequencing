@@ -1,0 +1,33 @@
+Brain
+-----
+cd /home/data/saba/BNLx.SHR.Brain.totalRNA
+qsub -q smp /home/data/saba/BNLx.SHR.Brain.totalRNA/programs/tophatAlign.brain.SHR2.sh
+qsub -q smp /home/data/saba/BNLx.SHR.Brain.totalRNA/programs/tophatAlign.brain.SHR3.sh
+qsub -q smp /home/data/saba/BNLx.SHR.Brain.totalRNA/programs/sortAndMerge.brain.BNLx.sh
+
+Liver
+-----
+cd /home/data/saba/BNLx.SHR.Liver.totalRNA.UCD
+qsub -q smp /home/data/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/tophatAlign.liver.SHR.v1.sh
+qsub -q smp /home/data/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/tophatAlign.liver.SHR.v2.sh
+qsub -q smp /home/data/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/trimReads.dups.v2.sh
+
+Heart
+-----
+cd /home/data/saba/BNLx.SHR.Brain.totalRNA
+qsub -q smp /home/data/saba/BNLx.SHR.Heart.totalRNA/programs/tophatAlign.heart.SHR2.sh
+qsub -q smp /home/data/saba/BNLx.SHR.Heart.totalRNA/programs/tophatAlign.heart.SHR4.sh
+qsub -q smp /home/data/saba/BNLx.SHR.Heart.totalRNA/programs/sortAndMerge.heart.BNLx.v2.sh
+
+Female Brain
+------------
+cd /home/data/saba/BNLx.SHR.Brain.Females.totalRNA
+qsub -q smp /home/data/saba/BNLx.SHR.Brain.Females.totalRNA/programs/countTrimmedReads.femaleBrain.sh
+qsub -q smp /home/data/saba/BNLx.SHR.Brain.Females.totalRNA/programs/alignTo.rRNA.femaleBrain.sh
+
+
+
+
+
+
+

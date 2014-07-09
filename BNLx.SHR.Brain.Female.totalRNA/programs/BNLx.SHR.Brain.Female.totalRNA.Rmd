@@ -56,17 +56,10 @@ Average Number of Paired End Reads Per Sample: `r prettyNum(sum(rawCounts$readFr
 qsub -q smp /home/data/saba/BNLx.SHR.Brain.Females.totalRNA/programs/trimReads.femaleBrain.sh
 ```
 
-
-
-
-***STOPPED HERE***
-
-
-
 4. Characterize Trimmed Reads
 ---------------
 ```
-qsub -q smp /home/saba/BNLx.SHR.Heart.totalRNA/programs/countTrimmedReads.sh
+qsub -q smp /home/data/saba/BNLx.SHR.Brain.Females.totalRNA/programs/countTrimmedReads.femaleBrain.sh
 ```
 
 ```{r,echo=FALSE}
@@ -110,8 +103,20 @@ Average Number of Paired End Reads Per Sample After Trimming: `r prettyNum(mean(
 5. Align to ribosomal RNA 
 ---------------------------
 ```
-qsub -q smp /home/data/saba/BNLx.SHR.Heart.totalRNA/programs/alignTo.rRNA.heart.01Jul14.sh
+qsub -q smp /home/data/saba/BNLx.SHR.Brain.Females.totalRNA/programs/alignTo.rRNA.femaleBrain.sh
 ```
+
+
+
+
+
+***STOPPED HERE***
+
+
+
+
+
+
 **move files**
 ```
 get SHR1.rRNA/align_summary.txt rRNA.summary.SHR1.txt

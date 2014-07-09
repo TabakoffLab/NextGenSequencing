@@ -22,11 +22,12 @@ qsub -q smp /home/data/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/countRawReads.l
 rm(list=ls())
 options(stringsAsFactors=FALSE)
 setwd("/Volumes/LauraS/NextGenSeq/BNLx.SHR.Liver.totalRNA.UCD/")
-rawCounts = read.table(file="data/rawReadCounts.02Jul14.txt",sep=" ",header=FALSE,fill=TRUE)
+rawCounts = read.table(file="data/rawReadCounts.09Jul14.txt",sep=" ",header=FALSE,fill=TRUE)
 
 rawCounts$readFrag = as.numeric(rawCounts$V3)
 rawCounts$sample = unlist(lapply(strsplit(rawCounts$V1,split="/",fixed=TRUE),function(a) gsub("BNLX_","BNLx",gsub("SHR_.","SHR",a[length(a)]))))
 rawCounts$sample = unlist(lapply(strsplit(rawCounts$sample,split="_",fixed=TRUE),function(a) a[1]))
+rawCounts$sample[grep("L001",rawCounts$V1)] = paste(rawCounts$sample[grep("L001",rawCounts$V1)],"dup",sep=".")
 
 readFragments = aggregate(rawCounts$readFrag,by=list(sample=rawCounts$sample),sum)
 readFragments$numPairedReads = prettyNum(readFragments$x/2,big.mark=",",scientific=FALSE)
@@ -48,12 +49,11 @@ Total Number of Paired End Reads: `r prettyNum(sum(rawCounts$readFrag)/2,big.mar
 Total Number of Read Fragments:  `r prettyNum(sum(rawCounts$readFrag),big.mark=",",scientific=FALSE)`  
 Average Number of Paired End Reads Per Sample: `r prettyNum(sum(rawCounts$readFrag)/nrow(rawCounts),big.mark=",",scientific=FALSE)`  
 
-
-
 3. Trim Reads for Adaptors and for Quality - DONE
 --------------------------------------------
 ```
-qsub -q smp-q /home/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/trimReads.yucca.sh
+qsub -q smp /home/data/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/trimReads.yucca.sh
+qsub -q smp /home/data/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/trimReads.dups.sh
 ```
 
 4. Characterizing Trimmed Reads - DONE

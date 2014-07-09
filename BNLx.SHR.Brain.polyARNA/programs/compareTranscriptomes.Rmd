@@ -1,0 +1,271 @@
+BNLx and SHR Brain Transcriptome Reconstruction
+========================================================
+
+PolyA+ Reconstruction
+--------------------
+```{r,echo=FALSE}
+rm(list=ls())
+options(stringsAsFactors=FALSE)
+setwd("/Volumes/LauraS/BNLx.SHR")
+
+#######################
+##  local functions  ##
+#######################
+
+# format GTF files to include transcript ids, gene ids, and fpkm values
+gtfFormat = function(data){
+  data$transcript_id = unlist(lapply(strsplit(data$V9,split=";",fixed=TRUE),function(a) gsub(" transcript_id ","",a[grep("transcript",a)]))) 
+  data$gene_id = unlist(lapply(strsplit(data$V9,split=";",fixed=TRUE),function(a) gsub("gene_id ","",a[grep("gene",a)]))) 
+  data$fpkm = as.numeric(unlist(lapply(strsplit(data$V9,split=";",fixed=TRUE),function(a) gsub(" FPKM ","",a[grep("FPKM",a)]))))
+  return(data)
+}
+```
+
+```{r,echo=FALSE}
+options(stringsAsFactors=FALSE)
+setwd("/Volumes/LauraS/BNLx.SHR")
+
+shr = read.table(file = "RNA-Seq.Brain.polyA/reconstruction/SHR.Brain.PolyA.ensemblGuided/transcripts.gtf",sep="\t",header=FALSE)
+shr = gtfFormat(shr)
+
+bnlx = read.table(file = "RNA-Seq.Brain.polyA/reconstruction/BNLx.Brain.PolyA.ensemblGuided/transcripts.gtf",sep="\t",header=FALSE)
+bnlx = gtfFormat(bnlx)
+
+shr.transcripts = shr[shr$V3=="transcript",c("V1","V4","V5","transcript_id","gene_id","fpkm")]
+bnlx.transcripts = bnlx[bnlx$V3=="transcript",c("V1","V4","V5","transcript_id","gene_id","fpkm")]
+
+anno = read.table(file="/Volumes/LauraS/annotation/ensemblGenes.Rnor_5.0.08Jul14.txt",sep="\t",header=TRUE)
+anno$Description = unlist(lapply(strsplit(anno$Description,split="[",fixed=TRUE),function(a) gsub("[[:space:]]*$","",a[1])))
+
+shr.transcripts = merge(shr.transcripts,anno,by.x="transcript_id",by.y="EnsemblTranscriptID",all.x=TRUE)
+bnlx.transcripts = merge(bnlx.transcripts,anno,by.x="transcript_id",by.y="EnsemblTranscriptID",all.x=TRUE)
+
+# generate gene annotation labels
+anno.gene = shr.transcripts[!is.na(shr.transcripts$EnsemblGeneID),]
+anno.gene = anno.gene[!duplicated(anno.gene[,c("gene_id","EnsemblGeneID")]),]
+
+ensGeneID = aggregate(anno.gene$EnsemblGeneID,by=list(gene_id=anno.gene$gene_id),paste,collapse="//")
+geneSymbol = aggregate(anno.gene$GeneSymbol,by=list(gene_id=anno.gene$gene_id),paste,collapse="//")
+descrip = aggregate(anno.gene$Description,by=list(gene_id=anno.gene$gene_id),paste,collapse="//")
+biotype = aggregate(anno.gene$GeneBiotype,by=list(gene_id=anno.gene$gene_id),function(a) paste(sort(unique(a)),collapse="//"))
+
+geneAnno = merge(ensGeneID,geneSymbol,by="gene_id")
+geneAnno = merge(geneAnno,descrip,by="gene_id")
+colnames(geneAnno) = c("gene_id","EnsemblGeneID","GeneSymbol","Description")
+geneAnno = merge(geneAnno,biotype,by="gene_id")
+colnames(geneAnno) = c("gene_id","EnsemblGeneID","GeneSymbol","Description","geneBiotype")
+
+shr.transcripts = shr[shr$V3=="transcript",c("V1","V4","V5","transcript_id","gene_id","fpkm")]
+shr.transcripts = merge(shr.transcripts,geneAnno,by="gene_id",all.x=TRUE)
+shr.transcripts = shr.transcripts[shr.transcripts$fpkm>0,]
+
+# generate gene annotation labels - BNLx
+anno.gene = bnlx.transcripts[!is.na(bnlx.transcripts$EnsemblGeneID),]
+anno.gene = anno.gene[!duplicated(anno.gene[,c("gene_id","EnsemblGeneID")]),]
+
+ensGeneID = aggregate(anno.gene$EnsemblGeneID,by=list(gene_id=anno.gene$gene_id),paste,collapse="//")
+geneSymbol = aggregate(anno.gene$GeneSymbol,by=list(gene_id=anno.gene$gene_id),paste,collapse="//")
+descrip = aggregate(anno.gene$Description,by=list(gene_id=anno.gene$gene_id),paste,collapse="//")
+biotype = aggregate(anno.gene$GeneBiotype,by=list(gene_id=anno.gene$gene_id),function(a) paste(sort(unique(a)),collapse="//"))
+
+geneAnno = merge(ensGeneID,geneSymbol,by="gene_id")
+geneAnno = merge(geneAnno,descrip,by="gene_id")
+colnames(geneAnno) = c("gene_id","EnsemblGeneID","GeneSymbol","Description")
+geneAnno = merge(geneAnno,biotype,by="gene_id")
+colnames(geneAnno) = c("gene_id","EnsemblGeneID","GeneSymbol","Description","geneBiotype")
+
+bnlx.transcripts = bnlx[bnlx$V3=="transcript",c("V1","V4","V5","transcript_id","gene_id","fpkm")]
+bnlx.transcripts = merge(bnlx.transcripts,geneAnno,by="gene_id",all.x=TRUE)
+bnlx.transcripts = bnlx.transcripts[bnlx.transcripts$fpkm>0,]
+
+threshold=3
+
+ens.bnlx = bnlx.transcripts$transcript_id[grepl("ENS",bnlx.transcripts$transcript_id) & bnlx.transcripts$fpkm>threshold]
+ens.shr = shr.transcripts$transcript_id[grepl("ENS",shr.transcripts$transcript_id) & shr.transcripts$fpkm>threshold]
+
+length(ens.bnlx)
+length(ens.shr)
+sum(ens.bnlx %in% ens.shr)
+
+sum(ens.bnlx %in% shr.transcripts$transcript_id[grepl("ENS",shr.transcripts$transcript_id)] )
+sum(ens.shr %in% bnlx.transcripts$transcript_id[grepl("ENS",bnlx.transcripts$transcript_id)] )
+
+
+
+```
+
+```{r,echo=FALSE}
+exploreThres = c()
+for(threshold in 0.1*c(0:50)){
+  test = shr.transcripts[shr.transcripts$fpkm>threshold,]
+
+  #number of transcripts
+  a = length(unique(test$transcript_id))
+
+  #number of genes
+  b = length(unique(test$gene_id))
+
+  #number of genes associated with an EnsemblID
+  c = length(unique(test$gene_id[!is.na(test$EnsemblGeneID)]))
+
+  #number of transcripts associated with an Ensembl Transcript ID
+  d = length(unique(test$transcript_id[grep("ENS",test$transcript_id)]))
+
+  #number of novel isoforms of Ensembl Genes
+  e = length(unique(test$transcript_id[!grepl("ENS",test$transcript_id) & !is.na(test$EnsemblGeneID)]))
+
+  #number of novel isoforms of novel genes
+  f = length(unique(test$transcript_id[is.na(test$EnsemblGeneID)]))
+
+  exploreThres = rbind(exploreThres,c(threshold,a,b,c,d,e,f))
+}
+
+colnames(exploreThres) = c("threshold","numTrans","numGenes","numGenesWithEns","numTransWithEns","numNovelTransWithEns","numNovelTrans")
+
+exploreThres = data.frame(exploreThres)
+exploreThres$pctGenesWithEns = exploreThres$numGenesWithEns/exploreThres$numGenes
+exploreThres$pctTransWithEns = exploreThres$numTransWithEns/exploreThres$numTrans
+exploreThres$pctNovelTransWithEns = exploreThres$numNovelTransWithEns/exploreThres$numTrans
+exploreThres$pctNovelTrans = exploreThres$numNovelTrans/exploreThres$numTrans
+
+forPrint = exploreThres[exploreThres$threshold %in% c(0,0.1,0.4,0.5,1,2,3,4,5),]
+forPrint$numTrans = prettyNum(forPrint$numTrans,big.mark=",",scientific=FALSE)
+forPrint$numGenes = prettyNum(forPrint$numGenes,big.mark=",",scientific=FALSE)
+forPrint$numGenesWithEns = prettyNum(forPrint$numGenesWithEns,big.mark=",",scientific=FALSE)
+forPrint$numTransWithEns = prettyNum(forPrint$numTransWithEns,big.mark=",",scientific=FALSE)
+forPrint$numNovelTransWithEns = prettyNum(forPrint$numNovelTransWithEns,big.mark=",",scientific=FALSE)
+forPrint$numNovelTrans = prettyNum(forPrint$numNovelTrans,big.mark=",",scientific=FALSE)
+forPrint$pctGenesWithEns = paste(sprintf("%.1f",round(100*forPrint$pctGenesWithEns,1)),"%",sep="")
+forPrint$pctTransWithEns = paste(sprintf("%.1f",round(100*forPrint$pctTransWithEns,1)),"%",sep="")
+forPrint$pctNovelTransWithEns = paste(sprintf("%.1f",round(100*forPrint$pctNovelTransWithEns,1)),"%",sep="")
+forPrint$pctNovelTrans = paste(sprintf("%.1f",round(100*forPrint$pctNovelTrans,1)),"%",sep="")
+
+forPrint = forPrint[,c("threshold","numGenes","numGenesWithEns","pctGenesWithEns","numTrans","numTransWithEns","pctTransWithEns","numNovelTransWithEns","pctNovelTransWithEns","numNovelTrans","pctNovelTrans")]
+colnames(forPrint) = c("FPKM threshold","Number of Genes","Number of Genes With Ensembl Annotation","Percent of Genes With Ensembl Annotation","Number of Transcripts","Number of Transcripts With Ensembl Annotation","Percent of Transcripts with Ensembl Annotation","Number of Novel Transcripts for Annotated Ensembl Genes","Percent of Transcripts That Are a Novel Isoform of an Ensembl Gene","Number of Novel Transcripts/Genes","Percent of Transcripts With NO Ensembl Annotation")
+```
+The transcriptome reconstruction was done using the Ensembl Database as a guide. Because of this, it is easy to separate transcripts that are novel from transcripts that are already identified in the database.  In the reconstruction CuffLinks also groups transcripts into genes.  If there are multiple transcripts for a gene and some are novel and at least one is annotated in the Ensembl database, then we assume that the novel transcripts are from an annotated gene.  Transcripts identified in the reconstruction were separated into three groups: 1) transcripts that are represented in the Ensembl database, 2) transcripts that are NOT in the Ensembl database themselves but  that belong to a gene that is in the database (i.e., unannotated splice variants of an annotated gene), 3) transcripts that are NOT in the Ensembl database at the transcript or gene level.
+
+### Number of Genes/Transcripts Identified In Reconstruction Based on FPKM Threshold
+```{r, results='asis',echo=FALSE}
+kable(forPrint,align=rep("c",ncol(forPrint)),row.names=FALSE)
+```
+
+As the FPKM threshold of 'present' is increased, the ratio of annotated to unannotated transcripts and genes increases.  Assuming no annotation basis, it is expected that the ratio of annotated to unannotated transcripts would asymptote as the FPKM threshold increase.  However, there is likely to be an annotation bias.  Genes and transcripts with higher expression levels are easier to detect and study and are therefore more likely to be annotated in the rat genome.
+
+```{r,fig.width=6,fig.height=5,echo=FALSE}
+plot(exploreThres$threshold,exploreThres$pctTransWithEns,xlab="FPKM Threshold",ylab="Percent of Transcripts Annotated In The Ensembl Database",cex.lab=0.8)
+```
+
+```{r,fig.width=6,fig.height=5,echo=FALSE}
+plot(exploreThres$threshold,exploreThres$pctGenesWithEns,xlab="FPKM Threshold",ylab="Percent of Genes Annotated In The Ensembl Database",cex.lab=0.8)
+```
+
+The purpose of the two plots above was to determine if there was a clear asymptote as FPKM threshold increased. The second graphic is on the gene-level and the line is beginning to asymptote, but the threshold that begins, approximately 2 or 3.  The first graph, which is at the transcript level, is harder to decipher.
+
+### Density of FPKM Values Based on Annotation And FPKM Threshold
+
+```{r,fig.height=5,fig.width=6,echo=FALSE}
+plot(density(log2(shr.transcripts$fpkm[grep("ENS",shr.transcripts$transcript_id)])),ylim=c(0,0.50),main="Compare Density of FPKM Values by Annotation",xlab="")
+points(density(log2(shr.transcripts$fpkm[!grepl("ENS",shr.transcripts$transcript_id) & !is.na(shr.transcripts$EnsemblGeneID)])),type="l",col="red")
+points(density(log2(shr.transcripts$fpkm[is.na(shr.transcripts$EnsemblGeneID)])),type="l",col="blue")
+text(0,0.48,labels="black = Ensembl-Annotated Transcripts\nred = novel isoform for Ensembl-Annotated Gene\nblue = novel gene/isoform",cex=0.8)
+```
+
+The plot above is comparing the distribution of FPKM values among transcripts based on their annotation status.  To make the graphics easier to read, the FPKM values were transformed with a log base 2.  Both the black (annotated transcripts) and the red (novel isoforms of annotated genes), indicate a weak bimodal distribution where the first bump may indicate a 'noise' level.  However, the blue (novel genes/isoforms) line has a very different shape with a single strong peak well below an FPKM value of 1 (log2(FPKM)=0).
+
+The graphics below explore the change in shapes of these graphics when a different FPKM threshold for inclusion is used.
+
+
+```{r,fig.height=5,fig.width=6,echo=FALSE}
+reduced = shr.transcripts[shr.transcripts$fpkm>0.4,]
+density1=density(log2(reduced$fpkm[grep("ENS",reduced$transcript_id)])) 
+density2=density(log2(reduced$fpkm[!grepl("ENS",reduced$transcript_id) & !is.na(reduced$EnsemblGeneID)]))
+density3=density(log2(reduced$fpkm[is.na(reduced$EnsemblGeneID)]))
+
+plot(density1,ylim=c(0,0.50),main="Compare Density of FPKM Values by Annotation (FPKM > 0.4)",cex.main=0.9)
+points(density2,type="l",col="red")
+points(density3,type="l",col="blue")
+text(5,0.48,labels="black = Ensembl-Annotated Transcripts\nred = novel isoform for Ensembl-Annotated Gene\nblue = novel gene/isoform",cex=0.8)
+```
+
+```{r,fig.height=5,fig.width=6,echo=FALSE}
+reduced = shr.transcripts[shr.transcripts$fpkm>1,]
+density1=density(log2(reduced$fpkm[grep("ENS",reduced$transcript_id)])) 
+density2=density(log2(reduced$fpkm[!grepl("ENS",reduced$transcript_id) & !is.na(reduced$EnsemblGeneID)]))
+density3=density(log2(reduced$fpkm[is.na(reduced$EnsemblGeneID)]))
+
+plot(density1,ylim=c(0,0.50),main="Compare Density of FPKM Values by Annotation (FPKM > 1)",cex.main=0.9)
+points(density2,type="l",col="red")
+points(density3,type="l",col="blue")
+text(6,0.48,labels="black = Ensembl-Annotated Transcripts\nred = novel isoform for Ensembl-Annotated Gene\nblue = novel gene/isoform",cex=0.8)
+```
+
+```{r,fig.height=5,fig.width=6,echo=FALSE}
+reduced = shr.transcripts[shr.transcripts$fpkm>3,]
+density1=density(log2(reduced$fpkm[grep("ENS",reduced$transcript_id)])) 
+density2=density(log2(reduced$fpkm[!grepl("ENS",reduced$transcript_id) & !is.na(reduced$EnsemblGeneID)]))
+density3=density(log2(reduced$fpkm[is.na(reduced$EnsemblGeneID)]))
+
+plot(density1,ylim=c(0,0.50),main="Compare Density of FPKM Values by Annotation (FPKM > 3)",cex.main=0.9)
+points(density2,type="l",col="red")
+points(density3,type="l",col="blue")
+text(6,0.48,labels="black = Ensembl-Annotated Transcripts\nred = novel isoform for Ensembl-Annotated Gene\nblue = novel gene/isoform",cex=0.8)
+```
+
+```{r,fig.height=5,fig.width=6,echo=FALSE}
+reduced = shr.transcripts[shr.transcripts$fpkm>5,]
+density1=density(log2(reduced$fpkm[grep("ENS",reduced$transcript_id)])) 
+density2=density(log2(reduced$fpkm[!grepl("ENS",reduced$transcript_id) & !is.na(reduced$EnsemblGeneID)]))
+density3=density(log2(reduced$fpkm[is.na(reduced$EnsemblGeneID)]))
+
+plot(density1,ylim=c(0,0.50),main="Compare Density of FPKM Values by Annotation (FPKM > 5)",cex.main=0.9)
+points(density2,type="l",col="red")
+points(density3,type="l",col="blue")
+text(6,0.48,labels="black = Ensembl-Annotated Transcripts\nred = novel isoform for Ensembl-Annotated Gene\nblue = novel gene/isoform",cex=0.8)
+```
+
+The last two graphics (FPKM<3 and FPKM<5) show the most similar distribution between the three types of transcripts.  If there were no annotation biases, the true distributions should be similar.
+
+
+###Identify Possible Background Threshold Using Reads Aligned to Synthetic Spike-Ins NOT Included In These Samples###
+
+To be consistent with the other data sets being analyzed the RNA-Seq reads generated from the polyA+-selected RNA were aligned to a genome that included sequences for 92 synthetic spike-in standards although these spike-ins were not included in the RNA used to generate sequencing libraries.  The synthetic spike-ins were designed so that they did not resemble any sequences in the mammalian genome.  Any expression calculated for these spike-ins is only noise.  FPKM values for these spike-ins were calculated by hand.  Reported below are the standard deviation (times 2) of the FPKM values calculated by strain.  Many values calculated in this manner are used as a detection limit.  However, for this particular example these values are extremely low when compared to the thresholds suggested above.
+
+```{r,echo=FALSE}
+options(stringsAsFactors=FALSE)
+setwd("/Volumes/LauraS/NextGenSeq/BNLx.SHR.Brain.polyARNA/")
+
+sampleList=c("BNLx1","BNLx2","BNLx3","SHR1","SHR2","SHR3")
+
+for(sample in sampleList){
+  x = read.table(file=paste("data/countByChr.",sample,".brain.polyA.txt",sep=""),header=FALSE,sep="\t")
+  colnames(x) = c("id","length",sample,"V4")
+  x = x[,-4]
+  if(sample==sampleList[1]) chrCnts = x
+  if(sample!=sampleList[1]) chrCnts = merge(chrCnts,x,by=c("id","length"))
+}
+
+controls = chrCnts[grep("ERCC",chrCnts$id),]
+controls$BNLx = rowSums(controls[,grep("BNLx",colnames(controls))])
+controls$SHR = rowSums(controls[,grep("SHR",colnames(controls))])
+
+BNLx.total = 40481476+14744521+15479004+40469642+14737386+15421734
+SHR.total = 50711471+26893642+27733894+50660555+26867184+27760560
+
+controls$BNLx.fpkm = (controls$BNLx/(controls$length/1000))/(BNLx.total/1000000)
+controls$SHR.fpkm = (controls$SHR/(controls$length/1000))/(SHR.total/1000000)
+controls$fpkm = ((controls$SHR + controls$BNLx)/(controls$length/1000))/((BNLx.total + SHR.total)/1000000)
+
+forPrint2=data.frame(data=c("BNLx","SHR","combined"),SD2=c(sd(controls$BNLx.fpkm)*2,sd(controls$SHR.fpkm)*2,sd(controls$fpkm)*2),max=c(max(controls$BNLx.fpkm),max(controls$SHR.fpkm),max(controls$fpkm)))
+
+forPrint2$SD2 = sprintf("%.3f",round(forPrint2$SD2,3))
+forPrint2$max = sprintf("%.3f",round(forPrint2$max,3))
+
+colnames(forPrint2) = c("data source","Two Standard Deviations of the FPKM Values Across All 92 Spikes","Maximum FPKM Value Across All 92 Spikes")
+```
+
+```{r, results='asis',echo=FALSE}
+kable(forPrint2,align=rep("c",ncol(forPrint2)),row.names=FALSE)
+```
+
+
