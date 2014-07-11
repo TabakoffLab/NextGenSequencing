@@ -76,7 +76,7 @@ Average Number of Paired End Reads Per Sample After Trimming: 31,112,545
 qsub -q smp /home/data/saba/BNLx.SHR.Brain.polyARNA/programs/tophatAlign.01Jul14.sh
 ```
 
-6. Sort and merge BAM files by strain - RUNNING
+6. Sort and merge BAM files by strain - DONE
 ---------------
 ```
 qsub -q smp /home/data/saba/BNLx.SHR.Brain.polyARNA/programs/sortAndMerge.brain.polyA.sh
@@ -115,4 +115,35 @@ get ./SHR3/align_summary.txt align_summary.SHR3.txt
 |  number of mapped read pairs with discordant alignments   |    693,988  |    1.61%    |    258,450  |    1.65%    |    290,451  |    1.79%    |    888,924 |   1.65%    |    456,550 |   1.60%    |    387,508 |   1.31%    |
 
 
-**Total Number of Read Fragments Aligned to Genome:** 352,018,069
+**Total Number of Read Fragments Aligned to Genome:** 352,018,069  
+**Average Number of Read Fragments Aligned to Genome Per Sample:** 58,669,678  
+**Average Rate of Alignment (Read Fragments):** 94.4%  
+
+### Characteristics of Alignments
+```
+qsub -q smp /home/data/saba/BNLx.SHR.Brain.polyARNA/programs/countByChrom.brain.polyA.sh
+```
+
+
+
+
+![plot of chunk unnamed-chunk-8](figure/unnamed-chunk-8.png) 
+
+
+![plot of chunk unnamed-chunk-9](figure/unnamed-chunk-9.png) 
+
+
+7. Generate BigWig Files - DONE
+--------------------------
+```
+qsub -q smp /home/data/saba/BNLx.SHR.Brain.polyARNA/programs/createBigWig.brain.polyA.sh
+```
+
+8.  Strain-Specific Transcriptome Reconstruction (Ensembl-Guided) - DONE
+--------------------------
+```
+qsub -q smp /home/data/saba/BNLx.SHR.Brain.polyARNA/programs/reconSHR.brain.polyA.sh
+qsub -q smp /home/data/saba/BNLx.SHR.Brain.polyARNA/programs/reconBNLx.brain.polyA.sh
+```
+
+

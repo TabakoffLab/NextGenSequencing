@@ -31,8 +31,8 @@ shr = gtfFormat(shr)
 bnlx = read.table(file = "RNA-Seq.Brain.polyA/reconstruction/BNLx.Brain.PolyA.ensemblGuided/transcripts.gtf",sep="\t",header=FALSE)
 bnlx = gtfFormat(bnlx)
 
-shr.transcripts = shr[shr$V3=="transcript",c("V1","V4","V5","transcript_id","gene_id","fpkm")]
-bnlx.transcripts = bnlx[bnlx$V3=="transcript",c("V1","V4","V5","transcript_id","gene_id","fpkm")]
+shr.transcripts = shr[shr$V3=="transcript",c("V1","V4","V5","V7","transcript_id","gene_id","fpkm")]
+bnlx.transcripts = bnlx[bnlx$V3=="transcript",c("V1","V4","V5","V7","transcript_id","gene_id","fpkm")]
 
 anno = read.table(file="/Volumes/LauraS/annotation/ensemblGenes.Rnor_5.0.08Jul14.txt",sep="\t",header=TRUE)
 anno$Description = unlist(lapply(strsplit(anno$Description,split="[",fixed=TRUE),function(a) gsub("[[:space:]]*$","",a[1])))
@@ -91,181 +91,204 @@ sum(ens.bnlx %in% shr.transcripts$transcript_id[grepl("ENS",shr.transcripts$tran
 sum(ens.shr %in% bnlx.transcripts$transcript_id[grepl("ENS",bnlx.transcripts$transcript_id)] )
 
 
+###  Look For Overlap of High Confidence Transcripts  ###
+bnlx.high = bnlx.transcripts[bnlx.transcripts$fpkm>3,]
+shr.high = shr.transcripts[shr.transcripts$fpkm>3,]
+
+colnames(bnlx.high) =  c("gene_id.bnlx","V1","V4","V5","transcript_id","fpkm.bnlx","EnsemblGeneID.bnlx","GeneSymbol.bnlx","Description.bnlx","geneBiotype.bnlx")  
+colnames(shr.high) =  c("gene_id.shr","V1","V4","V5","transcript_id","fpkm.shr","EnsemblGeneID.shr","GeneSymbol.shr","Description.shr","geneBiotype.shr")
+
+ens.high = merge(bnlx.high[grep("ENS",bnlx.high$transcript_id),],shr.high[grep("ENS",shr.high$transcript_id),],by=c("transcript_id","V1","V4","V5"),all=TRUE)
+
+plot(log2(ens.high$fpkm.bnlx),log2(ens.high$fpkm.shr))
+abline(a=0,b=1,col="red")
+
+sum(ens.high$fpkm.bnlx<ens.high$fpkm.shr,na.rm=TRUE)/sum(!is.na(ens.high$fpkm.bnlx) & !is.na(ens.high$fpkm.shr))
+
+shr.tracking = read.table(file = "RNA-Seq.Brain.polyA/reconstruction/SHR.Brain.PolyA.ensemblGuided/isoforms.fpkm_tracking",sep="\t",header=TRUE)
+
+shr.tracking = shr.tracking[order(shr.tracking$FPKM),]
+shr.tracking = shr.tracking[shr.tracking$FPKM>0,]
+
+
+bnlx.tracking = read.table(file = "RNA-Seq.Brain.polyA/reconstruction/BNLx.Brain.PolyA.ensemblGuided/isoforms.fpkm_tracking",sep="\t",header=TRUE)
+
+bnlx.tracking = bnlx.tracking[order(bnlx.tracking$FPKM),]
+bnlx.tracking = bnlx.tracking[bnlx.tracking$FPKM>0,]
+
+high.bnlx = bnlx.tracking[bnlx.tracking$coverage>50,]
+high.shr = shr.tracking[shr.tracking$coverage>50,]
+
+high.bnlx$transcript_id = gsub("CUFF","BNLx",high.bnlx$tracking_id)
+high.shr$transcript_id = gsub("CUFF","SHR",high.shr$tracking_id)
+
+high.combined = merge(high.bnlx,high.shr,by=c("transcript_id","locus","length"),all=TRUE)
+high.combined = high.combined[order(high.combined$locus),c("transcript_id","locus","length","coverage.x","FPKM.x","coverage.y","FPKM.y")]
+
+high.combined = high.combined[high.combined$length>200,]
+
+table(grepl("ENS",high.combined$transcript_id))
+
+shr.transcripts$transcript_id = gsub("CUFF","SHR",shr.transcripts$transcript_id)
+bnlx.transcripts$transcript_id = gsub("CUFF","BNLx",bnlx.transcripts$transcript_id)
+
+bnlx.bed = bnlx.transcripts[bnlx.transcripts$transcript_id %in% high.combined$transcript_id[grep("BNLx",high.combined$transcript_id)],]
+bnlx.bed$V6 = 1000
+
+shr.bed = shr.transcripts[shr.transcripts$transcript_id %in% high.combined$transcript_id[grep("SHR",high.combined$transcript_id)],]
+shr.bed$V6 = 1000
+
+bnlx.bed = bnlx.bed[,c("V1","V4","V5","V6","V7","transcript_id")]
+shr.bed = shr.bed[,c("V1","V4","V5","V6","V7","transcript_id")]
+
+write.table(shr.bed,file="RNA-Seq.Brain.polyA/reconstruction/tmp/shr.bed",sep="\t",row.names=FALSE,col.names=FALSE,quote=FALSE)
+write.table(bnlx.bed,file="RNA-Seq.Brain.polyA/reconstruction/tmp/bnlx.bed",sep="\t",row.names=FALSE,col.names=FALSE,quote=FALSE)
 
 ```
 
-```{r,echo=FALSE}
-exploreThres = c()
-for(threshold in 0.1*c(0:50)){
-  test = shr.transcripts[shr.transcripts$fpkm>threshold,]
+3.  Look for overlap between transcripts within the combined BED file  
+-----------------------------------------
+BEDtools version = bedtools v2.16.2-zip-5db7ff9
 
-  #number of transcripts
-  a = length(unique(test$transcript_id))
 
-  #number of genes
-  b = length(unique(test$gene_id))
-
-  #number of genes associated with an EnsemblID
-  c = length(unique(test$gene_id[!is.na(test$EnsemblGeneID)]))
-
-  #number of transcripts associated with an Ensembl Transcript ID
-  d = length(unique(test$transcript_id[grep("ENS",test$transcript_id)]))
-
-  #number of novel isoforms of Ensembl Genes
-  e = length(unique(test$transcript_id[!grepl("ENS",test$transcript_id) & !is.na(test$EnsemblGeneID)]))
-
-  #number of novel isoforms of novel genes
-  f = length(unique(test$transcript_id[is.na(test$EnsemblGeneID)]))
-
-  exploreThres = rbind(exploreThres,c(threshold,a,b,c,d,e,f))
-}
-
-colnames(exploreThres) = c("threshold","numTrans","numGenes","numGenesWithEns","numTransWithEns","numNovelTransWithEns","numNovelTrans")
-
-exploreThres = data.frame(exploreThres)
-exploreThres$pctGenesWithEns = exploreThres$numGenesWithEns/exploreThres$numGenes
-exploreThres$pctTransWithEns = exploreThres$numTransWithEns/exploreThres$numTrans
-exploreThres$pctNovelTransWithEns = exploreThres$numNovelTransWithEns/exploreThres$numTrans
-exploreThres$pctNovelTrans = exploreThres$numNovelTrans/exploreThres$numTrans
-
-forPrint = exploreThres[exploreThres$threshold %in% c(0,0.1,0.4,0.5,1,2,3,4,5),]
-forPrint$numTrans = prettyNum(forPrint$numTrans,big.mark=",",scientific=FALSE)
-forPrint$numGenes = prettyNum(forPrint$numGenes,big.mark=",",scientific=FALSE)
-forPrint$numGenesWithEns = prettyNum(forPrint$numGenesWithEns,big.mark=",",scientific=FALSE)
-forPrint$numTransWithEns = prettyNum(forPrint$numTransWithEns,big.mark=",",scientific=FALSE)
-forPrint$numNovelTransWithEns = prettyNum(forPrint$numNovelTransWithEns,big.mark=",",scientific=FALSE)
-forPrint$numNovelTrans = prettyNum(forPrint$numNovelTrans,big.mark=",",scientific=FALSE)
-forPrint$pctGenesWithEns = paste(sprintf("%.1f",round(100*forPrint$pctGenesWithEns,1)),"%",sep="")
-forPrint$pctTransWithEns = paste(sprintf("%.1f",round(100*forPrint$pctTransWithEns,1)),"%",sep="")
-forPrint$pctNovelTransWithEns = paste(sprintf("%.1f",round(100*forPrint$pctNovelTransWithEns,1)),"%",sep="")
-forPrint$pctNovelTrans = paste(sprintf("%.1f",round(100*forPrint$pctNovelTrans,1)),"%",sep="")
-
-forPrint = forPrint[,c("threshold","numGenes","numGenesWithEns","pctGenesWithEns","numTrans","numTransWithEns","pctTransWithEns","numNovelTransWithEns","pctNovelTransWithEns","numNovelTrans","pctNovelTrans")]
-colnames(forPrint) = c("FPKM threshold","Number of Genes","Number of Genes With Ensembl Annotation","Percent of Genes With Ensembl Annotation","Number of Transcripts","Number of Transcripts With Ensembl Annotation","Percent of Transcripts with Ensembl Annotation","Number of Novel Transcripts for Annotated Ensembl Genes","Percent of Transcripts That Are a Novel Isoform of an Ensembl Gene","Number of Novel Transcripts/Genes","Percent of Transcripts With NO Ensembl Annotation")
 ```
-The transcriptome reconstruction was done using the Ensembl Database as a guide. Because of this, it is easy to separate transcripts that are novel from transcripts that are already identified in the database.  In the reconstruction CuffLinks also groups transcripts into genes.  If there are multiple transcripts for a gene and some are novel and at least one is annotated in the Ensembl database, then we assume that the novel transcripts are from an annotated gene.  Transcripts identified in the reconstruction were separated into three groups: 1) transcripts that are represented in the Ensembl database, 2) transcripts that are NOT in the Ensembl database themselves but  that belong to a gene that is in the database (i.e., unannotated splice variants of an annotated gene), 3) transcripts that are NOT in the Ensembl database at the transcript or gene level.
-
-### Number of Genes/Transcripts Identified In Reconstruction Based on FPKM Threshold
-```{r, results='asis',echo=FALSE}
-kable(forPrint,align=rep("c",ncol(forPrint)),row.names=FALSE)
+export PATH=/usr/local/bedtools2/bin:$PATH
+ 
+cd /data/Tabastore3/LauraS/BNLx.SHR/RNA-Seq.Brain.polyA/reconstruction/tmp
+intersectBed -a shr.bed -b bnlx.bed -wo > overlap.polyA.byStrain.txt
 ```
 
-As the FPKM threshold of 'present' is increased, the ratio of annotated to unannotated transcripts and genes increases.  Assuming no annotation basis, it is expected that the ratio of annotated to unannotated transcripts would asymptote as the FPKM threshold increase.  However, there is likely to be an annotation bias.  Genes and transcripts with higher expression levels are easier to detect and study and are therefore more likely to be annotated in the rat genome.
+4.  Identify novel transcripts that were identified in both BN-Lx and SHR 
+------------------------------------------------------
+Two transcripts were "merged" into one transcripts if:  
+* they are both assigned to the same strand or one/both did not have a strand designation
+* they were identified as novel in opposite strains (one from SHR and one from BNLx)
+* if 1) all exon starts and exon stops matched OR 2) all exon junctions matched, transcription start and stop sites could differ OR 3) two one-exon transcripts with transcription start sites within 100 bp of each other and transcription stop sites within 100 bp of each other
 
-```{r,fig.width=6,fig.height=5,echo=FALSE}
-plot(exploreThres$threshold,exploreThres$pctTransWithEns,xlab="FPKM Threshold",ylab="Percent of Transcripts Annotated In The Ensembl Database",cex.lab=0.8)
-```
-
-```{r,fig.width=6,fig.height=5,echo=FALSE}
-plot(exploreThres$threshold,exploreThres$pctGenesWithEns,xlab="FPKM Threshold",ylab="Percent of Genes Annotated In The Ensembl Database",cex.lab=0.8)
-```
-
-The purpose of the two plots above was to determine if there was a clear asymptote as FPKM threshold increased. The second graphic is on the gene-level and the line is beginning to asymptote, but the threshold that begins, approximately 2 or 3.  The first graph, which is at the transcript level, is harder to decipher.
-
-### Density of FPKM Values Based on Annotation And FPKM Threshold
-
-```{r,fig.height=5,fig.width=6,echo=FALSE}
-plot(density(log2(shr.transcripts$fpkm[grep("ENS",shr.transcripts$transcript_id)])),ylim=c(0,0.50),main="Compare Density of FPKM Values by Annotation",xlab="")
-points(density(log2(shr.transcripts$fpkm[!grepl("ENS",shr.transcripts$transcript_id) & !is.na(shr.transcripts$EnsemblGeneID)])),type="l",col="red")
-points(density(log2(shr.transcripts$fpkm[is.na(shr.transcripts$EnsemblGeneID)])),type="l",col="blue")
-text(0,0.48,labels="black = Ensembl-Annotated Transcripts\nred = novel isoform for Ensembl-Annotated Gene\nblue = novel gene/isoform",cex=0.8)
-```
-
-The plot above is comparing the distribution of FPKM values among transcripts based on their annotation status.  To make the graphics easier to read, the FPKM values were transformed with a log base 2.  Both the black (annotated transcripts) and the red (novel isoforms of annotated genes), indicate a weak bimodal distribution where the first bump may indicate a 'noise' level.  However, the blue (novel genes/isoforms) line has a very different shape with a single strong peak well below an FPKM value of 1 (log2(FPKM)=0).
-
-The graphics below explore the change in shapes of these graphics when a different FPKM threshold for inclusion is used.
-
-
-```{r,fig.height=5,fig.width=6,echo=FALSE}
-reduced = shr.transcripts[shr.transcripts$fpkm>0.4,]
-density1=density(log2(reduced$fpkm[grep("ENS",reduced$transcript_id)])) 
-density2=density(log2(reduced$fpkm[!grepl("ENS",reduced$transcript_id) & !is.na(reduced$EnsemblGeneID)]))
-density3=density(log2(reduced$fpkm[is.na(reduced$EnsemblGeneID)]))
-
-plot(density1,ylim=c(0,0.50),main="Compare Density of FPKM Values by Annotation (FPKM > 0.4)",cex.main=0.9)
-points(density2,type="l",col="red")
-points(density3,type="l",col="blue")
-text(5,0.48,labels="black = Ensembl-Annotated Transcripts\nred = novel isoform for Ensembl-Annotated Gene\nblue = novel gene/isoform",cex=0.8)
-```
-
-```{r,fig.height=5,fig.width=6,echo=FALSE}
-reduced = shr.transcripts[shr.transcripts$fpkm>1,]
-density1=density(log2(reduced$fpkm[grep("ENS",reduced$transcript_id)])) 
-density2=density(log2(reduced$fpkm[!grepl("ENS",reduced$transcript_id) & !is.na(reduced$EnsemblGeneID)]))
-density3=density(log2(reduced$fpkm[is.na(reduced$EnsemblGeneID)]))
-
-plot(density1,ylim=c(0,0.50),main="Compare Density of FPKM Values by Annotation (FPKM > 1)",cex.main=0.9)
-points(density2,type="l",col="red")
-points(density3,type="l",col="blue")
-text(6,0.48,labels="black = Ensembl-Annotated Transcripts\nred = novel isoform for Ensembl-Annotated Gene\nblue = novel gene/isoform",cex=0.8)
-```
-
-```{r,fig.height=5,fig.width=6,echo=FALSE}
-reduced = shr.transcripts[shr.transcripts$fpkm>3,]
-density1=density(log2(reduced$fpkm[grep("ENS",reduced$transcript_id)])) 
-density2=density(log2(reduced$fpkm[!grepl("ENS",reduced$transcript_id) & !is.na(reduced$EnsemblGeneID)]))
-density3=density(log2(reduced$fpkm[is.na(reduced$EnsemblGeneID)]))
-
-plot(density1,ylim=c(0,0.50),main="Compare Density of FPKM Values by Annotation (FPKM > 3)",cex.main=0.9)
-points(density2,type="l",col="red")
-points(density3,type="l",col="blue")
-text(6,0.48,labels="black = Ensembl-Annotated Transcripts\nred = novel isoform for Ensembl-Annotated Gene\nblue = novel gene/isoform",cex=0.8)
-```
-
-```{r,fig.height=5,fig.width=6,echo=FALSE}
-reduced = shr.transcripts[shr.transcripts$fpkm>5,]
-density1=density(log2(reduced$fpkm[grep("ENS",reduced$transcript_id)])) 
-density2=density(log2(reduced$fpkm[!grepl("ENS",reduced$transcript_id) & !is.na(reduced$EnsemblGeneID)]))
-density3=density(log2(reduced$fpkm[is.na(reduced$EnsemblGeneID)]))
-
-plot(density1,ylim=c(0,0.50),main="Compare Density of FPKM Values by Annotation (FPKM > 5)",cex.main=0.9)
-points(density2,type="l",col="red")
-points(density3,type="l",col="blue")
-text(6,0.48,labels="black = Ensembl-Annotated Transcripts\nred = novel isoform for Ensembl-Annotated Gene\nblue = novel gene/isoform",cex=0.8)
-```
-
-The last two graphics (FPKM<3 and FPKM<5) show the most similar distribution between the three types of transcripts.  If there were no annotation biases, the true distributions should be similar.
-
-
-###Identify Possible Background Threshold Using Reads Aligned to Synthetic Spike-Ins NOT Included In These Samples###
-
-To be consistent with the other data sets being analyzed the RNA-Seq reads generated from the polyA+-selected RNA were aligned to a genome that included sequences for 92 synthetic spike-in standards although these spike-ins were not included in the RNA used to generate sequencing libraries.  The synthetic spike-ins were designed so that they did not resemble any sequences in the mammalian genome.  Any expression calculated for these spike-ins is only noise.  FPKM values for these spike-ins were calculated by hand.  Reported below are the standard deviation (times 2) of the FPKM values calculated by strain.  Many values calculated in this manner are used as a detection limit.  However, for this particular example these values are extremely low when compared to the thresholds suggested above.
-
-```{r,echo=FALSE}
+```{r,eval=FALSE}
 options(stringsAsFactors=FALSE)
-setwd("/Volumes/LauraS/NextGenSeq/BNLx.SHR.Brain.polyARNA/")
+setwd("/Volumes/LauraS/BNLx.SHR")
 
-sampleList=c("BNLx1","BNLx2","BNLx3","SHR1","SHR2","SHR3")
+shr = read.table(file = "RNA-Seq.Brain.polyA/reconstruction/SHR.Brain.PolyA.ensemblGuided/transcripts.gtf",sep="\t",header=FALSE)
+shr = gtfFormat(shr)
+shr$transcript_id = gsub("CUFF","SHR",shr$transcript_id)
+shr.gtf <- shr[(shr$transcript_id %in% high.combined$transcript_id[!grepl("ENS",high.combined$transcript_id)]) & shr$V3=="exon",]
+shr.gtf <- shr.gtf[order(shr.gtf$transcript_id,shr.gtf$V4,shr.gtf$V5),]
 
-for(sample in sampleList){
-  x = read.table(file=paste("data/countByChr.",sample,".brain.polyA.txt",sep=""),header=FALSE,sep="\t")
-  colnames(x) = c("id","length",sample,"V4")
-  x = x[,-4]
-  if(sample==sampleList[1]) chrCnts = x
-  if(sample!=sampleList[1]) chrCnts = merge(chrCnts,x,by=c("id","length"))
-}
 
-controls = chrCnts[grep("ERCC",chrCnts$id),]
-controls$BNLx = rowSums(controls[,grep("BNLx",colnames(controls))])
-controls$SHR = rowSums(controls[,grep("SHR",colnames(controls))])
+bnlx = read.table(file = "RNA-Seq.Brain.polyA/reconstruction/BNLx.Brain.PolyA.ensemblGuided/transcripts.gtf",sep="\t",header=FALSE)
+bnlx = gtfFormat(bnlx)
+bnlx$transcript_id = gsub("CUFF","BNLx",bnlx$transcript_id)
+bnlx.gtf <- bnlx[(bnlx$transcript_id %in% high.combined$transcript_id[!grepl("ENS",high.combined$transcript_id)]) & bnlx$V3=="exon",]
+bnlx.gtf <- bnlx.gtf[order(bnlx.gtf$transcript_id,bnlx.gtf$V4,bnlx.gtf$V5),]
 
-BNLx.total = 40481476+14744521+15479004+40469642+14737386+15421734
-SHR.total = 50711471+26893642+27733894+50660555+26867184+27760560
+ens.gtf = shr[(shr$transcript_id %in% high.combined$transcript_id[grepl("ENS",high.combined$transcript_id)]) & shr$V3=="exon",]
 
-controls$BNLx.fpkm = (controls$BNLx/(controls$length/1000))/(BNLx.total/1000000)
-controls$SHR.fpkm = (controls$SHR/(controls$length/1000))/(SHR.total/1000000)
-controls$fpkm = ((controls$SHR + controls$BNLx)/(controls$length/1000))/((BNLx.total + SHR.total)/1000000)
+gtf = rbind(shr.gtf,bnlx.gtf,ens.gtf)
+gtf <- gtf[order(gtf$transcript_id,gtf$V4,gtf$V5),]
 
-forPrint2=data.frame(data=c("BNLx","SHR","combined"),SD2=c(sd(controls$BNLx.fpkm)*2,sd(controls$SHR.fpkm)*2,sd(controls$fpkm)*2),max=c(max(controls$BNLx.fpkm),max(controls$SHR.fpkm),max(controls$fpkm)))
+length(unique(gtf$transcript_id))
 
-forPrint2$SD2 = sprintf("%.3f",round(forPrint2$SD2,3))
-forPrint2$max = sprintf("%.3f",round(forPrint2$max,3))
+##  create one per transcript ##
+start <- aggregate(gtf$V4,by=list(gtf$transcript_id),function(a) paste(a,collapse=","))
+stop <- aggregate(gtf$V5,by=list(gtf$transcript_id),function(a) paste(a,collapse=","))
+transcripts <- gtf[!duplicated(gtf[,c("transcript_id","V1")]),c("transcript_id","V1","V6","V7")]
+onePerTrans <- merge(start,stop,by=1)
+onePerTrans <- merge(transcripts,onePerTrans,by=1)
 
-colnames(forPrint2) = c("data source","Two Standard Deviations of the FPKM Values Across All 92 Spikes","Maximum FPKM Value Across All 92 Spikes")
+onePerTrans$exonNum = unlist(lapply(strsplit(onePerTrans$x.x,split=",",fixed=TRUE),length))
+onePerTrans$start <- as.integer(unlist(lapply(strsplit(onePerTrans$x.x,split=",",fixed=TRUE),function(a) min(as.numeric(a)))))
+onePerTrans$stop <- as.integer(unlist(lapply(strsplit(onePerTrans$x.y,split=",",fixed=TRUE),function(a) max(as.numeric(a)))))
+
+#####################
+overlap <- read.table(file="RNA-Seq.Brain.polyA/reconstruction/tmp/overlap.polyA.byStrain.txt",sep="\t",header=FALSE)
+colnames(overlap) <- c(paste(c("chr","start","stop","V5","strand","transcript_id"),rep(c("SHR","BNLx"),each=6),sep="."),"overlap")
+
+## add exon information to overlaps
+setSHR = setBNLx = onePerTrans[,c("transcript_id","x.x","x.y","exonNum")]
+colnames(setSHR) = c("transcript_id.SHR","exonStarts.SHR","exonStops.SHR","exonNum.SHR")
+colnames(setBNLx) = c("transcript_id.BNLx","exonStarts.BNLx","exonStops.BNLx","exonNum.BNLx")
+
+overlap = merge(overlap,setSHR,by="transcript_id.SHR")
+overlap = merge(overlap,setBNLx,by="transcript_id.BNLx")
+
+overlap$ID = c(1:nrow(overlap))
+
+##  identify exon junction
+
+findJunct <- function(starts,stops){
+  start <- strsplit(starts,split=",",fixed=TRUE)[[1]]
+  stop <- strsplit(stops,split=",",fixed=TRUE)[[1]]
+  junct <- NA
+  if(length(start)>1) junct <- paste(paste(stop[-length(stop)],start[-1],sep="//"),collapse=",")
+  return(junct)
+  }
+  
+overlap$exonJunct.SHR = apply(overlap[,c("exonStarts.SHR","exonStops.SHR")],1,function(a) findJunct(a[1],a[2]))
+overlap$exonJunct.BNLx = apply(overlap[,c("exonStarts.BNLx","exonStops.BNLx")],1,function(a) findJunct(a[1],a[2]))
+
+## remove overlap that is on the opposite strand
+overlap <- overlap[overlap$strand.SHR=="." | overlap$strand.BNLx=="." | overlap$strand.SHR==overlap$strand.BNLx,]
+
+## remove overlap where coding regions don't overlap  ##
+intronCheck =c()
+for(i in 1:nrow(overlap)){
+  input = overlap[i,]
+  out = sum(sum(unlist(lapply(strsplit(strsplit(input[1,"exonJunct.BNLx"],split=",")[[1]],split="//"),function(a) input[1,"start.SHR"]>a[1] & input[1,"stop.SHR"]<a[2]))),sum(unlist(lapply(strsplit(strsplit(input[1,"exonJunct.SHR"],split=",")[[1]],split="//"),function(a) input[1,"start.BNLx"]>a[1] & input[1,"stop.BNLx"]<a[2]))),na.rm=TRUE)
+  intronCheck = c(intronCheck,out)
+  }
+  
+overlap = overlap[intronCheck==0,]
+
+## transcripts without any overlap - 3,669 transcripts
+noOverlap = onePerTrans[!(onePerTrans$transcript_id %in% unique(c(overlap$transcript_id.SHR,overlap$transcript_id.BNLx))),]
+
+##  perfect overlap - 50 transcripts
+perfect = overlap[overlap$exonStarts.SHR==overlap$exonStarts.BNLx & overlap$exonStops.SHR==overlap$exonStops.BNLx,]
+
+##  identify exon junction matches - 1,567 transcripts
+reduced = overlap[!(overlap$ID %in% perfect$ID),]
+exonJunctMatch <- reduced[!is.na(reduced$exonJunct.SHR) & !is.na(reduced$exonJunct.BNLx) & reduced$exonJunct.SHR==reduced$exonJunct.BNLx,]
+
+##  examine one-exon transcripts - 697 transcripts
+reduced = overlap[!(overlap$ID %in% c(perfect$ID,exonJunctMatch$ID)),]
+oneExons = reduced[reduced$exonNum.SHR==1 & reduced$exonNum.BNLx==1,]
+
+closeMatch.oneExon = oneExons[abs(oneExons$start.SHR - oneExons$start.BNLx)<100 & abs(oneExons$stop.SHR - oneExons$stop.BNLx)<100, ]
+sum(duplicated(closeMatch.oneExon$transcript_id.BNLx))
+
+##  Check for overlap between renamed  ##
+matched = as.data.frame(rbind(perfect,exonJunctMatch,closeMatch.oneExon))
+sum(duplicated(matched$transcript_id.BNLx))
+sum(duplicated(matched$transcript_id.SHR))
+
+
+## Examine Overlap ##
+overlap.v2 = overlap[!(overlap$transcript_id.BNLx %in% matched$transcript_id.BNLx) & !(overlap$transcript_id.SHR %in% matched$transcript_id.SHR),]
+
+
+##  create new transcript for matched transcripts - 1,945 matches
+matched$transcript_id = paste("matched",c(1:nrow(matched)),sep=".")
+matched$gene_id = NA
+matched$V1 = matched$chr.SHR
+matched$V6 = 1000
+matched$V7 = matched$strand.SHR
+matched$start = apply(matched[,c("start.BNLx","start.SHR")],1,min)
+matched$stop = apply(matched[,c("stop.BNLx","stop.SHR")],1,max)
+matched$exonNum = matched$exonNum.SHR
+
+matched$x.x = NA
+matched$x.x[matched$start==matched$start.SHR] = matched$exonStarts.SHR[matched$start==matched$start.SHR]
+matched$x.x[matched$start==matched$start.BNLx] = matched$exonStarts.BNLx[matched$start==matched$start.BNLx]
+
+matched$x.y = NA
+matched$x.y[matched$stop==matched$stop.SHR] = matched$exonStops.SHR[matched$stop==matched$stop.SHR]
+matched$x.y[matched$stop==matched$stop.BNLx] = matched$exonStops.BNLx[matched$stop==matched$stop.BNLx]
+
+matched.toAdd = matched[,colnames(onePerTrans)]
+
+new.transcripts = onePerTrans[!(onePerTrans$transcript_id %in% c(matched$transcript_id.SHR,matched$transcript_id.BNLx)),]
+new.transcripts = rbind(new.transcripts,matched.toAdd)
+
+write.table(new.transcripts[,c("V1","start","stop","transcript_id","V6","V7")],file="RNA-Seq.Brain.polyA/reconstruction/tmp/combined.brain.polyA.10Jul14.bed",sep="\t",quote=FALSE,row.names=FALSE,col.names=FALSE)
 ```
-
-```{r, results='asis',echo=FALSE}
-kable(forPrint2,align=rep("c",ncol(forPrint2)),row.names=FALSE)
-```
-
-

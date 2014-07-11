@@ -1,0 +1,85 @@
+Title
+========================================================
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring web pages (click the **Help** toolbar button for more details on using R Markdown).
+
+When you click the **Knit HTML** button a web page will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+collapseClust = function(expr,i){
+  ps=c()
+
+  if(nrow(expr)==1){
+    pca.z = data.frame(expr)
+    rownames(pca.z)=i
+    ps = rbind(ps,c(rownames(expr),i))
+    }
+  
+  if(nrow(expr)==2){
+    if(cor(t(expr))[1,2]>threshold){
+      pca.z=data.frame(t(prcomp(expr)$rotation[,1]))
+      rownames(pca.z)=i
+      ps = rbind(ps,cbind(rownames(expr),i))
+      }
+    
+    if(cor(t(expr))[1,2]<=threshold){
+      pca.z=data.frame(expr)
+      rownames(pca.z) = paste(i,".clust",1:2,sep="")
+      ps = rbind(ps,cbind(rownames(expr),paste(i,".clust",1:2,sep="")))
+      }
+  }
+  
+  if(nrow(expr)>=3){
+    dendro=hclust(as.dist(1-cor(t(expr))))
+    
+    if(min(dendro$height)>(1-threshold)){
+      pca.z=data.frame(expr)
+      rownames(pca.z) = paste(i,".clust",1:nrow(expr),sep="")
+      ps = rbind(ps,cbind(rownames(expr),rownames(pca.z)))
+      }
+    
+    if(max(dendro$height)<(1-threshold)){
+      pca.z=data.frame(t(prcomp(expr)$rotation[,1]))
+      rownames(pca.z)=i
+      ps = rbind(ps,cbind(rownames(expr),i))
+      }
+      
+    if(min(dendro$height)<(1-threshold) & max(dendro$height)>(1-threshold)){
+      clusters=rect.hclust(hclust(as.dist(1-cor(t(expr)))),h=(1-threshold))
+      pca.z=c()
+      for(x in c(1:length(clusters))){
+        z = expr[names(clusters[[x]]),]
+        if(nrow(z)>1) {
+          pca.z = rbind(pca.z,prcomp(z)$rotation[,1])
+          ps = rbind(ps,cbind(rownames(z),paste(i,".clust",x,sep="")))
+          }
+        if(nrow(z)==1){
+          pca.z = rbind(pca.z,z)
+          ps = rbind(ps,c(rownames(z),paste(i,".clust",x,sep="")))
+          }
+        }
+      if(nrow(pca.z)>1) rownames(pca.z) = paste(i,".clust",c(1:nrow(pca.z)),sep="")
+      if(nrow(pca.z)==1) rownames(pca.z) = i
+      }
+   }
+  #write.table(pca.z,file="exprValues.test.txt",sep="\t",row.names=FALSE,col.names=FALSE,append=TRUE)
+  write.table(ps,file="mapProbeSets.10Jul14.txt",sep="\t",row.names=FALSE,col.names=FALSE,append=TRUE,quote=FALSE)
+  
+}
+
+test = datExpr
+test.group = gene
+
+proc.time()
+
+tmp=sapply(unique(test.group$transcript_cluster_id),function(a) collapseClust(test[test.group$transcript_cluster_id==a,],a))
+
+proc.time()
+```
+
+You can also embed plots, for example:
+
+```{r fig.width=7, fig.height=6}
+plot(cars)
+```
+

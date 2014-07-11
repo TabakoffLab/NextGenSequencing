@@ -23,20 +23,22 @@ qsub -q smp /home/data/saba/BNLx.SHR.Brain.Females.totalRNA/programs/countRawRea
 ```{r,echo=FALSE}
 rm(list=ls())
 options(stringsAsFactors=FALSE)
-setwd("/Volumes/LauraS/NextGenSeq/BNLx.SHR.Heart.totalRNA/")
-rawCounts = read.table(file="data/rawReadCounts.02Jul14.txt",sep=" ",header=FALSE,fill=TRUE)
+setwd("/Volumes/LauraS/NextGenSeq/BNLx.SHR.Brain.Female.totalRNA/")
+rawCounts = read.table(file="data/rawReadCounts.07Jul14.txt",sep=" ",header=FALSE,fill=TRUE)
 
 rawCounts$readFrag = as.numeric(rawCounts$V3)
-rawCounts$sample = unlist(lapply(strsplit(rawCounts$V1,split="/",fixed=TRUE),function(a) gsub("BN_LX_","BNLx",gsub("SHR_H_","SHR",a[length(a)]))))
+rawCounts$sample = unlist(lapply(strsplit(rawCounts$V1,split="/",fixed=TRUE),function(a) a[length(a)]))
 rawCounts$sample = unlist(lapply(strsplit(rawCounts$sample,split="_",fixed=TRUE),function(a) a[1]))
+rawCounts$sample = gsub("B","BNLx",gsub("S","SHR",rawCounts$sample))
+rawCounts$lane = unlist(lapply(strsplit(rawCounts$V1,split="_",fixed=TRUE),function(a) a[grep("L00",a)]))
 
-readFragments = aggregate(rawCounts$readFrag,by=list(sample=rawCounts$sample),sum)
+readFragments = aggregate(rawCounts$readFrag,by=list(sample=rawCounts$sample,lane=rawCounts$lane),sum)
 readFragments$numPairedReads = prettyNum(readFragments$x/2,big.mark=",",scientific=FALSE)
 readFragments$numReadFragments = prettyNum(readFragments$x,big.mark=",",scientific=FALSE)
 
 readFragments=readFragments[,colnames(readFragments)!="x"]
-forPrint = readFragments[,c("sample","numPairedReads","numReadFragments")]
-colnames(forPrint) = c("sample","Number of Paired-End Reads","Number of Read Fragments")
+forPrint = readFragments[order(readFragments$sample,readFragments$lane),c("sample","lane","numPairedReads","numReadFragments")]
+colnames(forPrint) = c("sample","lane","Number of Paired-End Reads","Number of Read Fragments")
 ```
 
 Raw Reads/Read Fragments
@@ -48,7 +50,7 @@ kable(forPrint,align=rep("c",ncol(readFragments)))
 
 Total Number of Paired End Reads: `r prettyNum(sum(rawCounts$readFrag)/2,big.mark=",",scientific=FALSE)`  
 Total Number of Read Fragments:  `r prettyNum(sum(rawCounts$readFrag),big.mark=",",scientific=FALSE)`  
-Average Number of Paired End Reads Per Sample: `r prettyNum(sum(rawCounts$readFrag)/nrow(rawCounts),big.mark=",",scientific=FALSE)`  
+Average Number of Paired End Reads Per Sample: `r prettyNum(sum(rawCounts$readFrag)/nrow(readFragments),big.mark=",",scientific=FALSE)`  
 
 3. Trim reads for adaptors and for quality
 ---------------
@@ -64,28 +66,28 @@ qsub -q smp /home/data/saba/BNLx.SHR.Brain.Females.totalRNA/programs/countTrimme
 
 ```{r,echo=FALSE}
 options(stringsAsFactors=FALSE)
-setwd("/Volumes/LauraS/NextGenSeq/BNLx.SHR.Heart.totalRNA/")
+setwd("/Volumes/LauraS/NextGenSeq/BNLx.SHR.Brain.Female.totalRNA/")
 
-trimmed = read.table(file="data/trimmedReadCounts.01Jun14.txt",sep="",header=FALSE)
-trimmed$file = unlist(lapply(strsplit(trimmed$V1,split="/",fixed=TRUE),function(a) a[6]))
-trimmed$sample = unlist(lapply(strsplit(trimmed$file,split="_",fixed=TRUE),function(a) paste(a[1],a[3],sep="")))
-trimmed$sample = gsub("BN","BNLx",trimmed$sample)
-trimmed$read = unlist(lapply(strsplit(trimmed$file,split="_",fixed=TRUE),function(a) a[10]))
-trimmed$lane = unlist(lapply(strsplit(trimmed$file,split="_",fixed=TRUE),function(a) a[9]))
+trimmed = read.table(file="data/trimmedReadCounts.09Jul14.txt",sep="",header=FALSE)
+trimmed$file = unlist(lapply(strsplit(trimmed$V1,split="/",fixed=TRUE),function(a) a[length(a)]))
+trimmed$sample = unlist(lapply(strsplit(trimmed$file,split="_",fixed=TRUE),function(a) a[1]))
+trimmed$sample = gsub("B","BNLx",gsub("S","SHR",trimmed$sample))
+trimmed$read = unlist(lapply(strsplit(trimmed$file,split="_",fixed=TRUE),function(a) a[grep("L00",a)+1]))
+trimmed$lane = unlist(lapply(strsplit(trimmed$file,split="_",fixed=TRUE),function(a) a[grep("L00",a)]))
 
-bySample = merge(trimmed[trimmed$read=="R1",c("sample","lane","V2","V3")],trimmed[trimmed$read=="R2",c("sample","V2")],by="sample")
+bySample = merge(trimmed[trimmed$read=="R1",c("sample","lane","V2","V3")],trimmed[trimmed$read=="R2",c("sample","lane","V2")],by=c("sample","lane"))
 bySample$numReadFrag = bySample$V3*2
 colnames(bySample) = c("sample","lane","avgFragLength.R1","numReads","avgFragLength.R2","numReadFrag")
 
-bySample = merge(readFragments,bySample,by=c("sample"))
+bySample = merge(readFragments,bySample,by=c("sample","lane"))
 bySample$pctReadsAfterTrim = paste(sprintf("%.1f",round(100*bySample$numReads/as.numeric(gsub(",","",bySample$numPairedReads)),1)),"%",sep="")
 
-forPrint2 = bySample[,c("sample","numPairedReads","numReadFragments","avgFragLength.R1","avgFragLength.R2","numReadFrag","pctReadsAfterTrim")]
+forPrint2 = bySample[,c("sample","lane","numPairedReads","numReadFragments","avgFragLength.R1","avgFragLength.R2","numReadFrag","pctReadsAfterTrim")]
 forPrint2$avgFragLength.R1 = sprintf("%.1f",round(forPrint2$avgFragLength.R1,1))
 forPrint2$avgFragLength.R2 = sprintf("%.1f",round(forPrint2$avgFragLength.R2,1))
-forPrint2$numReadFrag = prettyNum(forPrint2$numReadFrag,big.mark=",")
+forPrint2$numReadFrag = prettyNum(forPrint2$numReadFrag,big.mark=",",scientific=FALSE)
 
-colnames(forPrint2) = c("sample","Number of Paired-End Reads","Number of Read Fragments","Average Read Fragment Length After Trimming (first read fragment)","Average Read Fragment Length After Trimming (second read fragment)","Number of Read Fragments After Trimming","Percent of Read Fragments That Remained After Trimming")
+colnames(forPrint2) = c("sample","lane","Number of Paired-End Reads","Number of Read Fragments","Average Read Fragment Length After Trimming (first read fragment)","Average Read Fragment Length After Trimming (second read fragment)","Number of Read Fragments After Trimming","Percent of Read Fragments That Remained After Trimming")
 ```
 
 Trimmed Reads/Read Fragments
@@ -97,7 +99,7 @@ kable(forPrint2,align=rep("c",ncol(forPrint2)))
 
 Total Number of Paired End Reads After Trimming: `r prettyNum(sum(bySample$numReads),big.mark=",",scientific=FALSE)`  
 Total Number of Read Fragments After Trimming:  `r prettyNum(sum(bySample$numReadFrag),big.mark=",",scientific=FALSE)`  
-Average Number of Paired End Reads Per Sample After Trimming: `r prettyNum(mean(bySample$numReads),big.mark=",",scientific=FALSE)`  
+Average Number of Paired End Reads Per Sample After Trimming: `r prettyNum(sum(bySample$numReads)/(nrow(bySample)/2),big.mark=",",scientific=FALSE)`  
 
 
 5. Align to ribosomal RNA 

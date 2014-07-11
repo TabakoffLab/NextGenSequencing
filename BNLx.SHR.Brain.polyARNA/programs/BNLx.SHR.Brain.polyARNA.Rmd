@@ -172,14 +172,16 @@ colnames(alignTable) = c("Label",paste(rep(sampleList,each=2),rep(c(" (num)"," (
 kable(alignTable,align=rep("c",ncol(alignTable)),row.names=FALSE)
 ```
 
-**Total Number of Read Fragments Aligned to Genome:** `r prettyNum(sum(alignStats[,c("mappedLeft","mappedRight")]),big.mark=",",scientific=FALSE)`
+**Total Number of Read Fragments Aligned to Genome:** `r prettyNum(sum(alignStats[,c("mappedLeft","mappedRight")]),big.mark=",",scientific=FALSE)`  
+**Average Number of Read Fragments Aligned to Genome Per Sample:** `r prettyNum(mean(rowSums(alignStats[,c("mappedLeft","mappedRight")])),big.mark=",",scientific=FALSE)`  
+**Average Rate of Alignment (Read Fragments):** `r paste(sprintf("%.1f",round(100*mean(rowSums(alignStats[,c("mappedLeft","mappedRight")])/(alignStats$numReads*2)),1)),"%",sep="")`  
 
 ### Characteristics of Alignments
 ```
 qsub -q smp /home/data/saba/BNLx.SHR.Brain.polyARNA/programs/countByChrom.brain.polyA.sh
 ```
 
-```{r,echo=FALSE,eval=FALSE}
+```{r,echo=FALSE,eval=TRUE}
 #rm(list=ls())
 options(stringsAsFactors=FALSE)
 setwd("/Volumes/LauraS/NextGenSeq/BNLx.SHR.Brain.polyARNA/")
@@ -198,20 +200,23 @@ chromo = chrCnts[grep("chr",chrCnts$id),]
 pctBySampleChr = apply(chromo[,-c(1:2)],1,function(a) a/colSums(chromo[,-c(1:2)]))
 colnames(pctBySampleChr) = chromo[,1]
 pctBySampleChr = pctBySampleChr[,paste("chr",c(1:20,"X","M"),sep="")]
-boxplot(pctBySampleChr,ylab="percent of alignments",xlab="chromosome",main="Distribution Among Samples of Percent of Alignments By Chromosome")
-
-apply(pctBySampleChr,2,function(a) max(a)-min(a))
-
 ```
 
+```{r,fig.width=12,fig.height=6,echo=FALSE}
+boxplot(pctBySampleChr,ylab="percent of alignments",xlab="chromosome",main="Distribution Among Samples of Percent of Alignments By Chromosome",cex.axis=0.7)
+```
 
-7. Generate BigWig Files
+```{r,fig.width=6,fig.height=6,echo=FALSE}
+plot(hclust(as.dist(1-cor(t(pctBySampleChr))),method="average"),main="Comparison of Percent Alignments to Each Chromosome",ylab="1 minus correlation coefficient",sub="",xlab="")
+```
+
+7. Generate BigWig Files - DONE
 --------------------------
 ```
 qsub -q smp /home/data/saba/BNLx.SHR.Brain.polyARNA/programs/createBigWig.brain.polyA.sh
 ```
 
-8.  Strain-Specific Transcriptome Reconstruction (Ensembl-Guided)
+8.  Strain-Specific Transcriptome Reconstruction (Ensembl-Guided) - DONE
 --------------------------
 ```
 qsub -q smp /home/data/saba/BNLx.SHR.Brain.polyARNA/programs/reconSHR.brain.polyA.sh

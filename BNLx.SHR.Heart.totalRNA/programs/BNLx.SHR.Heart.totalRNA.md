@@ -77,7 +77,7 @@ Total Number of Read Fragments After Trimming:  1,522,155,314
 Average Number of Paired End Reads Per Sample After Trimming: 95,134,707  
 
 
-5. Align to ribosomal RNA - RUNNING
+5. Align to ribosomal RNA - DONE
 ---------------------------
 ```
 qsub -q smp /home/data/saba/BNLx.SHR.Heart.totalRNA/programs/alignTo.rRNA.heart.01Jul14.sh
@@ -117,36 +117,23 @@ Proportion of Reads Aligned to rRNA
 qsub -q smp /home/data/saba/BNLx.SHR.Heart.totalRNA/programs/convertToFastQ.heart.sh
 ```
 
-7. Align to strain-specific genome - RUNNING
+7. Align to strain-specific genome - DONE
 ---------------
 ```
 qsub -q smp /home/data/saba/BNLx.SHR.Heart.totalRNA/programs/updateRatGenome.wChrM.sh
 qsub -q smp /home/data/saba/BNLx.SHR.Heart.totalRNA/programs/tophatAlign.heart.sh
 ```
+8. Sort and merge BAM files by strain - RUNNING
+---------------
+```
+qsub -q smp /home/data/saba/BNLx.SHR.Heart.totalRNA/programs/sortAndMerge.heart.BNLx.sh
+qsub -q smp /home/data/saba/BNLx.SHR.Heart.totalRNA/programs/sortAndMerge.heart.SHR.sh
+```
+
+
 ***STOPPED HERE***
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-8. Sort and merge BAM files by strain
----------------
-```
-qsub -q smp /home/data/saba/BNLx.SHR.Heart.totalRNA/programs/sortAndMerge.heart.sh
-```
 
 9. Create BigWig Files
 ---------------
