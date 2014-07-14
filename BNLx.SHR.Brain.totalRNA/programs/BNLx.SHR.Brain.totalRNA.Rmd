@@ -9,7 +9,7 @@ BNLx and SHR Brain ribosomal RNA depleted total RNA
 qsub -q smp /home/data/saba/BNLx.SHR.Brain.totalRNA/programs/unzip.yucca.sh
 ```
 
-2. Consolidate reads by sample and determine number of reads sent for each sample 
+2. Consolidate reads by sample and determine number of reads sent for each sample - DONE
 -------------------------------------------------
 ```
 qsub -q smp /home/data/saba/BNLx.SHR.Brain.totalRNA/programs/countRawReads.sh
@@ -148,31 +148,42 @@ Average Number of Paired End Reads Per Sample After Eliminating rRNA Aligned Rea
 qsub -q smp /home/data/saba/BNLx.SHR.Brain.totalRNA/programs/convertToFastQ.brain.sh
 ```
 
-7.  Align non-ribosomal trimmed reads to strain specific genomes including mitochondrial chromosome - RUNNING
+7.  Align non-ribosomal trimmed reads to strain specific genomes including mitochondrial chromosome - DONE
 ----------------
 ```
 qsub -q smp /home/data/saba/BNLx.SHR.Brain.totalRNA/programs/tophatAlign.brain.sh
-qsub -q smp /home/data/saba/BNLx.SHR.Brain.totalRNA/programs/tophatAlign.brain.v2.sh
 ```
 
-***STOPPED HERE***
-
-
-
-8.  Sort and merge BAM files by strain
+8.  Sort and merge BAM files by strain - BNLx is DONE, but SHR is RUNNING
 ----------------
 ```
 qsub -q smp /home/data/saba/BNLx.SHR.Brain.totalRNA/programs/sortAndMerge.brain.BNLx.sh
 qsub -q smp /home/data/saba/BNLx.SHR.Brain.totalRNA/programs/sortAndMerge.brain.SHR.sh
 ```
 
-9.  Strain-Specific Transcriptome Reconstruction (Ensembl-Guided)
+9. Characterize aligned reads - BNLx is DONE, but SHR is waiting until sort and merge is done
+-----------------------------
+```
+qsub -q smp /home/data/saba/BNLx.SHR.Brain.totalRNA/programs/countByChrom.brain.total.sh
+```
+
+
+
+
+
+
+
+
+10.  Strain-Specific Transcriptome Reconstruction (Ensembl-Guided) - BNLx is RUNNING and SHR is waiting until sort and merge is done
 --------------------------
 ```
-qsub -q smp /home/data/saba/BNLx.SHR.Brain.totalRNA/programs/reconSHR.brain.sh
 qsub -q smp /home/data/saba/BNLx.SHR.Brain.totalRNA/programs/reconBNLx.brain.sh
+qsub -q smp /home/data/saba/BNLx.SHR.Brain.totalRNA/programs/reconSHR.brain.sh
 ```
 
-10.  Generate BigWig files
+11.  Generate BigWig files - didn't run because of memory?
 -------------------------
 
+```
+qsub -q smp /home/data/saba/BNLx.SHR.Brain.totalRNA/programs/createBigWig.brain.total.sh
+```

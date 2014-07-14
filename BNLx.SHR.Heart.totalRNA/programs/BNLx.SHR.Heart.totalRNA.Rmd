@@ -126,7 +126,7 @@ options(stringsAsFactors=FALSE)
 
 sampleList = paste(rep(c("BNLx","SHR"),each=4),c(1:4),sep="")
 
-alignStats = c()
+rStats = c()
 for(i in sampleList){
   x = read.table(file=paste("rRNA.summary.",i,".txt",sep=""),sep="\t",header=FALSE)
   sample = i
@@ -134,22 +134,22 @@ for(i in sampleList){
   mappedLeft = as.numeric(gsub(":","",gsub("Mapped","",unlist(lapply(strsplit(x[3,1],split="(",fixed=TRUE),function(a) a[1])))))
   mappedRight = as.numeric(gsub(":","",gsub("Mapped ","",unlist(lapply(strsplit(x[7,1],split="(",fixed=TRUE),function(a) a[1])))))
   mappedPairs = as.numeric(gsub("Aligned pairs: ","",x[10,1]))  
-  alignStats = rbind(alignStats,data.frame(sample,numReads,mappedLeft,mappedRight,mappedPairs))
+  rStats = rbind(rStats,data.frame(sample,numReads,mappedLeft,mappedRight,mappedPairs))
 }
 
-alignStats$numReadFrag = (alignStats$mappedLeft + alignStats$mappedRight)
-alignStats$numDeletedPairedReads = (alignStats$mappedLeft + alignStats$mappedRight - alignStats$mappedPairs)
+rStats$numReadFrag = (rStats$mappedLeft + rStats$mappedRight)
+rStats$numDeletedPairedReads = (rStats$mappedLeft + rStats$mappedRight - rStats$mappedPairs)
 
-alignStats = alignStats[,c("sample","numReads","numReadFrag","mappedPairs","numDeletedPairedReads")]
+rStats = rStats[,c("sample","numReads","numReadFrag","mappedPairs","numDeletedPairedReads")]
 
-alignTable = data.frame(sample=alignStats$sample,numTrimmedReads=prettyNum(alignStats$numReads,big.mark=","),numDeleted=prettyNum(alignStats$numDeletedPairedReads,big.mark=","),pctRiboReads=as.numeric(alignStats$numDeletedPairedReads)/as.numeric(alignStats$numReads),numRemaining=prettyNum(alignStats$numReads-alignStats$numDeletedPairedReads,big.mark=","))
+rTable = data.frame(sample=rStats$sample,numTrimmedReads=prettyNum(rStats$numReads,big.mark=","),numDeleted=prettyNum(rStats$numDeletedPairedReads,big.mark=","),pctRiboReads=as.numeric(rStats$numDeletedPairedReads)/as.numeric(rStats$numReads),numRemaining=prettyNum(rStats$numReads-rStats$numDeletedPairedReads,big.mark=","))
 
-alignTable$pctRiboReads = paste(sprintf("%.1f",round(100*alignTable$pctRiboReads,1)),"%",sep="")
-colnames(alignTable) = c("Sample","Number of Paired-End Reads After Trimming","Number of Paired-End Reads with at Least One Fragment Aligned to rRNA","Percent of Paired-End Reads Aligned to rRNA","Number of Paired-End Reads NOT Aligned to rRNA")
+rTable$pctRiboReads = paste(sprintf("%.1f",round(100*rTable$pctRiboReads,1)),"%",sep="")
+colnames(rTable) = c("Sample","Number of Paired-End Reads After Trimming","Number of Paired-End Reads with at Least One Fragment Aligned to rRNA","Percent of Paired-End Reads Aligned to rRNA","Number of Paired-End Reads NOT Aligned to rRNA")
 ```
 
 ```{r, results='asis',echo=FALSE}
-kable(alignTable,align=rep("c",ncol(alignTable)))
+kable(rTable,align=rep("c",ncol(rTable)))
 ```
 
 6.  Convert unmapped.bam file into fastq files - DONE
@@ -164,7 +164,8 @@ qsub -q smp /home/data/saba/BNLx.SHR.Heart.totalRNA/programs/convertToFastQ.hear
 qsub -q smp /home/data/saba/BNLx.SHR.Heart.totalRNA/programs/updateRatGenome.wChrM.sh
 qsub -q smp /home/data/saba/BNLx.SHR.Heart.totalRNA/programs/tophatAlign.heart.sh
 ```
-8. Sort and merge BAM files by strain - RUNNING
+
+8. Sort and merge BAM files by strain - DONE
 ---------------
 ```
 qsub -q smp /home/data/saba/BNLx.SHR.Heart.totalRNA/programs/sortAndMerge.heart.BNLx.sh
@@ -172,45 +173,23 @@ qsub -q smp /home/data/saba/BNLx.SHR.Heart.totalRNA/programs/sortAndMerge.heart.
 ```
 
 
-***STOPPED HERE***
-
-
-
-9. Create BigWig Files
----------------
-```
-qsub -q smp /home/data/saba/BNLx.SHR.Heart.totalRNA/programs/createBigWig.heart.sh
-```
-
-UCSC Browser Tracks
-track type=bigWig name="SHR.plus.heart" description="SHR Total RNA Heart - plus strand" bigDataUrl=http://ucsc:JU7etr5t@phenogen.ucdenver.edu/ucsc/SHR.heart.genome.plus.bw
-
-track type=bigWig name="SHR.minus.heart" description="SHR Total RNA Heart - minus strand" bigDataUrl=http://ucsc:JU7etr5t@phenogen.ucdenver.edu/ucsc/SHR.heart.genome.minus.bw
-
-track type=bigWig name="BNLx.plus.heart" description="BNLx Total RNA Heart - plus strand" bigDataUrl=http://ucsc:JU7etr5t@phenogen.ucdenver.edu/ucsc/BNLx.heart.genome.plus.bw
-
-track type=bigWig name="BNLx.minus.heart" description="BNLx Total RNA Heart - minus strand" bigDataUrl=http://ucsc:JU7etr5t@phenogen.ucdenver.edu/ucsc/BNLx.heart.genome.minus.bw
-
-
-
-
-10. Characterize aligned reads
+9. Characterize aligned reads
 ---------------
 
 **move files**
 ```
 cd /home/data/saba/BNLx.SHR.Heart.totalRNA/alignedReads
-get ./BNLx1.withMT/align_summary.txt align_summary.BNLx1.txt
-get ./BNLx2.withMT/align_summary.txt align_summary.BNLx2.txt
-get ./BNLx3.withMT/align_summary.txt align_summary.BNLx3.txt
-get ./BNLx4.withMT/align_summary.txt align_summary.BNLx4.txt
-get ./SHR1.withMT/align_summary.txt align_summary.SHR1.txt
-get ./SHR2.withMT/align_summary.txt align_summary.SHR2.txt
-get ./SHR3.withMT/align_summary.txt align_summary.SHR3.txt
-get ./SHR4.withMT/align_summary.txt align_summary.SHR4.txt
+get ./BNLx1/align_summary.txt align_summary.BNLx1.txt
+get ./BNLx2/align_summary.txt align_summary.BNLx2.txt
+get ./BNLx3/align_summary.txt align_summary.BNLx3.txt
+get ./BNLx4/align_summary.txt align_summary.BNLx4.txt
+get ./SHR1/align_summary.txt align_summary.SHR1.txt
+get ./SHR2/align_summary.txt align_summary.SHR2.txt
+get ./SHR3/align_summary.txt align_summary.SHR3.txt
+get ./SHR4/align_summary.txt align_summary.SHR4.txt
 ```
 
-```{r,echo=FALSE,eval=FALSE}
+```{r,echo=FALSE,eval=TRUE}
 sampleList=c("BNLx1","BNLx2","BNLx3","BNLx4","SHR1","SHR2","SHR3","SHR4")
 
 alignStats = c()
@@ -259,7 +238,7 @@ colnames(alignTable) = c("Label",paste(rep(sampleList,each=2),rep(c(" (num)"," (
 ```
 
 ### Statistics on Alignment to Genome
-```{r, results='asis',echo=FALSE,eval=FALSE}
+```{r, results='asis',echo=FALSE,eval=TRUE}
 kable(alignTable,align=rep("c",ncol(alignTable)),row.names=FALSE)
 ```
 
@@ -268,13 +247,12 @@ kable(alignTable,align=rep("c",ncol(alignTable)),row.names=FALSE)
 qsub -q smp /home/data/saba/BNLx.SHR.Heart.totalRNA/programs/countByChrom.heart.sh
 ```
 
-```{r,echo=FALSE,eval=FALSE}
+```{r,echo=FALSE,eval=TRUE}
 #rm(list=ls())
 options(stringsAsFactors=FALSE)
 setwd("/Volumes/LauraS/NextGenSeq/BNLx.SHR.Heart.totalRNA/")
 
-sampleList=c("BNLx1","BNLx2","BNLx3","BNLx4","SHR1","SHR2","SHR3","SHR4","SHR3.wo.rRNA")
-sample = "SHR3"
+sampleList=c("BNLx1","BNLx2","BNLx3","BNLx4","SHR1","SHR2","SHR3","SHR4")
 for(sample in sampleList){
   x = read.table(file=paste("data/countByChr.",sample,".heart.txt",sep=""),header=FALSE,sep="\t")
   colnames(x) = c("id","length",sample,"V4")
@@ -286,7 +264,18 @@ for(sample in sampleList){
 chromo = chrCnts[grep("chr",chrCnts$id),]
 pctBySampleChr = apply(chromo[,-c(1:2)],1,function(a) a/colSums(chromo[,-c(1:2)]))
 colnames(pctBySampleChr) = chromo[,1]
+pctBySampleChr = pctBySampleChr[,paste("chr",c(1:20,"X","M"),sep="")]
+```
 
+```{r,fig.width=12,fig.height=6,echo=FALSE}
+boxplot(pctBySampleChr,ylab="percent of alignments",xlab="chromosome",main="Distribution Among Samples of Percent of Alignments By Chromosome",cex.axis=0.7)
+```
+
+```{r,fig.width=6,fig.height=6,echo=FALSE}
+plot(hclust(as.dist(1-cor(t(pctBySampleChr))),method="average"),main="Comparison of Percent Alignments to Each Chromosome",ylab="1 minus correlation coefficient",sub="",xlab="")
+```
+
+```{r,echo=FALSE}
 controls = chrCnts[grep("ER",chrCnts$id),]
 
 spikes = read.table(file="/Volumes/LauraS/BxH.HxB.Rats/RNA-Seq/spikeSource/ERCC_Controls_Analysis.txt",sep="\t",header=TRUE)
@@ -295,21 +284,36 @@ colnames(spikes) = gsub("concentration.in.","",gsub("..attomoles.ul.","",colname
 mapped = rowSums(alignStats[,c("mappedLeft","mappedRight")])
 names(mapped) = alignStats$sample
 pctSpike = colSums(controls[,names(mapped)])/mapped
-pctSpike.allReads = colSums(controls[,names(mapped)]) / (2*alignStats$numReads)
+pctSpike.allReads = colSums(controls[,names(mapped)]) / (2*rStats$numReads)
 
+spikeSummary = data.frame(cbind(sample=sampleList,numReads=prettyNum((2*rStats$numReads),big.mark=",",scientific=FALSE),rRNA.alignedReads=prettyNum((2*rStats$numDeletedPairedReads),big.mark=",",scientific=FALSE),numAlignedReads=prettyNum(mapped,big.mark=",",scientific=FALSE),numSpikeReads=prettyNum(colSums(controls[,names(mapped)]),big.mark=",",scientific=FALSE),pctSpike=paste(sprintf("%.2f", round(pctSpike*100,2)),"%",sep=""),pctSpike.allReads=paste(sprintf("%.2f", round(pctSpike.allReads*100,2)),"%",sep="")))
 
-spikeSummary = data.frame(cbind(sample=sampleList,numReads=prettyNum((2*alignStats$numReads),big.mark=",",scientific=FALSE),numAlignedReads=prettyNum(mapped,big.mark=",",scientific=FALSE),numSpikeReads=prettyNum(colSums(controls[,names(mapped)]),big.mark=",",scientific=FALSE),pctSpike=paste(sprintf("%.2f", round(pctSpike*100,2)),"%",sep=""),pctSpike.allReads=paste(sprintf("%.2f", round(pctSpike.allReads*100,2)),"%",sep="")))
-
-colnames(spikeSummary) = c("Sample","Num of Read Fragments","Num of Aligned Read Fragments","Num of Read Fragments Aligned to Spikes","Percent of Aligned Read Fragments Aligned to Spikes","Percent of All Read Fragments Aligned to Spikes")
+colnames(spikeSummary) = c("Sample","Num of Read Fragments","Num of rRNA Aligned Read Fragments","Num of Genome-Aligned Read Fragments","Num of Read Fragments Aligned to Spikes","Percent of Genome-Aligned Read Fragments Aligned to Spikes","Percent of All Read Fragments Aligned to Spikes")
 ```
 
 ### Synthetic spike-in summary
-```{r, results='asis',echo=FALSE,eval=FALSE}
+```{r, results='asis',echo=FALSE,eval=TRUE}
 kable(spikeSummary,align=rep("c",ncol(spikeSummary)),row.names=FALSE)
 ```
 
+9. Create BigWig Files - RUNNING
+---------------
+```
+qsub -q smp /home/data/saba/BNLx.SHR.Heart.totalRNA/programs/createBigWig.heart.sh
+```
 
-9. Transcriptome Reconstruction (Ensembl-Guided)
+**UCSC Browser Tracks**
+```
+track type=bigWig name="SHR.plus.heart" description="SHR Total RNA Heart - plus strand" bigDataUrl=http://ucsc:JU7etr5t@phenogen.ucdenver.edu/ucsc/SHR.heart.genome.plus.bw
+
+track type=bigWig name="SHR.minus.heart" description="SHR Total RNA Heart - minus strand" bigDataUrl=http://ucsc:JU7etr5t@phenogen.ucdenver.edu/ucsc/SHR.heart.genome.minus.bw
+
+track type=bigWig name="BNLx.plus.heart" description="BNLx Total RNA Heart - plus strand" bigDataUrl=http://ucsc:JU7etr5t@phenogen.ucdenver.edu/ucsc/BNLx.heart.genome.plus.bw
+
+track type=bigWig name="BNLx.minus.heart" description="BNLx Total RNA Heart - minus strand" bigDataUrl=http://ucsc:JU7etr5t@phenogen.ucdenver.edu/ucsc/BNLx.heart.genome.minus.bw
+```
+
+9. Transcriptome Reconstruction (Ensembl-Guided) - RUNNING (started 8am 7/14/14)
 ---------------
 ```
 qsub -q smp /home/data/saba/BNLx.SHR.Heart.totalRNA/programs/reconSHR.heart.sh

@@ -77,9 +77,23 @@ tmp=sapply(unique(test.group$transcript_cluster_id),function(a) collapseClust(te
 proc.time()
 ```
 
-You can also embed plots, for example:
+Double Check Assignments
+------------------------
 
-```{r fig.width=7, fig.height=6}
-plot(cars)
+```{r}
+rm(list=ls())
+options(stringsAsFactors=FALSE)
+setwd("/Volumes/LauraS/LXS/RNA-Seq/totalRNA.24Oct13/")
+load("arrayMask/Rdata/collapsed.18Jun14.Rdata")
+
+key = read.table(file="arrayMask/mapProbeSets.10Jul14.txt")
+
+clustSummary = aggregate(key$V2,by=list(id = key$V2),length)
+
+predNum = (rowMeans(collapsed)>1)
+predNum = predNum[clustSummary$id]
+table(names(predNum)==clustSummary$id)
+
+save(collapsed,key,file="arrayMask/Rdata/collapsed.14Jul14.Rdata")
 ```
 

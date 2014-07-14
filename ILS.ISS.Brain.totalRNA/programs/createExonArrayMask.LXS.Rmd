@@ -133,10 +133,10 @@ datExpr = gene.rma[names(numPresent)[numPresent>0.5],grep("LXS",colnames(gene.rm
 gene = gene[gene$probeset_id %in% rownames(datExpr),]
 datExpr = datExpr[as.character(gene$probeset_id),]
 
-test = datExpr
-test.group = gene
+test = datExpr[1:100,]
+test.group = gene[1:100,]
 
-system.time(
+
 collapsed=data.frame()
 psByClust=data.frame()
 threshold=0.25
@@ -201,5 +201,5 @@ for(i in unique(test.group$transcript_cluster_id)){
   colnames(ps)=c("V1","V2")
   psByClust=rbind(psByClust,ps)
 }
-)
-save(collapsed,psByClust,file="Rdata/collapsed.18Jun14.v2.Rdata")
+
+save(collapsed,psByClust,file="Rdata/collapsed.10Jul14.v2.Rdata")

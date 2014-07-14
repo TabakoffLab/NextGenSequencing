@@ -13,10 +13,10 @@ setwd("/Volumes/LauraS/BNLx.SHR")
 #######################
 
 # format GTF files to include transcript ids, gene ids, and fpkm values
-gtfFormat = function(data){
+gtfFormat = function(data,FPKM=TRUE){
   data$transcript_id = unlist(lapply(strsplit(data$V9,split=";",fixed=TRUE),function(a) gsub(" transcript_id ","",a[grep("transcript",a)]))) 
   data$gene_id = unlist(lapply(strsplit(data$V9,split=";",fixed=TRUE),function(a) gsub("gene_id ","",a[grep("gene",a)]))) 
-  data$fpkm = as.numeric(unlist(lapply(strsplit(data$V9,split=";",fixed=TRUE),function(a) gsub(" FPKM ","",a[grep("FPKM",a)]))))
+  if(FPKM) data$fpkm = as.numeric(unlist(lapply(strsplit(data$V9,split=";",fixed=TRUE),function(a) gsub(" FPKM ","",a[grep("FPKM",a)]))))
   return(data)
 }
 ```
@@ -31,90 +31,17 @@ shr = gtfFormat(shr)
 bnlx = read.table(file = "RNA-Seq.Brain.polyA/reconstruction/BNLx.Brain.PolyA.ensemblGuided/transcripts.gtf",sep="\t",header=FALSE)
 bnlx = gtfFormat(bnlx)
 
-shr.transcripts = shr[shr$V3=="transcript",c("V1","V4","V5","V7","transcript_id","gene_id","fpkm")]
-bnlx.transcripts = bnlx[bnlx$V3=="transcript",c("V1","V4","V5","V7","transcript_id","gene_id","fpkm")]
+shr.transcripts = shr[shr$V3=="transcript",]
+bnlx.transcripts = bnlx[bnlx$V3=="transcript",]
+shr.transcripts$transcript_id = gsub("CUFF","SHR",shr.transcripts$transcript_id)
+bnlx.transcripts$transcript_id = gsub("CUFF","BNLx",bnlx.transcripts$transcript_id)
 
-anno = read.table(file="/Volumes/LauraS/annotation/ensemblGenes.Rnor_5.0.08Jul14.txt",sep="\t",header=TRUE)
-anno$Description = unlist(lapply(strsplit(anno$Description,split="[",fixed=TRUE),function(a) gsub("[[:space:]]*$","",a[1])))
-
-shr.transcripts = merge(shr.transcripts,anno,by.x="transcript_id",by.y="EnsemblTranscriptID",all.x=TRUE)
-bnlx.transcripts = merge(bnlx.transcripts,anno,by.x="transcript_id",by.y="EnsemblTranscriptID",all.x=TRUE)
-
-# generate gene annotation labels
-anno.gene = shr.transcripts[!is.na(shr.transcripts$EnsemblGeneID),]
-anno.gene = anno.gene[!duplicated(anno.gene[,c("gene_id","EnsemblGeneID")]),]
-
-ensGeneID = aggregate(anno.gene$EnsemblGeneID,by=list(gene_id=anno.gene$gene_id),paste,collapse="//")
-geneSymbol = aggregate(anno.gene$GeneSymbol,by=list(gene_id=anno.gene$gene_id),paste,collapse="//")
-descrip = aggregate(anno.gene$Description,by=list(gene_id=anno.gene$gene_id),paste,collapse="//")
-biotype = aggregate(anno.gene$GeneBiotype,by=list(gene_id=anno.gene$gene_id),function(a) paste(sort(unique(a)),collapse="//"))
-
-geneAnno = merge(ensGeneID,geneSymbol,by="gene_id")
-geneAnno = merge(geneAnno,descrip,by="gene_id")
-colnames(geneAnno) = c("gene_id","EnsemblGeneID","GeneSymbol","Description")
-geneAnno = merge(geneAnno,biotype,by="gene_id")
-colnames(geneAnno) = c("gene_id","EnsemblGeneID","GeneSymbol","Description","geneBiotype")
-
-shr.transcripts = shr[shr$V3=="transcript",c("V1","V4","V5","transcript_id","gene_id","fpkm")]
-shr.transcripts = merge(shr.transcripts,geneAnno,by="gene_id",all.x=TRUE)
-shr.transcripts = shr.transcripts[shr.transcripts$fpkm>0,]
-
-# generate gene annotation labels - BNLx
-anno.gene = bnlx.transcripts[!is.na(bnlx.transcripts$EnsemblGeneID),]
-anno.gene = anno.gene[!duplicated(anno.gene[,c("gene_id","EnsemblGeneID")]),]
-
-ensGeneID = aggregate(anno.gene$EnsemblGeneID,by=list(gene_id=anno.gene$gene_id),paste,collapse="//")
-geneSymbol = aggregate(anno.gene$GeneSymbol,by=list(gene_id=anno.gene$gene_id),paste,collapse="//")
-descrip = aggregate(anno.gene$Description,by=list(gene_id=anno.gene$gene_id),paste,collapse="//")
-biotype = aggregate(anno.gene$GeneBiotype,by=list(gene_id=anno.gene$gene_id),function(a) paste(sort(unique(a)),collapse="//"))
-
-geneAnno = merge(ensGeneID,geneSymbol,by="gene_id")
-geneAnno = merge(geneAnno,descrip,by="gene_id")
-colnames(geneAnno) = c("gene_id","EnsemblGeneID","GeneSymbol","Description")
-geneAnno = merge(geneAnno,biotype,by="gene_id")
-colnames(geneAnno) = c("gene_id","EnsemblGeneID","GeneSymbol","Description","geneBiotype")
-
-bnlx.transcripts = bnlx[bnlx$V3=="transcript",c("V1","V4","V5","transcript_id","gene_id","fpkm")]
-bnlx.transcripts = merge(bnlx.transcripts,geneAnno,by="gene_id",all.x=TRUE)
-bnlx.transcripts = bnlx.transcripts[bnlx.transcripts$fpkm>0,]
-
-threshold=3
-
-ens.bnlx = bnlx.transcripts$transcript_id[grepl("ENS",bnlx.transcripts$transcript_id) & bnlx.transcripts$fpkm>threshold]
-ens.shr = shr.transcripts$transcript_id[grepl("ENS",shr.transcripts$transcript_id) & shr.transcripts$fpkm>threshold]
-
-length(ens.bnlx)
-length(ens.shr)
-sum(ens.bnlx %in% ens.shr)
-
-sum(ens.bnlx %in% shr.transcripts$transcript_id[grepl("ENS",shr.transcripts$transcript_id)] )
-sum(ens.shr %in% bnlx.transcripts$transcript_id[grepl("ENS",bnlx.transcripts$transcript_id)] )
-
-
+#########################################################
 ###  Look For Overlap of High Confidence Transcripts  ###
-bnlx.high = bnlx.transcripts[bnlx.transcripts$fpkm>3,]
-shr.high = shr.transcripts[shr.transcripts$fpkm>3,]
-
-colnames(bnlx.high) =  c("gene_id.bnlx","V1","V4","V5","transcript_id","fpkm.bnlx","EnsemblGeneID.bnlx","GeneSymbol.bnlx","Description.bnlx","geneBiotype.bnlx")  
-colnames(shr.high) =  c("gene_id.shr","V1","V4","V5","transcript_id","fpkm.shr","EnsemblGeneID.shr","GeneSymbol.shr","Description.shr","geneBiotype.shr")
-
-ens.high = merge(bnlx.high[grep("ENS",bnlx.high$transcript_id),],shr.high[grep("ENS",shr.high$transcript_id),],by=c("transcript_id","V1","V4","V5"),all=TRUE)
-
-plot(log2(ens.high$fpkm.bnlx),log2(ens.high$fpkm.shr))
-abline(a=0,b=1,col="red")
-
-sum(ens.high$fpkm.bnlx<ens.high$fpkm.shr,na.rm=TRUE)/sum(!is.na(ens.high$fpkm.bnlx) & !is.na(ens.high$fpkm.shr))
+#########################################################
 
 shr.tracking = read.table(file = "RNA-Seq.Brain.polyA/reconstruction/SHR.Brain.PolyA.ensemblGuided/isoforms.fpkm_tracking",sep="\t",header=TRUE)
-
-shr.tracking = shr.tracking[order(shr.tracking$FPKM),]
-shr.tracking = shr.tracking[shr.tracking$FPKM>0,]
-
-
 bnlx.tracking = read.table(file = "RNA-Seq.Brain.polyA/reconstruction/BNLx.Brain.PolyA.ensemblGuided/isoforms.fpkm_tracking",sep="\t",header=TRUE)
-
-bnlx.tracking = bnlx.tracking[order(bnlx.tracking$FPKM),]
-bnlx.tracking = bnlx.tracking[bnlx.tracking$FPKM>0,]
 
 high.bnlx = bnlx.tracking[bnlx.tracking$coverage>50,]
 high.shr = shr.tracking[shr.tracking$coverage>50,]
@@ -124,18 +51,12 @@ high.shr$transcript_id = gsub("CUFF","SHR",high.shr$tracking_id)
 
 high.combined = merge(high.bnlx,high.shr,by=c("transcript_id","locus","length"),all=TRUE)
 high.combined = high.combined[order(high.combined$locus),c("transcript_id","locus","length","coverage.x","FPKM.x","coverage.y","FPKM.y")]
-
 high.combined = high.combined[high.combined$length>200,]
 
-table(grepl("ENS",high.combined$transcript_id))
-
-shr.transcripts$transcript_id = gsub("CUFF","SHR",shr.transcripts$transcript_id)
-bnlx.transcripts$transcript_id = gsub("CUFF","BNLx",bnlx.transcripts$transcript_id)
-
-bnlx.bed = bnlx.transcripts[bnlx.transcripts$transcript_id %in% high.combined$transcript_id[grep("BNLx",high.combined$transcript_id)],]
+bnlx.bed = bnlx.transcripts[bnlx.transcripts$transcript_id %in% high.combined$transcript_id,]
 bnlx.bed$V6 = 1000
 
-shr.bed = shr.transcripts[shr.transcripts$transcript_id %in% high.combined$transcript_id[grep("SHR",high.combined$transcript_id)],]
+shr.bed = shr.transcripts[shr.transcripts$transcript_id %in% high.combined$transcript_id,]
 shr.bed$V6 = 1000
 
 bnlx.bed = bnlx.bed[,c("V1","V4","V5","V6","V7","transcript_id")]
@@ -155,7 +76,9 @@ BEDtools version = bedtools v2.16.2-zip-5db7ff9
 export PATH=/usr/local/bedtools2/bin:$PATH
  
 cd /data/Tabastore3/LauraS/BNLx.SHR/RNA-Seq.Brain.polyA/reconstruction/tmp
-intersectBed -a shr.bed -b bnlx.bed -wo > overlap.polyA.byStrain.txt
+intersectBed -a shr.bed -b shr.bed -wo > overlap.polyA.SHR.txt
+intersectBed -a bnlx.bed -b bnlx.bed -wo > overlap.polyA.BNLx.txt
+#intersectBed -a shr.bed -b bnlx.bed -wo > overlap.polyA.byStrain.txt
 ```
 
 4.  Identify novel transcripts that were identified in both BN-Lx and SHR 
@@ -169,22 +92,17 @@ Two transcripts were "merged" into one transcripts if:
 options(stringsAsFactors=FALSE)
 setwd("/Volumes/LauraS/BNLx.SHR")
 
-shr = read.table(file = "RNA-Seq.Brain.polyA/reconstruction/SHR.Brain.PolyA.ensemblGuided/transcripts.gtf",sep="\t",header=FALSE)
-shr = gtfFormat(shr)
 shr$transcript_id = gsub("CUFF","SHR",shr$transcript_id)
-shr.gtf <- shr[(shr$transcript_id %in% high.combined$transcript_id[!grepl("ENS",high.combined$transcript_id)]) & shr$V3=="exon",]
+shr.gtf <- shr[(shr$transcript_id %in% high.combined$transcript_id) & shr$V3=="exon",]
 shr.gtf <- shr.gtf[order(shr.gtf$transcript_id,shr.gtf$V4,shr.gtf$V5),]
 
-
-bnlx = read.table(file = "RNA-Seq.Brain.polyA/reconstruction/BNLx.Brain.PolyA.ensemblGuided/transcripts.gtf",sep="\t",header=FALSE)
-bnlx = gtfFormat(bnlx)
 bnlx$transcript_id = gsub("CUFF","BNLx",bnlx$transcript_id)
-bnlx.gtf <- bnlx[(bnlx$transcript_id %in% high.combined$transcript_id[!grepl("ENS",high.combined$transcript_id)]) & bnlx$V3=="exon",]
+bnlx.gtf <- bnlx[(bnlx$transcript_id %in% high.combined$transcript_id) & bnlx$V3=="exon",]
 bnlx.gtf <- bnlx.gtf[order(bnlx.gtf$transcript_id,bnlx.gtf$V4,bnlx.gtf$V5),]
 
-ens.gtf = shr[(shr$transcript_id %in% high.combined$transcript_id[grepl("ENS",high.combined$transcript_id)]) & shr$V3=="exon",]
-
-gtf = rbind(shr.gtf,bnlx.gtf,ens.gtf)
+gtf = rbind(shr.gtf,bnlx.gtf)
+gtf = gtf[,!(colnames(gtf) %in% c("gene_id","fpkm","V9"))]
+gtf = gtf[!duplicated(gtf),]
 gtf <- gtf[order(gtf$transcript_id,gtf$V4,gtf$V5),]
 
 length(unique(gtf$transcript_id))
@@ -211,6 +129,8 @@ colnames(setBNLx) = c("transcript_id.BNLx","exonStarts.BNLx","exonStops.BNLx","e
 
 overlap = merge(overlap,setSHR,by="transcript_id.SHR")
 overlap = merge(overlap,setBNLx,by="transcript_id.BNLx")
+
+overlap = overlap[overlap$transcript_id.SHR!=overlap$transcript_id.BNLx,]
 
 overlap$ID = c(1:nrow(overlap))
 
@@ -240,13 +160,13 @@ for(i in 1:nrow(overlap)){
   
 overlap = overlap[intronCheck==0,]
 
-## transcripts without any overlap - 3,669 transcripts
+## transcripts without any overlap - 6,362 transcripts
 noOverlap = onePerTrans[!(onePerTrans$transcript_id %in% unique(c(overlap$transcript_id.SHR,overlap$transcript_id.BNLx))),]
 
-##  perfect overlap - 50 transcripts
+##  perfect overlap - 51 transcripts
 perfect = overlap[overlap$exonStarts.SHR==overlap$exonStarts.BNLx & overlap$exonStops.SHR==overlap$exonStops.BNLx,]
 
-##  identify exon junction matches - 1,567 transcripts
+##  identify exon junction matches - 1,862 transcripts
 reduced = overlap[!(overlap$ID %in% perfect$ID),]
 exonJunctMatch <- reduced[!is.na(reduced$exonJunct.SHR) & !is.na(reduced$exonJunct.BNLx) & reduced$exonJunct.SHR==reduced$exonJunct.BNLx,]
 
@@ -254,41 +174,217 @@ exonJunctMatch <- reduced[!is.na(reduced$exonJunct.SHR) & !is.na(reduced$exonJun
 reduced = overlap[!(overlap$ID %in% c(perfect$ID,exonJunctMatch$ID)),]
 oneExons = reduced[reduced$exonNum.SHR==1 & reduced$exonNum.BNLx==1,]
 
+## close match one-exon transcripts - 332
 closeMatch.oneExon = oneExons[abs(oneExons$start.SHR - oneExons$start.BNLx)<100 & abs(oneExons$stop.SHR - oneExons$stop.BNLx)<100, ]
 sum(duplicated(closeMatch.oneExon$transcript_id.BNLx))
 
+closeMatch.oneExon[duplicated(closeMatch.oneExon$transcript_id.BNLx),]
+closeMatch.oneExon[closeMatch.oneExon$transcript_id.BNLx=="BNLx.25607.1",]
+
+#closeMatch.oneExon=closeMatch.oneExon[closeMatch.oneExon$transcript_id.BNLx!="ENSRNOT00000000660" & closeMatch.oneExon$transcript_id.SHR!="ENSRNOT00000000660",]
+
 ##  Check for overlap between renamed  ##
 matched = as.data.frame(rbind(perfect,exonJunctMatch,closeMatch.oneExon))
-sum(duplicated(matched$transcript_id.BNLx))
-sum(duplicated(matched$transcript_id.SHR))
 
+matched.dups = matched[(matched$transcript_id.BNLx %in% matched$transcript_id.SHR) | (matched$transcript_id.SHR %in% matched$transcript_id.BNLx),]
 
-## Examine Overlap ##
-overlap.v2 = overlap[!(overlap$transcript_id.BNLx %in% matched$transcript_id.BNLx) & !(overlap$transcript_id.SHR %in% matched$transcript_id.SHR),]
+matched.dups.v1 = matched.dups[grep("ENS",matched.dups$transcript_id.BNLx),]
+colnames(matched.dups.v1) = gsub("BNLx","Ens",colnames(matched.dups.v1)) 
+  
+matched.dups.v2 = matched.dups[grep("ENS",matched.dups$transcript_id.SHR),]
+colnames(matched.dups.v2) = gsub("SHR","Ens",colnames(matched.dups.v2))
 
+matched.dups.toAdd = merge(matched.dups.v1,matched.dups.v2,by=colnames(matched.dups.v1)[grep("Ens",colnames(matched.dups.v1))])
+
+matched.dups.toAdd$transcript_id = paste("ensMatched",c(1:nrow(matched.dups.toAdd)),sep=".")
+matched.dups.toAdd$gene_id = NA
+matched.dups.toAdd$V1 = matched.dups.toAdd$chr.SHR
+matched.dups.toAdd$V6 = 1000
+matched.dups.toAdd$V7 = matched.dups.toAdd$strand.SHR
+matched.dups.toAdd$start = apply(matched.dups.toAdd[,c("start.BNLx","start.SHR","start.Ens")],1,min)
+matched.dups.toAdd$stop = apply(matched.dups.toAdd[,c("stop.BNLx","stop.SHR","start.Ens")],1,max)
+matched.dups.toAdd$exonNum = matched.dups.toAdd$exonNum.SHR
+
+matched.dups.toAdd$x.x = NA
+matched.dups.toAdd$x.x[matched.dups.toAdd$start==matched.dups.toAdd$start.SHR] = matched.dups.toAdd$exonStarts.SHR[matched.dups.toAdd$start==matched.dups.toAdd$start.SHR]
+matched.dups.toAdd$x.x[matched.dups.toAdd$start==matched.dups.toAdd$start.BNLx] = matched.dups.toAdd$exonStarts.BNLx[matched.dups.toAdd$start==matched.dups.toAdd$start.BNLx]
+matched.dups.toAdd$x.x[matched.dups.toAdd$start==matched.dups.toAdd$start.Ens] = matched.dups.toAdd$exonStarts.Ens[matched.dups.toAdd$start==matched.dups.toAdd$start.Ens]
+
+matched.dups.toAdd$x.y = NA
+matched.dups.toAdd$x.y[matched.dups.toAdd$stop==matched.dups.toAdd$stop.SHR] = matched.dups.toAdd$exonStops.SHR[matched.dups.toAdd$stop==matched.dups.toAdd$stop.SHR]
+matched.dups.toAdd$x.y[matched.dups.toAdd$stop==matched.dups.toAdd$stop.BNLx] = matched.dups.toAdd$exonStops.BNLx[matched.dups.toAdd$stop==matched.dups.toAdd$stop.BNLx]
+matched.dups.toAdd$x.y[matched.dups.toAdd$stop==matched.dups.toAdd$stop.Ens] = matched.dups.toAdd$exonStops.Ens[matched.dups.toAdd$stop==matched.dups.toAdd$stop.Ens]
+
+matched.undup = matched[!(matched$transcript_id.BNLx %in% matched.dups$transcript_id.BNLx) & !(matched$transcript_id.SHR %in% matched.dups$transcript_id.SHR),]
 
 ##  create new transcript for matched transcripts - 1,945 matches
-matched$transcript_id = paste("matched",c(1:nrow(matched)),sep=".")
-matched$gene_id = NA
-matched$V1 = matched$chr.SHR
-matched$V6 = 1000
-matched$V7 = matched$strand.SHR
-matched$start = apply(matched[,c("start.BNLx","start.SHR")],1,min)
-matched$stop = apply(matched[,c("stop.BNLx","stop.SHR")],1,max)
-matched$exonNum = matched$exonNum.SHR
+matched.undup$transcript_id = paste("matched",c(1:nrow(matched)),sep=".")
+matched.undup$gene_id = NA
+matched.undup$V1 = matched.undup$chr.SHR
+matched.undup$V6 = 1000
+matched.undup$V7 = matched.undup$strand.SHR
+matched.undup$start = apply(matched.undup[,c("start.BNLx","start.SHR")],1,min)
+matched.undup$stop = apply(matched.undup[,c("stop.BNLx","stop.SHR")],1,max)
+matched.undup$exonNum = matched.undup$exonNum.SHR
 
-matched$x.x = NA
-matched$x.x[matched$start==matched$start.SHR] = matched$exonStarts.SHR[matched$start==matched$start.SHR]
-matched$x.x[matched$start==matched$start.BNLx] = matched$exonStarts.BNLx[matched$start==matched$start.BNLx]
+matched.undup$x.x = NA
+matched.undup$x.x[matched.undup$start==matched.undup$start.SHR] = matched.undup$exonStarts.SHR[matched.undup$start==matched.undup$start.SHR]
+matched.undup$x.x[matched.undup$start==matched.undup$start.BNLx] = matched.undup$exonStarts.BNLx[matched.undup$start==matched.undup$start.BNLx]
 
-matched$x.y = NA
-matched$x.y[matched$stop==matched$stop.SHR] = matched$exonStops.SHR[matched$stop==matched$stop.SHR]
-matched$x.y[matched$stop==matched$stop.BNLx] = matched$exonStops.BNLx[matched$stop==matched$stop.BNLx]
+matched.undup$x.y = NA
+matched.undup$x.y[matched.undup$stop==matched.undup$stop.SHR] = matched.undup$exonStops.SHR[matched.undup$stop==matched.undup$stop.SHR]
+matched.undup$x.y[matched.undup$stop==matched.undup$stop.BNLx] = matched.undup$exonStops.BNLx[matched.undup$stop==matched.undup$stop.BNLx]
 
-matched.toAdd = matched[,colnames(onePerTrans)]
+matched.toAdd = rbind(matched.undup[,colnames(onePerTrans)],matched.dups.toAdd[,colnames(onePerTrans)])
 
 new.transcripts = onePerTrans[!(onePerTrans$transcript_id %in% c(matched$transcript_id.SHR,matched$transcript_id.BNLx)),]
 new.transcripts = rbind(new.transcripts,matched.toAdd)
 
 write.table(new.transcripts[,c("V1","start","stop","transcript_id","V6","V7")],file="RNA-Seq.Brain.polyA/reconstruction/tmp/combined.brain.polyA.10Jul14.bed",sep="\t",quote=FALSE,row.names=FALSE,col.names=FALSE)
 ```
+
+5.  Identify overlap between transcripts in order to identify transcripts from the same gene
+------------------------------------------------------
+
+BEDtools Version = bedtools v2.16.2-zip-5db7ff9
+```
+export PATH=/usr/local/bedtools2/bin:$PATH
+cd /data/Tabastore3/LauraS/BNLx.SHR/RNA-Seq.Brain.polyA/reconstruction/tmp
+intersectBed -a combined.brain.polyA.10Jul14.bed -b combined.brain.polyA.10Jul14.bed -wo > overlap.brain.polyA.forGeneID.txt
+```
+
+6.  Match transcripts to genes and create new GTF file  
+------------------------------------------------------
+
+Two transcripts are from the same gene if:  
+* Their transcription start sites matched exactly OR
+* Their transcription stop sites matched exactly OR
+* At least one exon-exon junction matched exactly
+
+```{r,eval=FALSE}
+
+findJunct <- function(starts,stops){
+  start <- strsplit(starts,split=",",fixed=TRUE)[[1]]
+  stop <- strsplit(stops,split=",",fixed=TRUE)[[1]]
+  junct <- NA
+  if(length(start)>1) junct <- paste(paste(stop[-length(stop)],start[-1],sep="//"),collapse=",")
+  return(junct)
+  }
+  
+new.transcripts$exonJunct = apply(new.transcripts[,c("x.x","x.y")],1,function(a) findJunct(a[1],a[2]))
+
+overlap = read.table(file="RNA-Seq.Brain.polyA/reconstruction/tmp/overlap.brain.polyA.forGeneID.txt",sep="\t",header=FALSE)
+overlap = overlap[overlap$V4!=overlap$V10,]
+overlap = overlap[overlap$V6=="." | overlap$V12=="." | overlap$V6==overlap$V12,]
+
+overlap$pair = apply(overlap,1,function(a) paste(sort(a[c("V4","V10")]),collapse="//"))
+overlap = overlap[!duplicated(overlap$pair),]
+
+pairs = c()
+for(i in 1:nrow(overlap)){
+  x = new.transcripts[new.transcripts$transcript_id==overlap$V4[i],]
+  y = new.transcripts[new.transcripts$transcript_id==overlap$V10[i],]
+  sameGene = FALSE
+  if(x$start==y$start | x$stop==y$stop) sameGene = TRUE
+  if(!is.na(y$exonJunct) & !is.na(x$exonJunct) & sum(duplicated(c(unlist(strsplit(x$exonJunct,split=",")),unlist(strsplit(y$exonJunct,split=",")))))>0) sameGene = TRUE
+  if(sameGene) pairs = rbind(pairs,c(x$transcript_id,y$transcript_id))
+}
+
+
+##  identify genes with multiple transcripts and create gene identifier  ##
+library(igraph)
+library("ggm")
+
+edges <- pairs
+graph.polyA <- graph.data.frame(edges)
+graph.polyA <- igraph.to.graphNEL(graph.polyA)
+
+compList <- connectedComp(graph.polyA)
+
+anno = read.table(file="/Volumes/LauraS/annotation/ensemblGenes.Rnor_5.0.08Jul14.txt",sep="\t",header=TRUE)
+anno$Description = unlist(lapply(strsplit(anno$Description,split="[",fixed=TRUE),function(a) gsub("[[:space:]]*$","",a[1])))
+
+
+geneNames = unlist(lapply(compList,function(a) paste(a[grep("ENS",a)],collapse="//")))
+geneNames[geneNames==""] = paste("GENE.",c(1:sum(geneNames=="")),sep="")
+geneNames = data.frame(geneNames)
+geneNames$order = c(1:nrow(geneNames))
+
+
+sum(grepl("//",geneNames$geneNames,fixed=TRUE))
+
+names(compList) <- paste("GENE",c(1:length(compList)),sep=".")
+
+multiTrans <- sapply(names(compList),function(a) cbind(gene_id.new=a,transcript_id.new=paste(a,c(1:length(compList[[a]])),sep="."),id=compList[[a]]))
+multiTrans <- data.frame(do.call(rbind,multiTrans))
+
+singleTrans <- data.frame(id=new.transcripts$transcript_id[!(new.transcripts$transcript_id %in% multiTrans$id)])
+singleTrans$gene_id.new = paste("GENE",c((length(compList)+1):(length(compList)+nrow(singleTrans))),sep=".")
+singleTrans$transcript_id.new = paste(singleTrans$gene_id.new,1,sep=".")
+
+ids = rbind(multiTrans,singleTrans[,colnames(multiTrans)])
+ids$alt.id
+
+x = "BNLx.10042.1"
+y = "GENE.1.1"
+
+convertID = function(x,y){
+if(!grepl("ENS",x)) y = gsub("GENE",unlist(lapply(strsplit(x,split=".",fixed=TRUE),function(a) a[1])),y)
+if(grepl("ENS",x)) y = x
+return(y)
+}
+
+ids$alt.id = apply(ids,1,function(a) convertID(a["id"],a["transcript_id.new"]))
+
+
+
+updated <- merge(new.transcripts,ids,by.x="transcript_id",by.y="id")
+
+##  Create New GTF File  ##
+
+byExon = data.frame(do.call(rbind,apply(updated,1,function(tmp) data.frame(alt.id = as.character(tmp["alt.id"]),V4=unlist(strsplit(as.character(tmp[5]),split=",")),V5=unlist(strsplit(as.character(tmp[6]),split=","))))))
+
+gtf = merge(updated,byExon,by="alt.id")
+gtf$V2 = "CuffLinks"
+gtf$V3 = "exon"
+gtf$V8 = "."
+gtf$V9 = paste('gene_id "',gtf$gene_id.new,'"; transcript_id "',gtf$alt.id,'"; original "',gtf$transcript_id,'";',sep="")
+
+gtf = gtf[,paste("V",c(1:9),sep="")]
+
+write.table(gtf,file="RNA-Seq.Brain.polyA/reconstruction/reconstruct.polyA.brain.10Jul14.v1.gtf",row.names=FALSE,col.names=FALSE,quote=FALSE,sep="\t")
+```
+
+
+
+```
+qsub -q smp /home/data/saba/BNLx.SHR.Brain.polyARNA/programs/quant.Recon.10Jul14.v1.sh
+qsub -q smp /home/data/saba/BNLx.SHR.Brain.polyARNA/programs/quant.Recon.10Jul14.v1.BNLx.sh
+```
+
+```{r}
+rm(list=ls())
+options(stringsAsFactors=FALSE)
+setwd("/Volumes/LauraS/BNLx.SHR/RNA-Seq.Brain.polyA/")
+
+shr = read.table(file="quantification/recon.Brain.PolyA.v1/isoforms.fpkm_tracking",sep="\t",header=TRUE)
+bnlx = read.table(file="quantification/recon.Brain.PolyA.v1.BNLx/isoforms.fpkm_tracking",sep="\t",header=TRUE)
+
+quant = merge(shr[,c("tracking_id","gene_id","locus","length","coverage","FPKM")],bnlx[,c("tracking_id","gene_id","locus","length","coverage","FPKM")],by=c("tracking_id","gene_id","locus","length"),suffixes=c(".shr",".bnlx"))
+
+quant = quant[order(quant$gene_id,rowSums(quant[,grep("coverage",colnames(quant))])),]
+
+quant[quant$tracking_id=="ENSRNOT00000003715",]
+quant[quant$gene_id=="GENE.2568",]
+keepers = quant[quant$coverage.shr>40 | quant$coverage.bnlx>40,]
+
+gtf.old = read.table(file="quantification/recon.Brain.PolyA.v1/transcripts.gtf",header=FALSE,sep="\t")
+gtf.test = read.table(file="reconstruction/reconstruct.polyA.brain.10Jul14.v1.gtf",header=FALSE,sep="\t")
+
+gtf.old = gtfFormat(gtf.old)
+gtf.test = gtfFormat(gtf.test,FPKM=FALSE)
+
+length(unique(gtf.old$transcript_id))
+length(unique(gtf.test$transcript_id))
+
+unique(gtf.test$transcript_id)[!(unique(gtf.test$transcript_id) %in% unique(gtf.old$transcript_id))]

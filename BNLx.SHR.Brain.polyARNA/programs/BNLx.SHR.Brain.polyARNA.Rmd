@@ -216,6 +216,18 @@ plot(hclust(as.dist(1-cor(t(pctBySampleChr))),method="average"),main="Comparison
 qsub -q smp /home/data/saba/BNLx.SHR.Brain.polyARNA/programs/createBigWig.brain.polyA.sh
 ```
 
+**UCSC Browser Tracks**
+```
+track type=bigWig name="SHR.brain.polyA" description="SHR PolyA+-Selected RNA Brain" bigDataUrl=http://ucsc:JU7etr5t@phenogen.ucdenver.edu/ucsc/SHR.brain.polyA.bw
+
+track type=bigWig name="BNLx.brain.polyA" description="BNLx PolyA+-Selected RNA Brain" bigDataUrl=http://ucsc:JU7etr5t@phenogen.ucdenver.edu/ucsc/BNLx.brain.polyA.bw
+
+track type=GTF name="reconstruction.brain.polyA" description="Trannscriptome Reconstruction - PolyA+-Selected RNA Brain" bigDataUrl=http://ucsc:JU7etr5t@phenogen.ucdenver.edu/ucsc/reconstruct.polyA.brain.10Jul14.v1.gtf
+
+
+```
+
+
 8.  Strain-Specific Transcriptome Reconstruction (Ensembl-Guided) - DONE
 --------------------------
 ```

@@ -1,0 +1,14 @@
+Left reads:
+          Input     :  95962824
+           Mapped   :  93294714 (97.2% of input)
+            of these:   5682217 ( 6.1%) have multiple alignments (251627 have >20)
+Right reads:
+          Input     :  95962824
+           Mapped   :  92965639 (96.9% of input)
+            of these:   5667443 ( 6.1%) have multiple alignments (251867 have >20)
+97.0% overall read mapping rate.
+
+Aligned pairs:  91505530
+     of these:   5531524 ( 6.0%) have multiple alignments
+                 1233744 ( 1.3%) are discordant alignments
+94.1% concordant pair alignment rate.

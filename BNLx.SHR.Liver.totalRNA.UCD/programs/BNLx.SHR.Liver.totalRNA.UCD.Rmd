@@ -105,10 +105,11 @@ Average Number of Paired End Reads Per Sample After Trimming: `r prettyNum(mean(
 qsub -q smp-q /home/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/createGenomeIndex.yucca.sh
 ```
 
-6. Align trimmed reads to ribosomal RNA - DONE
+6. Align trimmed reads to ribosomal RNA - RUNNING
 -----------------------------------
 ```
 qsub -q smp /home/data/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/alignTo.rRNA.liver.01Jul14.sh
+qsub -q smp /home/data/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/alignTo.rRNA.liver.dups.10Jul14.sh
 ```
 
 **move files**
@@ -119,6 +120,11 @@ get BNLx3.rRNA/align_summary.txt rRNA.summary.BNLx3.txt
 get SHR1.rRNA/align_summary.txt rRNA.summary.SHR1.txt  
 get SHR25.rRNA/align_summary.txt rRNA.summary.SHR25.txt  
 get SHR5.rRNA/align_summary.txt rRNA.summary.SHR5.txt  
+
+## still need to run
+get SHR25.dup.rRNA/align_summary.txt rRNA.summary.SHR25.dup.txt  
+get BNLx3.dup.rRNA/align_summary.txt rRNA.summary.BNLx3.dup.txt  
+
 ```
 
 ```{r,echo=FALSE}
@@ -158,14 +164,14 @@ Total Number of Paired End Reads After Eliminating rRNA Aligned Reads: `r pretty
 Average Number of Paired End Reads Per Sample After Eliminating rRNA Aligned Reads: `r prettyNum(mean(alignStats$numReads-alignStats$numDeletedPairedReads),big.mark=",",scientific=FALSE)`  
 
 
-7. Convert unmapped.bam into fastq files - DONE
+7. Convert unmapped.bam into fastq files 
 ----------------------------------------
 ```
 qsub -q smp /home/data/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/convertToFastQ.liver.sh
 ```
 
 
-8. Alignment of Raw Reads to Strain-Specific Genomes With Mitochondrial Chromosome - RUNNING (7/7/14)
+8. Alignment of Raw Reads to Strain-Specific Genomes With Mitochondrial Chromosome - RUNNING (SHR25 duplicate)
 ------------------------------------
 
 ```
@@ -174,6 +180,8 @@ qsub -q smp /home/data/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/tophatAlign.liv
 ```
 
 ***STOPPED HERE***
+
+
 
 
 9.  Sort and Merge Aligned Reads By Strain
