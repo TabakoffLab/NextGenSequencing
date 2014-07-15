@@ -120,11 +120,8 @@ get BNLx3.rRNA/align_summary.txt rRNA.summary.BNLx3.txt
 get SHR1.rRNA/align_summary.txt rRNA.summary.SHR1.txt  
 get SHR25.rRNA/align_summary.txt rRNA.summary.SHR25.txt  
 get SHR5.rRNA/align_summary.txt rRNA.summary.SHR5.txt  
-
-## still need to run
 get SHR25.dup.rRNA/align_summary.txt rRNA.summary.SHR25.dup.txt  
 get BNLx3.dup.rRNA/align_summary.txt rRNA.summary.BNLx3.dup.txt  
-
 ```
 
 ```{r,echo=FALSE}
@@ -132,9 +129,9 @@ rm(list=ls())
 setwd("/Volumes/LauraS/NextGenSeq/BNLx.SHR.Liver.totalRNA.UCD/data")
 options(stringsAsFactors=FALSE)
 
-sampleList = paste(rep(c("BNLx","SHR"),each=3),c(1:3,1,25,5),sep="")
+sampleList = c(paste(rep(c("BNLx","SHR"),each=3),c(1:3,1,25,5),sep=""),"BNLx3.dup","SHR25.dup")
 
-alignStats = c()
+rStats = c()
 for(i in sampleList){
   x = read.table(file=paste("rRNA.summary.",i,".txt",sep=""),sep="\t",header=FALSE)
   sample = i
@@ -142,36 +139,36 @@ for(i in sampleList){
   mappedLeft = as.numeric(gsub(":","",gsub("Mapped","",unlist(lapply(strsplit(x[3,1],split="(",fixed=TRUE),function(a) a[1])))))
   mappedRight = as.numeric(gsub(":","",gsub("Mapped ","",unlist(lapply(strsplit(x[7,1],split="(",fixed=TRUE),function(a) a[1])))))
   mappedPairs = as.numeric(gsub("Aligned pairs: ","",x[10,1]))  
-  alignStats = rbind(alignStats,data.frame(sample,numReads,mappedLeft,mappedRight,mappedPairs))
+  rStats = rbind(rStats,data.frame(sample,numReads,mappedLeft,mappedRight,mappedPairs))
 }
 
-alignStats$numReadFrag = (alignStats$mappedLeft + alignStats$mappedRight)
-alignStats$numDeletedPairedReads = (alignStats$mappedLeft + alignStats$mappedRight - alignStats$mappedPairs)
+rStats$numReadFrag = (rStats$mappedLeft + rStats$mappedRight)
+rStats$numDeletedPairedReads = (rStats$mappedLeft + rStats$mappedRight - rStats$mappedPairs)
 
-alignStats = alignStats[,c("sample","numReads","numReadFrag","mappedPairs","numDeletedPairedReads")]
+rStats = rStats[,c("sample","numReads","numReadFrag","mappedPairs","numDeletedPairedReads")]
 
-alignTable = data.frame(sample=alignStats$sample,numTrimmedReads=prettyNum(alignStats$numReads,big.mark=","),numDeleted=prettyNum(alignStats$numDeletedPairedReads,big.mark=","),pctRiboReads=as.numeric(alignStats$numDeletedPairedReads)/as.numeric(alignStats$numReads),numRemaining=prettyNum(alignStats$numReads-alignStats$numDeletedPairedReads,big.mark=","))
+rTable = data.frame(sample=rStats$sample,numTrimmedReads=prettyNum(rStats$numReads,big.mark=","),numDeleted=prettyNum(rStats$numDeletedPairedReads,big.mark=","),pctRiboReads=as.numeric(rStats$numDeletedPairedReads)/as.numeric(rStats$numReads),numRemaining=prettyNum(rStats$numReads-rStats$numDeletedPairedReads,big.mark=","))
 
-alignTable$pctRiboReads = paste(sprintf("%.1f",round(100*alignTable$pctRiboReads,1)),"%",sep="")
-colnames(alignTable) = c("Sample","Number of Paired-End Reads After Trimming","Number of Paired-End Reads with at Least One Fragment Aligned to rRNA","Percent of Paired-End Reads Aligned to rRNA","Number of Paired-End Reads NOT Aligned to rRNA")
+rTable$pctRiboReads = paste(sprintf("%.1f",round(100*rTable$pctRiboReads,1)),"%",sep="")
+colnames(rTable) = c("Sample","Number of Paired-End Reads After Trimming","Number of Paired-End Reads with at Least One Fragment Aligned to rRNA","Percent of Paired-End Reads Aligned to rRNA","Number of Paired-End Reads NOT Aligned to rRNA")
+rTable = rTable[order(rTable$Sample),]
 ```
 
 ```{r, results='asis',echo=FALSE}
-kable(alignTable,align=rep("c",ncol(alignTable)))
+kable(rTable,align=rep("c",ncol(alignTable)))
 ```
 
-Total Number of Paired End Reads After Eliminating rRNA Aligned Reads: `r prettyNum(sum(alignStats$numReads-alignStats$numDeletedPairedReads),big.mark=",",scientific=FALSE)`  
-Average Number of Paired End Reads Per Sample After Eliminating rRNA Aligned Reads: `r prettyNum(mean(alignStats$numReads-alignStats$numDeletedPairedReads),big.mark=",",scientific=FALSE)`  
+Total Number of Paired End Reads After Eliminating rRNA Aligned Reads: `r prettyNum(sum(rStats$numReads-rStats$numDeletedPairedReads),big.mark=",",scientific=FALSE)`  
+Average Number of Paired End Reads Per Sample After Eliminating rRNA Aligned Reads: `r prettyNum(mean(rStats$numReads-rStats$numDeletedPairedReads),big.mark=",",scientific=FALSE)`  
 
 
-7. Convert unmapped.bam into fastq files 
+7. Convert unmapped.bam into fastq files  - RUNNING (BNLx3 duplicate)
 ----------------------------------------
 ```
 qsub -q smp /home/data/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/convertToFastQ.liver.sh
 ```
 
-
-8. Alignment of Raw Reads to Strain-Specific Genomes With Mitochondrial Chromosome - RUNNING (SHR25 duplicate)
+8. Alignment of Raw Reads to Strain-Specific Genomes With Mitochondrial Chromosome - waiting for BNLx3 duplicate FASTQ files
 ------------------------------------
 
 ```

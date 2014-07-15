@@ -2,9 +2,12 @@ Compare Transcriptome-Guided Reconstructions Between ILS and ISS
 ========================================================
 
 Add "chr" to gtf file to be able to visualize in the UCSC genome browser
+
+```
 cd /Volumes/LauraS/LXS/RNA-Seq/totalRNA.24Oct13/reconstruction
 awk '{if($1!~"ERCC") print "chr"$0}' ./ILS.total.ensemblGuided/transcripts.gtf > ./ILS.total.ensemblGuided/transcripts.forUCSC.gtf
 awk '{if($1!~"ERCC") print "chr"$0}' ./ISS.total.ensemblGuided/transcripts.gtf > ./ISS.total.ensemblGuided/transcripts.forUCSC.gtf
+```
 
 1.  Import GTF files and limit transcripts to those that have FPKM>1 in at least on strain and are larger than 300 bp (not including introns)
 --------------------------
@@ -363,7 +366,7 @@ gffread -w transcripts.05Jun14.v1.fa -g /Volumes/LauraS/index/mm10.cleaned.wSpik
 qsub -q smp /home/saba/ILS.ISS.Brain.totalRNA/programs/sailFish.quant.v1.sh
 ```
 
-```{r}
+```{r,eval=FALSE}
 rm(list=ls())
 options(stringsAsFactors=FALSE)
 setwd("/Volumes/LauraS/LXS/RNA-Seq/totalRNA.24Oct13/")
@@ -410,6 +413,7 @@ write.table(new.gtf[,paste("V",c(1:9),sep="")],file="reconstruction/transcripts.
 ```
 
 # generate fasta file of transcript sequences
+```
 cd /Volumes/LauraS/LXS/RNA-Seq/totalRNA.24Oct13/reconstruction
 gffread -w transcripts.05Jun14.v2.fa -g /Volumes/LauraS/index/mm10.cleaned.wSpikes.v2.fa transcripts.05Jun14.v2.gtf
 ```
@@ -438,7 +442,7 @@ get ILS2/quant.sf ILS2/quant.sf
 get ILS3/quant.sf ILS3/quant.sf
 ```
 
-```{r}
+```{r,eval=FALSE}
 rm(list=ls())
 options(stringsAsFactors=FALSE)
 setwd("/Volumes/LauraS/LXS/RNA-Seq/totalRNA.24Oct13/")

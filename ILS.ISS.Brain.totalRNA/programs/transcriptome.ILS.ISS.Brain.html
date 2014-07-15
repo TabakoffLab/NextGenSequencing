@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<!-- saved from url=(0014)about:internet -->
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=9" >
+
+<title>Compare Transcriptome-Guided Reconstructions Between ILS and ISS</title>
+
+<style type="text/css">
+body, td {
+   font-family: sans-serif;
+   background-color: white;
+   font-size: 12px;
+   margin: 8px;
+}
+
+tt, code, pre {
+   font-family: 'DejaVu Sans Mono', 'Droid Sans Mono', 'Lucida Console', Consolas, Monaco, monospace;
+}
+
+h1 { 
+   font-size:2.2em; 
+}
+
+h2 { 
+   font-size:1.8em; 
+}
+
+h3 { 
+   font-size:1.4em; 
+}
+
+h4 { 
+   font-size:1.0em; 
+}
+
+h5 { 
+   font-size:0.9em; 
+}
+
+h6 { 
+   font-size:0.8em; 
+}
+
+a:visited {
+   color: rgb(50%, 0%, 50%);
+}
+
+pre {	
+   margin-top: 0;
+   max-width: 95%;
+   border: 1px solid #ccc;
+   white-space: pre-wrap;
+}
+
+pre code {
+   display: block; padding: 0.5em;
+}
+
+code.r, code.cpp {
+   background-color: #F8F8F8;
+}
+
+table, td, th {
+  border: none;
+}
+
+blockquote {
+   color:#666666;
+   margin:0;
+   padding-left: 1em;
+   border-left: 0.5em #EEE solid;
+}
+
+hr {
+   height: 0px;
+   border-bottom: none;
+   border-top-width: thin;
+   border-top-style: dotted;
+   border-top-color: #999999;
+}
+
+@media print {
+   * { 
+      background: transparent !important; 
+      color: black !important; 
+      filter:none !important; 
+      -ms-filter: none !important; 
+   }
+
+   body { 
+      font-size:12pt; 
+      max-width:100%; 
+   }
+       
+   a, a:visited { 
+      text-decoration: underline; 
+   }
+
+   hr { 
+      visibility: hidden;
+      page-break-before: always;
+   }
+
+   pre, blockquote { 
+      padding-right: 1em; 
+      page-break-inside: avoid; 
+   }
+
+   tr, img { 
+      page-break-inside: avoid; 
+   }
+
+   img { 
+      max-width: 100% !important; 
+   }
+
+   @page :left { 
+      margin: 15mm 20mm 15mm 10mm; 
+   }
+     
+   @page :right { 
+      margin: 15mm 10mm 15mm 20mm; 
+   }
+
+   p, h2, h3 { 
+      orphans: 3; widows: 3; 
+   }
+
+   h2, h3 { 
+      page-break-after: avoid; 
+   }
+}
+
+</style>
+
+<!-- Styles for R syntax highlighter -->
+<style type="text/css">
+   pre .operator,
+   pre .paren {
+     color: rgb(104, 118, 135)
+   }
+
+   pre .literal {
+     color: rgb(88, 72, 246)
+   }
+
+   pre .number {
+     color: rgb(0, 0, 205);
+   }
+
+   pre .comment {
+     color: rgb(76, 136, 107);
+   }
+
+   pre .keyword {
+     color: rgb(0, 0, 255);
+   }
+
+   pre .identifier {
+     color: rgb(0, 0, 0);
+   }
+
+   pre .string {
+     color: rgb(3, 106, 7);
+   }
+</style>
+
+<!-- R syntax highlighter -->
+<script type="text/javascript">
+var hljs=new function(){function m(p){return p.replace(/&/gm,"&amp;").replace(/</gm,"&lt;")}function f(r,q,p){return RegExp(q,"m"+(r.cI?"i":"")+(p?"g":""))}function b(r){for(var p=0;p<r.childNodes.length;p++){var q=r.childNodes[p];if(q.nodeName=="CODE"){return q}if(!(q.nodeType==3&&q.nodeValue.match(/\s+/))){break}}}function h(t,s){var p="";for(var r=0;r<t.childNodes.length;r++){if(t.childNodes[r].nodeType==3){var q=t.childNodes[r].nodeValue;if(s){q=q.replace(/\n/g,"")}p+=q}else{if(t.childNodes[r].nodeName=="BR"){p+="\n"}else{p+=h(t.childNodes[r])}}}if(/MSIE [678]/.test(navigator.userAgent)){p=p.replace(/\r/g,"\n")}return p}function a(s){var r=s.className.split(/\s+/);r=r.concat(s.parentNode.className.split(/\s+/));for(var q=0;q<r.length;q++){var p=r[q].replace(/^language-/,"");if(e[p]){return p}}}function c(q){var p=[];(function(s,t){for(var r=0;r<s.childNodes.length;r++){if(s.childNodes[r].nodeType==3){t+=s.childNodes[r].nodeValue.length}else{if(s.childNodes[r].nodeName=="BR"){t+=1}else{if(s.childNodes[r].nodeType==1){p.push({event:"start",offset:t,node:s.childNodes[r]});t=arguments.callee(s.childNodes[r],t);p.push({event:"stop",offset:t,node:s.childNodes[r]})}}}}return t})(q,0);return p}function k(y,w,x){var q=0;var z="";var s=[];function u(){if(y.length&&w.length){if(y[0].offset!=w[0].offset){return(y[0].offset<w[0].offset)?y:w}else{return w[0].event=="start"?y:w}}else{return y.length?y:w}}function t(D){var A="<"+D.nodeName.toLowerCase();for(var B=0;B<D.attributes.length;B++){var C=D.attributes[B];A+=" "+C.nodeName.toLowerCase();if(C.value!==undefined&&C.value!==false&&C.value!==null){A+='="'+m(C.value)+'"'}}return A+">"}while(y.length||w.length){var v=u().splice(0,1)[0];z+=m(x.substr(q,v.offset-q));q=v.offset;if(v.event=="start"){z+=t(v.node);s.push(v.node)}else{if(v.event=="stop"){var p,r=s.length;do{r--;p=s[r];z+=("</"+p.nodeName.toLowerCase()+">")}while(p!=v.node);s.splice(r,1);while(r<s.length){z+=t(s[r]);r++}}}}return z+m(x.substr(q))}function j(){function q(x,y,v){if(x.compiled){return}var u;var s=[];if(x.k){x.lR=f(y,x.l||hljs.IR,true);for(var w in x.k){if(!x.k.hasOwnProperty(w)){continue}if(x.k[w] instanceof Object){u=x.k[w]}else{u=x.k;w="keyword"}for(var r in u){if(!u.hasOwnProperty(r)){continue}x.k[r]=[w,u[r]];s.push(r)}}}if(!v){if(x.bWK){x.b="\\b("+s.join("|")+")\\s"}x.bR=f(y,x.b?x.b:"\\B|\\b");if(!x.e&&!x.eW){x.e="\\B|\\b"}if(x.e){x.eR=f(y,x.e)}}if(x.i){x.iR=f(y,x.i)}if(x.r===undefined){x.r=1}if(!x.c){x.c=[]}x.compiled=true;for(var t=0;t<x.c.length;t++){if(x.c[t]=="self"){x.c[t]=x}q(x.c[t],y,false)}if(x.starts){q(x.starts,y,false)}}for(var p in e){if(!e.hasOwnProperty(p)){continue}q(e[p].dM,e[p],true)}}function d(B,C){if(!j.called){j();j.called=true}function q(r,M){for(var L=0;L<M.c.length;L++){if((M.c[L].bR.exec(r)||[null])[0]==r){return M.c[L]}}}function v(L,r){if(D[L].e&&D[L].eR.test(r)){return 1}if(D[L].eW){var M=v(L-1,r);return M?M+1:0}return 0}function w(r,L){return L.i&&L.iR.test(r)}function K(N,O){var M=[];for(var L=0;L<N.c.length;L++){M.push(N.c[L].b)}var r=D.length-1;do{if(D[r].e){M.push(D[r].e)}r--}while(D[r+1].eW);if(N.i){M.push(N.i)}return f(O,M.join("|"),true)}function p(M,L){var N=D[D.length-1];if(!N.t){N.t=K(N,E)}N.t.lastIndex=L;var r=N.t.exec(M);return r?[M.substr(L,r.index-L),r[0],false]:[M.substr(L),"",true]}function z(N,r){var L=E.cI?r[0].toLowerCase():r[0];var M=N.k[L];if(M&&M instanceof Array){return M}return false}function F(L,P){L=m(L);if(!P.k){return L}var r="";var O=0;P.lR.lastIndex=0;var M=P.lR.exec(L);while(M){r+=L.substr(O,M.index-O);var N=z(P,M);if(N){x+=N[1];r+='<span class="'+N[0]+'">'+M[0]+"</span>"}else{r+=M[0]}O=P.lR.lastIndex;M=P.lR.exec(L)}return r+L.substr(O,L.length-O)}function J(L,M){if(M.sL&&e[M.sL]){var r=d(M.sL,L);x+=r.keyword_count;return r.value}else{return F(L,M)}}function I(M,r){var L=M.cN?'<span class="'+M.cN+'">':"";if(M.rB){y+=L;M.buffer=""}else{if(M.eB){y+=m(r)+L;M.buffer=""}else{y+=L;M.buffer=r}}D.push(M);A+=M.r}function G(N,M,Q){var R=D[D.length-1];if(Q){y+=J(R.buffer+N,R);return false}var P=q(M,R);if(P){y+=J(R.buffer+N,R);I(P,M);return P.rB}var L=v(D.length-1,M);if(L){var O=R.cN?"</span>":"";if(R.rE){y+=J(R.buffer+N,R)+O}else{if(R.eE){y+=J(R.buffer+N,R)+O+m(M)}else{y+=J(R.buffer+N+M,R)+O}}while(L>1){O=D[D.length-2].cN?"</span>":"";y+=O;L--;D.length--}var r=D[D.length-1];D.length--;D[D.length-1].buffer="";if(r.starts){I(r.starts,"")}return R.rE}if(w(M,R)){throw"Illegal"}}var E=e[B];var D=[E.dM];var A=0;var x=0;var y="";try{var s,u=0;E.dM.buffer="";do{s=p(C,u);var t=G(s[0],s[1],s[2]);u+=s[0].length;if(!t){u+=s[1].length}}while(!s[2]);if(D.length>1){throw"Illegal"}return{r:A,keyword_count:x,value:y}}catch(H){if(H=="Illegal"){return{r:0,keyword_count:0,value:m(C)}}else{throw H}}}function g(t){var p={keyword_count:0,r:0,value:m(t)};var r=p;for(var q in e){if(!e.hasOwnProperty(q)){continue}var s=d(q,t);s.language=q;if(s.keyword_count+s.r>r.keyword_count+r.r){r=s}if(s.keyword_count+s.r>p.keyword_count+p.r){r=p;p=s}}if(r.language){p.second_best=r}return p}function i(r,q,p){if(q){r=r.replace(/^((<[^>]+>|\t)+)/gm,function(t,w,v,u){return w.replace(/\t/g,q)})}if(p){r=r.replace(/\n/g,"<br>")}return r}function n(t,w,r){var x=h(t,r);var v=a(t);var y,s;if(v){y=d(v,x)}else{return}var q=c(t);if(q.length){s=document.createElement("pre");s.innerHTML=y.value;y.value=k(q,c(s),x)}y.value=i(y.value,w,r);var u=t.className;if(!u.match("(\\s|^)(language-)?"+v+"(\\s|$)")){u=u?(u+" "+v):v}if(/MSIE [678]/.test(navigator.userAgent)&&t.tagName=="CODE"&&t.parentNode.tagName=="PRE"){s=t.parentNode;var p=document.createElement("div");p.innerHTML="<pre><code>"+y.value+"</code></pre>";t=p.firstChild.firstChild;p.firstChild.cN=s.cN;s.parentNode.replaceChild(p.firstChild,s)}else{t.innerHTML=y.value}t.className=u;t.result={language:v,kw:y.keyword_count,re:y.r};if(y.second_best){t.second_best={language:y.second_best.language,kw:y.second_best.keyword_count,re:y.second_best.r}}}function o(){if(o.called){return}o.called=true;var r=document.getElementsByTagName("pre");for(var p=0;p<r.length;p++){var q=b(r[p]);if(q){n(q,hljs.tabReplace)}}}function l(){if(window.addEventListener){window.addEventListener("DOMContentLoaded",o,false);window.addEventListener("load",o,false)}else{if(window.attachEvent){window.attachEvent("onload",o)}else{window.onload=o}}}var e={};this.LANGUAGES=e;this.highlight=d;this.highlightAuto=g;this.fixMarkup=i;this.highlightBlock=n;this.initHighlighting=o;this.initHighlightingOnLoad=l;this.IR="[a-zA-Z][a-zA-Z0-9_]*";this.UIR="[a-zA-Z_][a-zA-Z0-9_]*";this.NR="\\b\\d+(\\.\\d+)?";this.CNR="\\b(0[xX][a-fA-F0-9]+|(\\d+(\\.\\d*)?|\\.\\d+)([eE][-+]?\\d+)?)";this.BNR="\\b(0b[01]+)";this.RSR="!|!=|!==|%|%=|&|&&|&=|\\*|\\*=|\\+|\\+=|,|\\.|-|-=|/|/=|:|;|<|<<|<<=|<=|=|==|===|>|>=|>>|>>=|>>>|>>>=|\\?|\\[|\\{|\\(|\\^|\\^=|\\||\\|=|\\|\\||~";this.ER="(?![\\s\\S])";this.BE={b:"\\\\.",r:0};this.ASM={cN:"string",b:"'",e:"'",i:"\\n",c:[this.BE],r:0};this.QSM={cN:"string",b:'"',e:'"',i:"\\n",c:[this.BE],r:0};this.CLCM={cN:"comment",b:"//",e:"$"};this.CBLCLM={cN:"comment",b:"/\\*",e:"\\*/"};this.HCM={cN:"comment",b:"#",e:"$"};this.NM={cN:"number",b:this.NR,r:0};this.CNM={cN:"number",b:this.CNR,r:0};this.BNM={cN:"number",b:this.BNR,r:0};this.inherit=function(r,s){var p={};for(var q in r){p[q]=r[q]}if(s){for(var q in s){p[q]=s[q]}}return p}}();hljs.LANGUAGES.cpp=function(){var a={keyword:{"false":1,"int":1,"float":1,"while":1,"private":1,"char":1,"catch":1,"export":1,virtual:1,operator:2,sizeof:2,dynamic_cast:2,typedef:2,const_cast:2,"const":1,struct:1,"for":1,static_cast:2,union:1,namespace:1,unsigned:1,"long":1,"throw":1,"volatile":2,"static":1,"protected":1,bool:1,template:1,mutable:1,"if":1,"public":1,friend:2,"do":1,"return":1,"goto":1,auto:1,"void":2,"enum":1,"else":1,"break":1,"new":1,extern:1,using:1,"true":1,"class":1,asm:1,"case":1,typeid:1,"short":1,reinterpret_cast:2,"default":1,"double":1,register:1,explicit:1,signed:1,typename:1,"try":1,"this":1,"switch":1,"continue":1,wchar_t:1,inline:1,"delete":1,alignof:1,char16_t:1,char32_t:1,constexpr:1,decltype:1,noexcept:1,nullptr:1,static_assert:1,thread_local:1,restrict:1,_Bool:1,complex:1},built_in:{std:1,string:1,cin:1,cout:1,cerr:1,clog:1,stringstream:1,istringstream:1,ostringstream:1,auto_ptr:1,deque:1,list:1,queue:1,stack:1,vector:1,map:1,set:1,bitset:1,multiset:1,multimap:1,unordered_set:1,unordered_map:1,unordered_multiset:1,unordered_multimap:1,array:1,shared_ptr:1}};return{dM:{k:a,i:"</",c:[hljs.CLCM,hljs.CBLCLM,hljs.QSM,{cN:"string",b:"'\\\\?.",e:"'",i:"."},{cN:"number",b:"\\b(\\d+(\\.\\d*)?|\\.\\d+)(u|U|l|L|ul|UL|f|F)"},hljs.CNM,{cN:"preprocessor",b:"#",e:"$"},{cN:"stl_container",b:"\\b(deque|list|queue|stack|vector|map|set|bitset|multiset|multimap|unordered_map|unordered_set|unordered_multiset|unordered_multimap|array)\\s*<",e:">",k:a,r:10,c:["self"]}]}}}();hljs.LANGUAGES.r={dM:{c:[hljs.HCM,{cN:"number",b:"\\b0[xX][0-9a-fA-F]+[Li]?\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\b\\d+(?:[eE][+\\-]?\\d*)?L\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\b\\d+\\.(?!\\d)(?:i\\b)?",e:hljs.IMMEDIATE_RE,r:1},{cN:"number",b:"\\b\\d+(?:\\.\\d*)?(?:[eE][+\\-]?\\d*)?i?\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\.\\d+(?:[eE][+\\-]?\\d*)?i?\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"keyword",b:"(?:tryCatch|library|setGeneric|setGroupGeneric)\\b",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\.\\.\\.",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\.\\.\\d+(?![\\w.])",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\b(?:function)",e:hljs.IMMEDIATE_RE,r:2},{cN:"keyword",b:"(?:if|in|break|next|repeat|else|for|return|switch|while|try|stop|warning|require|attach|detach|source|setMethod|setClass)\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"literal",b:"(?:NA|NA_integer_|NA_real_|NA_character_|NA_complex_)\\b",e:hljs.IMMEDIATE_RE,r:10},{cN:"literal",b:"(?:NULL|TRUE|FALSE|T|F|Inf|NaN)\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"identifier",b:"[a-zA-Z.][a-zA-Z0-9._]*\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"operator",b:"<\\-(?!\\s*\\d)",e:hljs.IMMEDIATE_RE,r:2},{cN:"operator",b:"\\->|<\\-",e:hljs.IMMEDIATE_RE,r:1},{cN:"operator",b:"%%|~",e:hljs.IMMEDIATE_RE},{cN:"operator",b:">=|<=|==|!=|\\|\\||&&|=|\\+|\\-|\\*|/|\\^|>|<|!|&|\\||\\$|:",e:hljs.IMMEDIATE_RE,r:0},{cN:"operator",b:"%",e:"%",i:"\\n",r:1},{cN:"identifier",b:"`",e:"`",r:0},{cN:"string",b:'"',e:'"',c:[hljs.BE],r:0},{cN:"string",b:"'",e:"'",c:[hljs.BE],r:0},{cN:"paren",b:"[[({\\])}]",e:hljs.IMMEDIATE_RE,r:0}]}};
+hljs.initHighlightingOnLoad();
+</script>
+
+
+
+
+</head>
+
+<body>
+<h1>Compare Transcriptome-Guided Reconstructions Between ILS and ISS</h1>
+
+<p>Add &ldquo;chr&rdquo; to gtf file to be able to visualize in the UCSC genome browser</p>
+
+<pre><code>cd /Volumes/LauraS/LXS/RNA-Seq/totalRNA.24Oct13/reconstruction
+awk &#39;{if($1!~&quot;ERCC&quot;) print &quot;chr&quot;$0}&#39; ./ILS.total.ensemblGuided/transcripts.gtf &gt; ./ILS.total.ensemblGuided/transcripts.forUCSC.gtf
+awk &#39;{if($1!~&quot;ERCC&quot;) print &quot;chr&quot;$0}&#39; ./ISS.total.ensemblGuided/transcripts.gtf &gt; ./ISS.total.ensemblGuided/transcripts.forUCSC.gtf
+</code></pre>
+
+<h2>1.  Import GTF files and limit transcripts to those that have FPKM&gt;1 in at least on strain and are larger than 300 bp (not including introns)</h2>
+
+<pre><code class="r">rm(list = ls())
+options(stringsAsFactors = FALSE)
+setwd(&quot;/Volumes/LauraS/LXS/RNA-Seq/totalRNA.24Oct13&quot;)
+
+ILS &lt;- read.table(file = &quot;reconstruction/ILS.total.ensemblGuided/transcripts.gtf&quot;, 
+    sep = &quot;\t&quot;, header = FALSE)
+ILS$transcript_id = unlist(lapply(strsplit(ILS$V9, split = &quot;; &quot;), function(a) gsub(&quot;transcript_id &quot;, 
+    &quot;&quot;, a[grep(&quot;transcript_id&quot;, a)])))
+ILS$gene_id = unlist(lapply(strsplit(ILS$V9, split = &quot;; &quot;), function(a) gsub(&quot;gene_id &quot;, 
+    &quot;&quot;, a[grep(&quot;gene_id&quot;, a)])))
+ILS$fpkm = as.numeric(unlist(lapply(strsplit(ILS$V9, split = &quot;; &quot;), function(a) gsub(&quot;FPKM &quot;, 
+    &quot;&quot;, a[grep(&quot;FPKM&quot;, a)]))))
+
+# transcripts with duplicate transcript_id and unique gene_id
+dups = ILS[!duplicated(ILS[, c(&quot;transcript_id&quot;, &quot;V1&quot;)]), c(&quot;transcript_id&quot;, 
+    &quot;V1&quot;)]
+dups = dups[dups$transcript_id %in% dups$transcript_id[duplicated(dups$transcript_id)], 
+    ]
+dups = dups[order(dups$transcript_id), ]
+dups$rep = unlist(aggregate(dups$transcript_id, by = list(dups$transcript_id), 
+    function(a) c(1:length(a)))$x)
+
+ILS = merge(ILS, dups, by = c(&quot;transcript_id&quot;, &quot;V1&quot;), all = TRUE)
+ILS$transcript_id[!is.na(ILS$rep)] = paste(ILS$transcript_id[!is.na(ILS$rep)], 
+    ILS$rep[!is.na(ILS$rep)], sep = &quot;.&quot;)
+
+ILS.exons = ILS[ILS$V3 == &quot;exon&quot;, ]
+ILS.exons$length = ILS.exons$V5 - ILS.exons$V4 + 1
+
+tmp = cbind(aggregate(ILS.exons$length, by = list(ILS.exons$transcript_id), 
+    sum), aggregate(ILS.exons$transcript_id, by = list(ILS.exons$transcript_id), 
+    length)$x)
+colnames(tmp) = c(&quot;transcript_id&quot;, &quot;length&quot;, &quot;numExons&quot;)
+
+ILS.transcripts = ILS[ILS$V3 == &quot;transcript&quot;, ]
+ILS.transcripts = merge(ILS.transcripts, tmp, by = &quot;transcript_id&quot;)
+ILS.transcripts = ILS.transcripts[ILS.transcripts$fpkm != 0 &amp; ILS.transcripts$length &gt; 
+    300, ]
+
+## ISS ##
+ISS &lt;- read.table(file = &quot;reconstruction/ISS.total.ensemblGuided/transcripts.gtf&quot;, 
+    sep = &quot;\t&quot;, header = FALSE)
+ISS$transcript_id = unlist(lapply(strsplit(ISS$V9, split = &quot;; &quot;), function(a) gsub(&quot;transcript_id &quot;, 
+    &quot;&quot;, a[grep(&quot;transcript_id&quot;, a)])))
+ISS$gene_id = unlist(lapply(strsplit(ISS$V9, split = &quot;; &quot;), function(a) gsub(&quot;gene_id &quot;, 
+    &quot;&quot;, a[grep(&quot;gene_id&quot;, a)])))
+ISS$fpkm = as.numeric(unlist(lapply(strsplit(ISS$V9, split = &quot;; &quot;), function(a) gsub(&quot;FPKM &quot;, 
+    &quot;&quot;, a[grep(&quot;FPKM&quot;, a)]))))
+
+ISS = merge(ISS, dups, by = c(&quot;transcript_id&quot;, &quot;V1&quot;), all = TRUE)
+ISS$transcript_id[!is.na(ISS$rep)] = paste(ISS$transcript_id[!is.na(ISS$rep)], 
+    ISS$rep[!is.na(ISS$rep)], sep = &quot;.&quot;)
+
+ISS.exons = ISS[ISS$V3 == &quot;exon&quot;, ]
+ISS.exons$length = ISS.exons$V5 - ISS.exons$V4 + 1
+
+tmp = cbind(aggregate(ISS.exons$length, by = list(ISS.exons$transcript_id), 
+    sum), aggregate(ISS.exons$transcript_id, by = list(ISS.exons$transcript_id), 
+    length)$x)
+colnames(tmp) = c(&quot;transcript_id&quot;, &quot;length&quot;, &quot;numExons&quot;)
+
+
+ISS.transcripts = ISS[ISS$V3 == &quot;transcript&quot;, ]
+ISS.transcripts = merge(ISS.transcripts, tmp, by = &quot;transcript_id&quot;)
+ISS.transcripts = ISS.transcripts[ISS.transcripts$fpkm != 0 &amp; ISS.transcripts$length &gt; 
+    300, ]
+save(ILS.transcripts, ISS.transcripts, ILS, ISS, file = &quot;Rdata/origRecon.Rdata&quot;)
+</code></pre>
+
+<h2>Comparison of Transcriptomes</h2>
+
+<ul>
+<li><p>Number of Genes<br/>
+ILS = 157279<br/>
+ISS = 162581  </p></li>
+<li><p>Number of Transcripts<br/>
+ILS = 173292<br/>
+ISS = 178495  </p></li>
+<li><p>Average Number of Transcripts Per Gene<br/>
+ILS = 1.1018<br/>
+ISS = 1.0979  </p></li>
+<li><p>Max Number of Transcripts Per Gene<br/>
+ILS = 20<br/>
+ISS = 17  </p></li>
+<li><p>Number of RefSeq Genes Recovered<br/>
+ILS = 18146<br/>
+ISS = 18131  </p></li>
+</ul>
+
+<h2>2. Concatenate novel transcripts between strains, merge expressed RefSeq transcripts, and created BED File</h2>
+
+<pre><code class="r">
+ILS.transcripts = ILS.transcripts[, c(&quot;transcript_id&quot;, &quot;gene_id&quot;, &quot;fpkm&quot;, &quot;length&quot;, 
+    &quot;numExons&quot;, &quot;V1&quot;, &quot;V4&quot;, &quot;V5&quot;)]
+colnames(ILS.transcripts) = paste(&quot;ILS.&quot;, colnames(ILS.transcripts), sep = &quot;&quot;)
+
+ISS.transcripts = ISS.transcripts[, c(&quot;transcript_id&quot;, &quot;gene_id&quot;, &quot;fpkm&quot;, &quot;length&quot;, 
+    &quot;numExons&quot;, &quot;V1&quot;, &quot;V4&quot;, &quot;V5&quot;)]
+colnames(ISS.transcripts) = paste(&quot;ISS.&quot;, colnames(ISS.transcripts), sep = &quot;&quot;)
+
+ILS.transcripts$transcript_id = gsub(&quot;CUFF&quot;, &quot;ILS&quot;, ILS.transcripts$ILS.transcript_id)
+ISS.transcripts$transcript_id = gsub(&quot;CUFF&quot;, &quot;ISS&quot;, ISS.transcripts$ISS.transcript_id)
+
+transcripts = merge(ISS.transcripts[ISS.transcripts$ISS.fpkm &gt; 1, ], ILS.transcripts[ILS.transcripts$ILS.fpkm &gt; 
+    1, ], by = &quot;transcript_id&quot;, all = TRUE)
+
+## Convert to BED File ##
+ILS.v2 = ILS
+ILS.v2$transcript_id = gsub(&quot;CUFF&quot;, &quot;ILS&quot;, ILS.v2$transcript_id)
+ILS.v2$gene_id = gsub(&quot;CUFF&quot;, &quot;ILS&quot;, ILS.v2$gene_id)
+
+ISS.v2 = ISS
+ISS.v2$transcript_id = gsub(&quot;CUFF&quot;, &quot;ISS&quot;, ISS.v2$transcript_id)
+ISS.v2$gene_id = gsub(&quot;CUFF&quot;, &quot;ISS&quot;, ISS.v2$gene_id)
+
+combinedGTF = rbind(ILS.v2, ISS.v2)
+combinedGTF = combinedGTF[, !(colnames(combinedGTF) %in% c(&quot;V9&quot;, &quot;fpkm&quot;, &quot;gene_id&quot;))]
+combinedGTF = combinedGTF[!duplicated(combinedGTF), ]
+combinedGTF = combinedGTF[combinedGTF$transcript_id %in% transcripts$transcript_id, 
+    ]
+
+gtf &lt;- combinedGTF[combinedGTF$V3 == &quot;exon&quot;, ]
+gtf &lt;- gtf[order(gtf$transcript_id, gtf$V4, gtf$V5), ]
+
+print(paste(&quot;Number of Transcripts &quot;, length(unique(gtf$transcript_id)), sep = &quot;&quot;))
+
+## create one per transcript ##
+start &lt;- aggregate(gtf$V4, by = list(gtf$transcript_id), function(a) paste(a, 
+    collapse = &quot;,&quot;))
+stop &lt;- aggregate(gtf$V5, by = list(gtf$transcript_id), function(a) paste(a, 
+    collapse = &quot;,&quot;))
+transcripts &lt;- gtf[!duplicated(gtf[, c(&quot;transcript_id&quot;, &quot;V1&quot;)]), c(&quot;transcript_id&quot;, 
+    &quot;V1&quot;, &quot;V6&quot;, &quot;V7&quot;)]
+onePerTrans &lt;- merge(start, stop, by = 1)
+onePerTrans &lt;- merge(transcripts, onePerTrans, by = 1)
+
+onePerTrans$exonNum = unlist(lapply(strsplit(onePerTrans$x.x, split = &quot;,&quot;, fixed = TRUE), 
+    length))
+onePerTrans$start &lt;- as.integer(unlist(lapply(strsplit(onePerTrans$x.x, split = &quot;,&quot;, 
+    fixed = TRUE), function(a) min(as.numeric(a)))))
+onePerTrans$stop &lt;- as.integer(unlist(lapply(strsplit(onePerTrans$x.y, split = &quot;,&quot;, 
+    fixed = TRUE), function(a) max(as.numeric(a)))))
+
+## export as BED style file for overlap ##
+write.table(onePerTrans[, c(&quot;V1&quot;, &quot;start&quot;, &quot;stop&quot;, &quot;transcript_id&quot;, &quot;V6&quot;, &quot;V7&quot;)], 
+    file = &quot;data/combined.04Jun14.v1.bed&quot;, sep = &quot;\t&quot;, quote = FALSE, row.names = FALSE, 
+    col.names = FALSE)
+</code></pre>
+
+<h2>3.  Look for overlap between transcripts within the combined BED file  </h2>
+
+<p>BEDtools version = bedtools v2.16.2-zip-5db7ff9</p>
+
+<pre><code>export PATH=/usr/local/bedtools2/bin:$PATH
+
+cd /data/Tabastore3/LauraS/LXS/RNA-Seq/totalRNA.24Oct13/data
+intersectBed -a combined.04Jun14.v1.bed -b combined.04Jun14.v1.bed -wo &gt; overlap.refSeqGuided.txt
+</code></pre>
+
+<h2>4.  Identify novel transcripts that were identified in both BN-Lx and SHR </h2>
+
+<p>Two transcripts were &ldquo;merged&rdquo; into one transcripts if:  </p>
+
+<ul>
+<li>they are both assigned to the same strand or one/both did not have a strand designation</li>
+<li>they were identified as novel in opposite strains (one from SHR and one from BNLx)</li>
+<li>if 1) all exon starts and exon stops matched OR 2) all exon junctions matched, transcription start and stop sites could differ OR 3) two one-exon transcripts with transcription start sites within 100 bp of each other and transcription stop sites within 100 bp of each other</li>
+</ul>
+
+<pre><code class="r">overlap &lt;- read.table(file = &quot;data/overlap.refSeqGuided.txt&quot;, sep = &quot;\t&quot;, header = FALSE)
+colnames(overlap) &lt;- c(paste(c(&quot;chr&quot;, &quot;start&quot;, &quot;stop&quot;, &quot;transcript_id&quot;, &quot;V5&quot;, 
+    &quot;strand&quot;), rep(c(&quot;A&quot;, &quot;B&quot;), each = 6), sep = &quot;.&quot;), &quot;overlap&quot;)
+
+## add exon information to overlaps
+setA = setB = onePerTrans[, c(&quot;transcript_id&quot;, &quot;x.x&quot;, &quot;x.y&quot;, &quot;exonNum&quot;)]
+colnames(setA) = c(&quot;transcript_id.A&quot;, &quot;exonStarts.A&quot;, &quot;exonStops.A&quot;, &quot;exonNum.A&quot;)
+colnames(setB) = c(&quot;transcript_id.B&quot;, &quot;exonStarts.B&quot;, &quot;exonStops.B&quot;, &quot;exonNum.B&quot;)
+
+overlap = merge(overlap, setA, by = &quot;transcript_id.A&quot;)
+overlap = merge(overlap, setB, by = &quot;transcript_id.B&quot;)
+
+overlap$ID = c(1:nrow(overlap))
+
+## identify exon junction
+
+findJunct &lt;- function(starts, stops) {
+    start &lt;- strsplit(starts, split = &quot;,&quot;, fixed = TRUE)[[1]]
+    stop &lt;- strsplit(stops, split = &quot;,&quot;, fixed = TRUE)[[1]]
+    junct &lt;- NA
+    if (length(start) &gt; 1) 
+        junct &lt;- paste(paste(stop[-length(stop)], start[-1], sep = &quot;//&quot;), collapse = &quot;,&quot;)
+    return(junct)
+}
+
+overlap$exonJunct.A = apply(overlap[, c(&quot;exonStarts.A&quot;, &quot;exonStops.A&quot;)], 1, 
+    function(a) findJunct(a[1], a[2]))
+overlap$exonJunct.B = apply(overlap[, c(&quot;exonStarts.B&quot;, &quot;exonStops.B&quot;)], 1, 
+    function(a) findJunct(a[1], a[2]))
+
+## remove overlap that is on the opposite strand
+overlap &lt;- overlap[overlap$strand.A == &quot;.&quot; | overlap$strand.B == &quot;.&quot; | overlap$strand.A == 
+    overlap$strand.B, ]
+
+## remove overlap between same transcript
+overlap &lt;- overlap[overlap$transcript_id.A != overlap$transcript_id.B, ]
+
+
+## remove overlap where coding regions don&#39;t overlap ##
+intronCheck = c()
+for (i in 1:nrow(overlap)) {
+    input = overlap[i, ]
+    out = sum(sum(unlist(lapply(strsplit(strsplit(input[1, &quot;exonJunct.B&quot;], split = &quot;,&quot;)[[1]], 
+        split = &quot;//&quot;), function(a) input[1, &quot;start.A&quot;] &gt; a[1] &amp; input[1, &quot;stop.A&quot;] &lt; 
+        a[2]))), sum(unlist(lapply(strsplit(strsplit(input[1, &quot;exonJunct.A&quot;], 
+        split = &quot;,&quot;)[[1]], split = &quot;//&quot;), function(a) input[1, &quot;start.B&quot;] &gt; 
+        a[1] &amp; input[1, &quot;stop.B&quot;] &lt; a[2]))), na.rm = TRUE)
+    intronCheck = c(intronCheck, out)
+}
+
+overlap = overlap[intronCheck == 0, ]
+
+## remove overlap with annotated genes/transcripts ##
+overlap = overlap[!(grepl(&quot;N&quot;, overlap$transcript_id.B) | grepl(&quot;N&quot;, overlap$transcript_id.A)), 
+    ]
+
+## remove within strain overlap ##
+overlap = overlap[!(grepl(&quot;ILS&quot;, overlap$transcript_id.B) &amp; grepl(&quot;ILS&quot;, overlap$transcript_id.A)), 
+    ]
+overlap = overlap[!(grepl(&quot;ISS&quot;, overlap$transcript_id.B) &amp; grepl(&quot;ISS&quot;, overlap$transcript_id.A)), 
+    ]
+
+## transcripts without any overlap - 39,167 transcripts
+noOverlap = onePerTrans[!(onePerTrans$transcript_id %in% unique(c(overlap$transcript_id.A, 
+    overlap$transcript_id.B))), ]
+
+## perfect overlap - 190 transcripts
+perfect = overlap[overlap$exonStarts.A == overlap$exonStarts.B &amp; overlap$exonStops.A == 
+    overlap$exonStops.B, ]
+
+## identify exon junction matches - 2,122 transcripts
+reduced = overlap[!(overlap$ID %in% perfect$ID), ]
+exonJunctMatch &lt;- reduced[!is.na(reduced$exonJunct.A) &amp; !is.na(reduced$exonJunct.B) &amp; 
+    reduced$exonJunct.A == reduced$exonJunct.B, ]
+
+## examine one-exon transcripts - 47012 transcripts
+reduced = overlap[!(overlap$ID %in% c(perfect$ID, exonJunctMatch$ID)), ]
+oneExons = reduced[reduced$exonNum.A == 1 &amp; reduced$exonNum.B == 1, ]
+
+closeMatch.oneExon = oneExons[abs(oneExons$start.A - oneExons$start.B) &lt; 100 &amp; 
+    abs(oneExons$stop.A - oneExons$stop.B) &lt; 100, ]
+sum(duplicated(closeMatch.oneExon$transcript_id.B))
+
+## Check for overlap between renamed ##
+matched = as.data.frame(rbind(perfect, exonJunctMatch, closeMatch.oneExon))
+sum(duplicated(matched$transcript_id.B))
+
+## create new transcript for matched transcripts - 8,105 matches
+matched = matched[grep(&quot;ILS&quot;, matched$transcript_id.A), ]
+
+matched$transcript_id = paste(&quot;total&quot;, c(1:nrow(matched)), sep = &quot;.&quot;)
+matched$gene_id = NA
+matched$V1 = matched$chr.A
+matched$V6 = 1000
+matched$V7 = matched$strand.A
+matched$start = apply(matched[, c(&quot;start.B&quot;, &quot;start.A&quot;)], 1, min)
+matched$stop = apply(matched[, c(&quot;stop.B&quot;, &quot;stop.A&quot;)], 1, max)
+matched$exonNum = matched$exonNum.A
+
+matched$x.x = NA
+matched$x.x[matched$start == matched$start.A] = matched$exonStarts.A[matched$start == 
+    matched$start.A]
+matched$x.x[matched$start == matched$start.B] = matched$exonStarts.B[matched$start == 
+    matched$start.B]
+
+matched$x.y = NA
+matched$x.y[matched$stop == matched$stop.A] = matched$exonStops.A[matched$stop == 
+    matched$stop.A]
+matched$x.y[matched$stop == matched$stop.B] = matched$exonStops.B[matched$stop == 
+    matched$stop.B]
+
+matched.toAdd = matched[, colnames(onePerTrans)]
+
+new.transcripts = onePerTrans[!(onePerTrans$transcript_id %in% c(matched$transcript_id.A, 
+    matched$transcript_id.B)), ]
+new.transcripts = rbind(new.transcripts, matched.toAdd)
+
+write.table(new.transcripts[, c(&quot;V1&quot;, &quot;start&quot;, &quot;stop&quot;, &quot;transcript_id&quot;, &quot;V6&quot;, 
+    &quot;V7&quot;)], file = &quot;data/newTotal.04Jun14.bed&quot;, sep = &quot;\t&quot;, quote = FALSE, row.names = FALSE, 
+    col.names = FALSE)
+</code></pre>
+
+<h2>5.  Identify overlap between transcripts in order to identify transcripts from the same gene</h2>
+
+<p>BEDtools Version = bedtools v2.16.2-zip-5db7ff9</p>
+
+<pre><code>export PATH=/usr/local/bedtools2/bin:$PATH
+cd /data/Tabastore3/LauraS/LXS/RNA-Seq/totalRNA.24Oct13/data
+intersectBed -a newTotal.04Jun14.bed -b newTotal.04Jun14.bed -wo &gt; overlap.total.forGeneID.txt
+</code></pre>
+
+<h2>6.  Match transcripts to genes and create new GTF file  </h2>
+
+<p>Two transcripts are from the same gene if:  </p>
+
+<ul>
+<li>Their transcription start sites matched exactly OR</li>
+<li>Their transcription stop sites matched exactly OR</li>
+<li>At least one exon-exon junction matched exactly</li>
+</ul>
+
+<pre><code class="r">
+findJunct &lt;- function(starts, stops) {
+    start &lt;- strsplit(starts, split = &quot;,&quot;, fixed = TRUE)[[1]]
+    stop &lt;- strsplit(stops, split = &quot;,&quot;, fixed = TRUE)[[1]]
+    junct &lt;- NA
+    if (length(start) &gt; 1) 
+        junct &lt;- paste(paste(stop[-length(stop)], start[-1], sep = &quot;//&quot;), collapse = &quot;,&quot;)
+    return(junct)
+}
+
+new.transcripts$exonJunct = apply(new.transcripts[, c(&quot;x.x&quot;, &quot;x.y&quot;)], 1, function(a) findJunct(a[1], 
+    a[2]))
+
+overlap = read.table(file = &quot;data/overlap.total.forGeneID.txt&quot;, sep = &quot;\t&quot;, 
+    header = FALSE)
+overlap = overlap[overlap$V4 != overlap$V10, ]
+overlap = overlap[overlap$V6 == &quot;.&quot; | overlap$V12 == &quot;.&quot; | overlap$V6 == overlap$V12, 
+    ]
+
+overlap$pair = apply(overlap, 1, function(a) paste(sort(a[c(&quot;V4&quot;, &quot;V10&quot;)]), 
+    collapse = &quot;//&quot;))
+overlap = overlap[!duplicated(overlap$pair), ]
+
+pairs = c()
+for (i in 1:nrow(overlap)) {
+    x = new.transcripts[new.transcripts$transcript_id == overlap$V4[i], ]
+    y = new.transcripts[new.transcripts$transcript_id == overlap$V10[i], ]
+    sameGene = FALSE
+    if (x$start == y$start | x$stop == y$stop) 
+        sameGene = TRUE
+    if (!is.na(y$exonJunct) &amp; !is.na(x$exonJunct) &amp; sum(duplicated(c(unlist(strsplit(x$exonJunct, 
+        split = &quot;,&quot;)), unlist(strsplit(y$exonJunct, split = &quot;,&quot;))))) &gt; 0) 
+        sameGene = TRUE
+    if (sameGene) 
+        pairs = rbind(pairs, c(x$transcript_id, y$transcript_id))
+}
+
+
+## identify genes with multiple transcripts and create gene identifier ##
+library(igraph)
+library(&quot;ggm&quot;)
+
+edges &lt;- pairs
+graph.polyA &lt;- graph.data.frame(edges)
+graph.polyA &lt;- igraph.to.graphNEL(graph.polyA)
+
+compList &lt;- connectedComp(graph.polyA)
+names(compList) &lt;- paste(&quot;total&quot;, c(1:length(compList)), sep = &quot;.&quot;)
+
+multiTrans &lt;- sapply(names(compList), function(a) cbind(gene_id.new = a, transcript_id.new = paste(a, 
+    c(1:length(compList[[a]])), sep = &quot;.&quot;), id = compList[[a]]))
+multiTrans &lt;- data.frame(do.call(rbind, multiTrans))
+
+singleTrans &lt;- data.frame(id = new.transcripts$transcript_id[!(new.transcripts$transcript_id %in% 
+    multiTrans$id)])
+singleTrans$gene_id.new = paste(&quot;total&quot;, c((length(compList) + 1):(length(compList) + 
+    nrow(singleTrans))), sep = &quot;.&quot;)
+singleTrans$transcript_id.new = paste(singleTrans$gene_id.new, 1, sep = &quot;.&quot;)
+
+updated &lt;- merge(new.transcripts, rbind(multiTrans, singleTrans), by.x = &quot;transcript_id&quot;, 
+    by.y = &quot;id&quot;)
+
+## Create New GTF File ##
+
+byExon = data.frame(do.call(rbind, apply(updated, 1, function(tmp) data.frame(transcript_id.new = as.character(tmp[12]), 
+    V4 = unlist(strsplit(as.character(tmp[5]), split = &quot;,&quot;)), V5 = unlist(strsplit(as.character(tmp[6]), 
+        split = &quot;,&quot;))))))
+
+gtf = merge(updated, byExon, by = &quot;transcript_id.new&quot;)
+gtf$V2 = &quot;CuffLinks&quot;
+gtf$V3 = &quot;exon&quot;
+gtf$V8 = &quot;.&quot;
+gtf$V9 = paste(&quot;gene_id \&quot;&quot;, gtf$gene_id.new, &quot;\&quot;; transcript_id \&quot;&quot;, gtf$transcript_id.new, 
+    &quot;\&quot;; original \&quot;&quot;, gtf$transcript_id, &quot;\&quot;;&quot;, sep = &quot;&quot;)
+
+gtf = gtf[, paste(&quot;V&quot;, c(1:9), sep = &quot;&quot;)]
+
+write.table(gtf, file = &quot;reconstruction/transcripts.05Jun14.v1.gtf&quot;, row.names = FALSE, 
+    col.names = FALSE, quote = FALSE, sep = &quot;\t&quot;)
+</code></pre>
+
+<h2>7. Use SailFish To Check Quantification In New GTF</h2>
+
+<h3>Extract sequence of transcripts</h3>
+
+<pre><code>
+# index genome
+cd /Volumes/LauraS/index
+samtools faidx mm10.cleaned.wSpikes.v2.fa
+
+# generate fasta file of transcript sequences
+cd /Volumes/LauraS/LXS/RNA-Seq/totalRNA.24Oct13/reconstruction
+gffread -w transcripts.05Jun14.v1.fa -g /Volumes/LauraS/index/mm10.cleaned.wSpikes.v2.fa transcripts.05Jun14.v1.gtf
+</code></pre>
+
+<h3>Quantify Using SailFish</h3>
+
+<pre><code>qsub -q smp /home/saba/ILS.ISS.Brain.totalRNA/programs/sailFish.quant.v1.sh
+</code></pre>
+
+<pre><code class="r">rm(list = ls())
+options(stringsAsFactors = FALSE)
+setwd(&quot;/Volumes/LauraS/LXS/RNA-Seq/totalRNA.24Oct13/&quot;)
+ILS1.count = read.table(file = &quot;quantification/sailFish.v1/ILS1/quant.sf&quot;, sep = &quot;\t&quot;, 
+    header = FALSE)
+ILS2.count = read.table(file = &quot;quantification/sailFish.v1/ILS2/quant.sf&quot;, sep = &quot;\t&quot;, 
+    header = FALSE)
+ILS3.count = read.table(file = &quot;quantification/sailFish.v1/ILS3/quant.sf&quot;, sep = &quot;\t&quot;, 
+    header = FALSE)
+ISS1.count = read.table(file = &quot;quantification/sailFish.v1/ISS1/quant.sf&quot;, sep = &quot;\t&quot;, 
+    header = FALSE)
+ISS2.count = read.table(file = &quot;quantification/sailFish.v1/ISS2/quant.sf&quot;, sep = &quot;\t&quot;, 
+    header = FALSE)
+ISS3.count = read.table(file = &quot;quantification/sailFish.v1/ISS3/quant.sf&quot;, sep = &quot;\t&quot;, 
+    header = FALSE)
+
+colnames(ILS1.count) = c(&quot;transcript_id&quot;, &quot;length&quot;, paste(&quot;ILS1&quot;, c(&quot;TPM&quot;, &quot;RPKM&quot;, 
+    &quot;KPKM&quot;, &quot;EstNumKmers&quot;, &quot;EstNumReads&quot;), sep = &quot;.&quot;))
+colnames(ILS2.count) = c(&quot;transcript_id&quot;, &quot;length&quot;, paste(&quot;ILS2&quot;, c(&quot;TPM&quot;, &quot;RPKM&quot;, 
+    &quot;KPKM&quot;, &quot;EstNumKmers&quot;, &quot;EstNumReads&quot;), sep = &quot;.&quot;))
+colnames(ILS3.count) = c(&quot;transcript_id&quot;, &quot;length&quot;, paste(&quot;ILS3&quot;, c(&quot;TPM&quot;, &quot;RPKM&quot;, 
+    &quot;KPKM&quot;, &quot;EstNumKmers&quot;, &quot;EstNumReads&quot;), sep = &quot;.&quot;))
+colnames(ISS1.count) = c(&quot;transcript_id&quot;, &quot;length&quot;, paste(&quot;ISS1&quot;, c(&quot;TPM&quot;, &quot;RPKM&quot;, 
+    &quot;KPKM&quot;, &quot;EstNumKmers&quot;, &quot;EstNumReads&quot;), sep = &quot;.&quot;))
+colnames(ISS2.count) = c(&quot;transcript_id&quot;, &quot;length&quot;, paste(&quot;ISS2&quot;, c(&quot;TPM&quot;, &quot;RPKM&quot;, 
+    &quot;KPKM&quot;, &quot;EstNumKmers&quot;, &quot;EstNumReads&quot;), sep = &quot;.&quot;))
+colnames(ISS3.count) = c(&quot;transcript_id&quot;, &quot;length&quot;, paste(&quot;ISS3&quot;, c(&quot;TPM&quot;, &quot;RPKM&quot;, 
+    &quot;KPKM&quot;, &quot;EstNumKmers&quot;, &quot;EstNumReads&quot;), sep = &quot;.&quot;))
+
+counts = merge(ILS1.count, ILS2.count, by = c(&quot;transcript_id&quot;, &quot;length&quot;))
+counts = merge(counts, ILS3.count, by = c(&quot;transcript_id&quot;, &quot;length&quot;))
+counts = merge(counts, ISS1.count, by = c(&quot;transcript_id&quot;, &quot;length&quot;))
+counts = merge(counts, ISS2.count, by = c(&quot;transcript_id&quot;, &quot;length&quot;))
+counts = merge(counts, ISS3.count, by = c(&quot;transcript_id&quot;, &quot;length&quot;))
+
+counts$numSamplesGrt1 = rowSums(counts[, grep(&quot;TPM&quot;, colnames(counts))] &gt; 1)
+counts = counts[counts$numSamplesGrt1 != 0, ]
+
+counts$gene_id = paste(&quot;total&quot;, unlist(lapply(strsplit(counts$transcript_id, 
+    split = &quot;.&quot;, fixed = TRUE), function(a) a[2])), sep = &quot;.&quot;)
+
+counts$sumTPM = rowSums(counts[, grep(&quot;TPM&quot;, colnames(counts))])
+counts = counts[order(counts$gene_id, counts$sumTPM, decreasing = TRUE), ]
+
+## rename transcripts based on TPM ##
+newID = data.frame(do.call(rbind, aggregate(counts$transcript_id, by = list(gene_id = counts$gene_id), 
+    function(a) cbind(a, paste(&quot;total&quot;, strsplit(a, split = &quot;.&quot;, fixed = TRUE)[[1]][2], 
+        1:length(a), sep = &quot;.&quot;)))$x))
+colnames(newID) = c(&quot;transcript_id&quot;, &quot;transcript_id.new&quot;)
+
+## reduce GTF file ##
+orig.gtf = read.table(file = &quot;reconstruction/transcripts.05Jun14.v1.gtf&quot;, header = FALSE, 
+    sep = &quot;\t&quot;)
+orig.gtf$transcript_id = unlist(lapply(strsplit(orig.gtf$V9, split = &quot;; &quot;), 
+    function(a) gsub(&quot;transcript_id &quot;, &quot;&quot;, a[grep(&quot;transcript&quot;, a)])))
+orig.gtf$gene_id = unlist(lapply(strsplit(orig.gtf$V9, split = &quot;; &quot;), function(a) gsub(&quot;gene_id &quot;, 
+    &quot;&quot;, a[grep(&quot;gene&quot;, a)])))
+
+new.gtf = merge(orig.gtf, newID, by = &quot;transcript_id&quot;)
+new.gtf$V9 = paste(&quot;gene_id \&quot;&quot;, new.gtf$gene_id, &quot;\&quot;; transcript_id \&quot;&quot;, new.gtf$transcript_id.new, 
+    &quot;\&quot;;&quot;, sep = &quot;&quot;)
+write.table(new.gtf[, paste(&quot;V&quot;, c(1:9), sep = &quot;&quot;)], file = &quot;reconstruction/transcripts.05Jun14.v2.gtf&quot;, 
+    row.names = FALSE, col.names = FALSE, quote = FALSE, sep = &quot;\t&quot;)
+</code></pre>
+
+<h1>generate fasta file of transcript sequences</h1>
+
+<pre><code>cd /Volumes/LauraS/LXS/RNA-Seq/totalRNA.24Oct13/reconstruction
+gffread -w transcripts.05Jun14.v2.fa -g /Volumes/LauraS/index/mm10.cleaned.wSpikes.v2.fa transcripts.05Jun14.v2.gtf
+</code></pre>
+
+<h3>Quantify Using SailFish</h3>
+
+<pre><code>qsub -q smp /home/saba/ILS.ISS.Brain.totalRNA/programs/sailFish.quant.v2.sh
+</code></pre>
+
+<h3>Move files around</h3>
+
+<pre><code>cd /data/Tabastore3/LauraS/LXS/RNA-Seq/totalRNA.24Oct13/quantification/
+mkdir sailFish.v2
+cd sailFish.v2
+mkdir ISS1 ISS2 ISS3 ILS1 ILS2 ILS3
+chmod a+rw *
+
+cd /Volumes/LauraS/LXS/RNA-Seq/totalRNA.24Oct13/quantification/sailFish.v2
+
+cd /home/saba/ILS.ISS.Brain.totalRNA/quantification/sailFish.v2
+get ISS1/quant.sf ISS1/quant.sf
+get ISS2/quant.sf ISS2/quant.sf
+get ISS3/quant.sf ISS3/quant.sf
+get ILS1/quant.sf ILS1/quant.sf
+get ILS2/quant.sf ILS2/quant.sf
+get ILS3/quant.sf ILS3/quant.sf
+</code></pre>
+
+<pre><code class="r">rm(list = ls())
+options(stringsAsFactors = FALSE)
+setwd(&quot;/Volumes/LauraS/LXS/RNA-Seq/totalRNA.24Oct13/&quot;)
+ILS1.count = read.table(file = &quot;quantification/sailFish.v2/ILS1/quant.sf&quot;, sep = &quot;\t&quot;, 
+    header = FALSE)
+ILS2.count = read.table(file = &quot;quantification/sailFish.v2/ILS2/quant.sf&quot;, sep = &quot;\t&quot;, 
+    header = FALSE)
+ILS3.count = read.table(file = &quot;quantification/sailFish.v2/ILS3/quant.sf&quot;, sep = &quot;\t&quot;, 
+    header = FALSE)
+ISS1.count = read.table(file = &quot;quantification/sailFish.v2/ISS1/quant.sf&quot;, sep = &quot;\t&quot;, 
+    header = FALSE)
+ISS2.count = read.table(file = &quot;quantification/sailFish.v2/ISS2/quant.sf&quot;, sep = &quot;\t&quot;, 
+    header = FALSE)
+ISS3.count = read.table(file = &quot;quantification/sailFish.v2/ISS3/quant.sf&quot;, sep = &quot;\t&quot;, 
+    header = FALSE)
+
+colnames(ILS1.count) = c(&quot;transcript_id&quot;, &quot;length&quot;, paste(&quot;ILS1&quot;, c(&quot;TPM&quot;, &quot;RPKM&quot;, 
+    &quot;KPKM&quot;, &quot;EstNumKmers&quot;, &quot;EstNumReads&quot;), sep = &quot;.&quot;))
+colnames(ILS2.count) = c(&quot;transcript_id&quot;, &quot;length&quot;, paste(&quot;ILS2&quot;, c(&quot;TPM&quot;, &quot;RPKM&quot;, 
+    &quot;KPKM&quot;, &quot;EstNumKmers&quot;, &quot;EstNumReads&quot;), sep = &quot;.&quot;))
+colnames(ILS3.count) = c(&quot;transcript_id&quot;, &quot;length&quot;, paste(&quot;ILS3&quot;, c(&quot;TPM&quot;, &quot;RPKM&quot;, 
+    &quot;KPKM&quot;, &quot;EstNumKmers&quot;, &quot;EstNumReads&quot;), sep = &quot;.&quot;))
+colnames(ISS1.count) = c(&quot;transcript_id&quot;, &quot;length&quot;, paste(&quot;ISS1&quot;, c(&quot;TPM&quot;, &quot;RPKM&quot;, 
+    &quot;KPKM&quot;, &quot;EstNumKmers&quot;, &quot;EstNumReads&quot;), sep = &quot;.&quot;))
+colnames(ISS2.count) = c(&quot;transcript_id&quot;, &quot;length&quot;, paste(&quot;ISS2&quot;, c(&quot;TPM&quot;, &quot;RPKM&quot;, 
+    &quot;KPKM&quot;, &quot;EstNumKmers&quot;, &quot;EstNumReads&quot;), sep = &quot;.&quot;))
+colnames(ISS3.count) = c(&quot;transcript_id&quot;, &quot;length&quot;, paste(&quot;ISS3&quot;, c(&quot;TPM&quot;, &quot;RPKM&quot;, 
+    &quot;KPKM&quot;, &quot;EstNumKmers&quot;, &quot;EstNumReads&quot;), sep = &quot;.&quot;))
+
+counts = merge(ILS1.count, ILS2.count, by = c(&quot;transcript_id&quot;, &quot;length&quot;))
+counts = merge(counts, ILS3.count, by = c(&quot;transcript_id&quot;, &quot;length&quot;))
+counts = merge(counts, ISS1.count, by = c(&quot;transcript_id&quot;, &quot;length&quot;))
+counts = merge(counts, ISS2.count, by = c(&quot;transcript_id&quot;, &quot;length&quot;))
+counts = merge(counts, ISS3.count, by = c(&quot;transcript_id&quot;, &quot;length&quot;))
+
+counts$numSamplesGrt1 = rowSums(counts[, grep(&quot;TPM&quot;, colnames(counts))] &gt; 1)
+counts = counts[counts$numSamplesGrt1 != 0, ]
+
+counts$gene_id = paste(&quot;total&quot;, unlist(lapply(strsplit(counts$transcript_id, 
+    split = &quot;.&quot;, fixed = TRUE), function(a) a[2])), sep = &quot;.&quot;)
+
+counts$sumTPM = rowSums(counts[, grep(&quot;TPM&quot;, colnames(counts))])
+counts = counts[order(counts$gene_id, counts$sumTPM, decreasing = TRUE), ]
+
+## rename transcripts based on TPM ##
+newID = data.frame(do.call(rbind, aggregate(counts$transcript_id, by = list(gene_id = counts$gene_id), 
+    function(a) cbind(a, paste(&quot;total&quot;, strsplit(a, split = &quot;.&quot;, fixed = TRUE)[[1]][2], 
+        1:length(a), sep = &quot;.&quot;)))$x))
+colnames(newID) = c(&quot;transcript_id&quot;, &quot;transcript_id.new&quot;)
+
+## reduce GTF file ##
+orig.gtf = read.table(file = &quot;reconstruction/transcripts.05Jun14.v2.gtf&quot;, header = FALSE, 
+    sep = &quot;\t&quot;)
+orig.gtf$transcript_id = unlist(lapply(strsplit(orig.gtf$V9, split = &quot;; &quot;), 
+    function(a) gsub(&quot;transcript_id &quot;, &quot;&quot;, a[grep(&quot;transcript&quot;, a)])))
+orig.gtf$transcript_id = gsub(&quot;;&quot;, &quot;&quot;, orig.gtf$transcript_id)
+orig.gtf$gene_id = unlist(lapply(strsplit(orig.gtf$V9, split = &quot;; &quot;), function(a) gsub(&quot;gene_id &quot;, 
+    &quot;&quot;, a[grep(&quot;gene&quot;, a)])))
+
+new.gtf = merge(orig.gtf, newID, by = &quot;transcript_id&quot;)
+new.gtf$V9 = paste(&quot;gene_id \&quot;&quot;, new.gtf$gene_id, &quot;\&quot;; transcript_id \&quot;&quot;, new.gtf$transcript_id.new, 
+    &quot;\&quot;;&quot;, sep = &quot;&quot;)
+new.gtf = new.gtf[, paste(&quot;V&quot;, c(1:9), sep = &quot;&quot;)]
+
+write.table(new.gtf, file = &quot;reconstruction/transcripts.11Jun14.FINAL.gtf&quot;, 
+    row.names = FALSE, col.names = FALSE, quote = FALSE, sep = &quot;\t&quot;)
+
+new.gtf$V1 = paste(&quot;chr&quot;, new.gtf$V1, sep = &quot;&quot;)
+forUCSC = new.gtf[-grep(&quot;ERCC&quot;, new.gtf$V1), ]
+write.table(forUCSC, file = &quot;reconstruction/transcripts.11Jun14.FINAL.forUCSC.gtf&quot;, 
+    row.names = FALSE, col.names = FALSE, quote = FALSE, sep = &quot;\t&quot;)
+</code></pre>
+
+</body>
+
+</html>
+
