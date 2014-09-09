@@ -1,7 +1,9 @@
 BNLx and SHR Liver rRNA-Depleted Total RNA From UCD Genomics Core
 =========================
 * 6 liver ribosomal RNA depleted total RNA samples, SHR1, SHR5, SHR25, BNLx1, BNLx2, and BNLx3
-* synthetic spikes included Mix 1 in SHR1, BNLx1, and BNLx2 and Mix 2 in SHR5, SHR25, and BNLx3
+* synthetic spikes included
+  * Mix 1 in SHR1, BNLx1, and BNLx2 and Mix 2 in SHR5, SHR25, and BNLx3
+  * 4 mL of 1:100 diluted spikes were add after RNA extraction but before rRNA-depletion
 * 2X100 paired end reads using the stranded protocol
 * received 4/1/14
 
@@ -66,11 +68,15 @@ qsub -q smp /home/data/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/countTrimmedRea
 options(stringsAsFactors=FALSE)
 setwd("/Volumes/LauraS/NextGenSeq/BNLx.SHR.Liver.totalRNA.UCD/")
 
-trimmed = read.table(file="data/trimmedReadCounts.02Jul14.txt",sep="",header=FALSE)
+trimmed = read.table(file="data/trimmedReadCounts.16Jul14.txt",sep="",header=FALSE)
 trimmed$file = unlist(lapply(strsplit(trimmed$V1,split="/",fixed=TRUE),function(a) a[length(a)]))
 trimmed$sample = unlist(lapply(strsplit(trimmed$V1,split="/",fixed=TRUE),function(a) gsub("BNLX_","BNLx",gsub("SHR_.","SHR",a[length(a)]))))
 trimmed$sample = unlist(lapply(strsplit(trimmed$sample,split="_",fixed=TRUE),function(a) a[1]))
+trimmed$sample[grep("L001",trimmed$V1)] = paste(trimmed$sample[grep("L001",trimmed$V1)],"dup",sep=".")
+
+
 trimmed$read = unlist(lapply(strsplit(trimmed$file,split="_",fixed=TRUE),function(a) a[grep("L00",a)+1]))
+
 
 bySample = merge(trimmed[trimmed$read=="R1",c("sample","V2","V3")],trimmed[trimmed$read=="R2",c("sample","V2")],by="sample")
 bySample$numReadFrag = bySample$V3*2
@@ -105,7 +111,7 @@ Average Number of Paired End Reads Per Sample After Trimming: `r prettyNum(mean(
 qsub -q smp-q /home/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/createGenomeIndex.yucca.sh
 ```
 
-6. Align trimmed reads to ribosomal RNA - RUNNING
+6. Align trimmed reads to ribosomal RNA - DONE
 -----------------------------------
 ```
 qsub -q smp /home/data/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/alignTo.rRNA.liver.01Jul14.sh
@@ -155,20 +161,20 @@ rTable = rTable[order(rTable$Sample),]
 ```
 
 ```{r, results='asis',echo=FALSE}
-kable(rTable,align=rep("c",ncol(alignTable)))
+kable(rTable,align=rep("c",ncol(rTable)),row.names=FALSE)
 ```
 
 Total Number of Paired End Reads After Eliminating rRNA Aligned Reads: `r prettyNum(sum(rStats$numReads-rStats$numDeletedPairedReads),big.mark=",",scientific=FALSE)`  
 Average Number of Paired End Reads Per Sample After Eliminating rRNA Aligned Reads: `r prettyNum(mean(rStats$numReads-rStats$numDeletedPairedReads),big.mark=",",scientific=FALSE)`  
 
 
-7. Convert unmapped.bam into fastq files  - RUNNING (BNLx3 duplicate)
+7. Convert unmapped.bam into fastq files  - DONE
 ----------------------------------------
 ```
 qsub -q smp /home/data/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/convertToFastQ.liver.sh
 ```
 
-8. Alignment of Raw Reads to Strain-Specific Genomes With Mitochondrial Chromosome - waiting for BNLx3 duplicate FASTQ files
+8. Alignment of Raw Reads to Strain-Specific Genomes With Mitochondrial Chromosome - DONE
 ------------------------------------
 
 ```
@@ -176,12 +182,7 @@ qsub -q smp /home/data/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/tophatAlign.liv
 qsub -q smp /home/data/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/tophatAlign.liver.v2.sh
 ```
 
-***STOPPED HERE***
-
-
-
-
-9.  Sort and Merge Aligned Reads By Strain
+9.  Sort and Merge Aligned Reads By Strain - DONE
 --------------------------
 
 ```
@@ -189,31 +190,25 @@ qsub -q smp /home/data/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/sortAndMerge.li
 qsub -q smp /home/data/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/sortAndMerge.liver.SHR.sh
 ```
 
-
-
-
-
-
-
-
-
-
-
-9.  Characterization of Aligned Reads
+10.  Characterization of Aligned Reads
 ---------------------------
+
+
 **move files**
 ```
 cd /home/data/saba/BNLx.SHR.Liver.totalRNA.UCD/alignedReads
-get ./BNLx1.withMT/align_summary.txt align_summary.BNLx1.txt
-get ./BNLx2.withMT/align_summary.txt align_summary.BNLx2.txt
-get ./BNLx3.withMT/align_summary.txt align_summary.BNLx3.txt
-get ./SHR1.withMT/align_summary.txt align_summary.SHR1.txt
-get ./SHR5.withMT/align_summary.txt align_summary.SHR5.txt
-get ./SHR25.withMT/align_summary.txt align_summary.SHR25.txt
+get ./BNLx1/align_summary.txt align_summary.BNLx1.txt
+get ./BNLx2/align_summary.txt align_summary.BNLx2.txt
+get ./BNLx3/align_summary.txt align_summary.BNLx3.txt
+get ./SHR1/align_summary.txt align_summary.SHR1.txt
+get ./SHR5/align_summary.txt align_summary.SHR5.txt
+get ./SHR25/align_summary.txt align_summary.SHR25.txt
+get ./SHR25.dup/align_summary.txt align_summary.SHR25.dup.txt
+get ./BNLx3.dup/align_summary.txt align_summary.BNLx3.dup.txt
 ```
 
-```{r,echo=FALSE,eval=FALSE}
-sampleList=c("BNLx1","BNLx2","BNLx3","SHR1","SHR5","SHR25")
+```{r,echo=FALSE,eval=TRUE}
+sampleList=c("BNLx1","BNLx2","BNLx3","BNLx3.dup","SHR1","SHR5","SHR25","SHR25.dup")
 
 alignStats = c()
 for(i in sampleList){
@@ -240,9 +235,11 @@ alignTable = alignTable[-1,]
 alignTable$BNLx1.pct = as.numeric(alignTable$BNLx1)/as.numeric(alignTable["numReads","BNLx1"])
 alignTable$BNLx2.pct = as.numeric(alignTable$BNLx2)/as.numeric(alignTable["numReads","BNLx2"])
 alignTable$BNLx3.pct = as.numeric(alignTable$BNLx3)/as.numeric(alignTable["numReads","BNLx3"])
+alignTable$BNLx3.dup.pct = as.numeric(alignTable$BNLx3.dup)/as.numeric(alignTable["numReads","BNLx3.dup"])
 alignTable$SHR1.pct = as.numeric(alignTable$SHR1)/as.numeric(alignTable["numReads","SHR1"])
 alignTable$SHR5.pct = as.numeric(alignTable$SHR5)/as.numeric(alignTable["numReads","SHR5"])
 alignTable$SHR25.pct = as.numeric(alignTable$SHR25)/as.numeric(alignTable["numReads","SHR25"])
+alignTable$SHR25.dup.pct = as.numeric(alignTable$SHR25.dup)/as.numeric(alignTable["numReads","SHR25.dup"])
 
 ## format numbers
 for(i in sampleList){
@@ -259,9 +256,82 @@ colnames(alignTable) = c("Label",paste(rep(sampleList,each=2),rep(c(" (num)"," (
 ```
 
 ### Statistics on Alignment to Genome
-```{r, results='asis',echo=FALSE,eval=FALSE}
+```{r, results='asis',echo=FALSE,eval=TRUE}
 kable(alignTable,align=rep("c",ncol(alignTable)),row.names=FALSE)
 ```
+**Total Number of Aligned Paired End Reads:** `r prettyNum(sum(alignStats$mappedPairs),big.mark=",",scientific=FALSE)`    
+**Total Number of Aligned Read Fragments:** `r prettyNum(sum(alignStats[,c("mappedRight","mappedLeft")]),big.mark=",",scientific=FALSE)`  
+**Average Number of Aligned Read Fragments Per Sample:** `r prettyNum(mean(rowSums(alignStats[,c("mappedRight","mappedLeft")])),big.mark=",",scientific=FALSE)`  
+**Average Rate of Alignment (Read Fragments):** `r paste(sprintf("%.1f",round(100*mean(rowSums(alignStats[,c("mappedLeft","mappedRight")])/(alignStats$numReads*2)),1)),"%",sep="")`  
+
+### Characteristics of Alignments
+```
+qsub -q smp /home/data/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/countByChrom.liver.sh
+```
+```{r,echo=FALSE,eval=TRUE}
+#rm(list=ls())
+options(stringsAsFactors=FALSE)
+setwd("/Volumes/LauraS/NextGenSeq/BNLx.SHR.Liver.totalRNA.UCD/")
+
+sampleList=c("BNLx1","BNLx2","BNLx3","BNLx3.dup","SHR1","SHR25","SHR25.dup","SHR5")
+for(sample in sampleList){
+  x = read.table(file=paste("data/countByChr.",sample,".liver.txt",sep=""),header=FALSE,sep="\t")
+  colnames(x) = c("id","length",sample,"V4")
+  x = x[,-4]
+  if(sample==sampleList[1]) chrCnts = x
+  if(sample!=sampleList[1]) chrCnts = merge(chrCnts,x,by=c("id","length"))
+}
+
+chromo = chrCnts[grep("chr",chrCnts$id),]
+pctBySampleChr = apply(chromo[chromo$id!="chr6",-c(1:2)],1,function(a) a/colSums(chromo[chromo$id!="chr6",-c(1:2)]))
+colnames(pctBySampleChr) = chromo[chromo$id!="chr6",1]
+pctBySampleChr = pctBySampleChr[,paste("chr",c(c(1:5),c(7:20),"X","M"),sep="")]
+
+pctBySampleChr = apply(chromo[,-c(1:2)],1,function(a) a/colSums(chromo[,-c(1:2)]))
+colnames(pctBySampleChr) = chromo[,1]
+pctBySampleChr = pctBySampleChr[,paste("chr",c(1:20,"X","M"),sep="")]
+
+```
+
+```{r,fig.width=12,fig.height=6,echo=FALSE}
+boxplot(pctBySampleChr,ylab="percent of alignments",xlab="chromosome",main="Distribution Among Samples of Percent of Alignments By Chromosome",cex.axis=0.7)
+```
+
+```{r,fig.width=6,fig.height=6,echo=FALSE}
+plot(hclust(as.dist(1-cor(t(pctBySampleChr))),method="average"),main="Comparison of Percent Alignments to Each Chromosome",ylab="1 minus correlation coefficient",sub="",xlab="")
+```
+
+```{r,echo=FALSE}
+controls = chrCnts[grep("ER",chrCnts$id),]
+
+spikes = read.table(file="/Volumes/LauraS/BxH.HxB.Rats/RNA-Seq/spikeSource/ERCC_Controls_Analysis.txt",sep="\t",header=TRUE)
+colnames(spikes) = gsub("concentration.in.","",gsub("..attomoles.ul.","",colnames(spikes)))
+
+mapped = rowSums(alignStats[,c("mappedLeft","mappedRight")])
+names(mapped) = alignStats$sample
+
+spikeSummary = merge(rStats,mapped,by.x="sample",by.y=0)
+colnames(spikeSummary)[ncol(spikeSummary)] = "numMapped"
+
+controlSums = colSums(controls[-c(1:2)])
+spikeSummary = merge(spikeSummary,controlSums,by.x="sample",by.y=0)
+colnames(spikeSummary)[ncol(spikeSummary)] = "numSpikes"
+
+spikeSummary$pctSpike = spikeSummary$numSpikes/spikeSummary$numMapped
+spikeSummary$pctSpike.allReads =spikeSummary$numSpikes/(spikeSummary$numReads*2)
+
+spikeSummary = data.frame(cbind(sample=sampleList,numReads=prettyNum((2*rStats$numReads),big.mark=",",scientific=FALSE),rRNA.alignedReads=prettyNum((2*rStats$numDeletedPairedReads),big.mark=",",scientific=FALSE),numAlignedReads=prettyNum(mapped,big.mark=",",scientific=FALSE),numSpikeReads=prettyNum(colSums(controls[,names(mapped)]),big.mark=",",scientific=FALSE),pctSpike=paste(sprintf("%.2f", round(pctSpike*100,2)),"%",sep=""),pctSpike.allReads=paste(sprintf("%.2f", round(pctSpike.allReads*100,2)),"%",sep="")))
+
+colnames(spikeSummary) = c("Sample","Num of Read Fragments","Num of rRNA Aligned Read Fragments","Num of Genome-Aligned Read Fragments","Num of Read Fragments Aligned to Spikes","Percent of Genome-Aligned Read Fragments Aligned to Spikes","Percent of All Read Fragments Aligned to Spikes")
+```
+
+### Synthetic spike-in summary
+```{r, results='asis',echo=FALSE,eval=TRUE}
+kable(spikeSummary,align=rep("c",ncol(spikeSummary)),row.names=FALSE)
+```
+
+
+
 
 10.  Examine Spike-In Expression - HAVEN'T RUN FOR DATA WITH MITO
 -----------------------
@@ -372,9 +442,6 @@ Red lines represent the expected log 2 fold differences.  Only spikes that were 
 kable(diffSpikes,align=rep("c",ncol(diffSpikes)),row.names=FALSE)
 ```
 
-
-
-
 12.  Strain-Specific Transcriptome Reconstruction (Ensembl-Guided)
 --------------------------
 
@@ -383,9 +450,9 @@ qsub -q smp /home/data/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/reconSHR.liver.
 qsub -q smp /home/data/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/reconBNLx.liver.sh
 ```
 
-13.  Create BigWig Files
--------------------
+Trying to speed things up by using a mask on mitochondrial genes (RUNNING - started at 1pm on 8/26)
 ```
-qsub -q smp /home/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/testBigWig.sh
+qsub -q smp /storage/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/reconWMaskSHR.liver.sh
+qsub -q smp /storage/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/reconWMaskBNLx.liver.sh
 ```
 

@@ -5,8 +5,12 @@ BN-Lx and SHR Female Brain Total RNA RNA-Seq
 * ribosomal RNA depleted total RNA
 * 2X100 reads using the stranded protocol
 * sequencing done by Beckman Coulter Genomics - received June 18th, 2014
-* synthetic spike-in were added to each sample (SHR1, SHR3, BNLx2, and BNLx4 have mix 1; SHR2, SHR4, BNLx1, and BNLx3 have mix 2)
-* Information regarding the spike-ins can be found here: http://products.invitrogen.com/ivgn/product/4456739
+  * sequenced on HiSeq2500 (rapid runs)
+  * each sample was pooled with a sample from the opposite strain and each pool was put into two lanes of the HiSeq2500
+* synthetic spike-in were added to each sample 
+  * SHR1, SHR3, BNLx2, and BNLx4 have mix 1; SHR2, SHR4, BNLx1, and BNLx3 have mix 2
+  * 4 microliters of 1:100 diluted spikes were add after RNA extraction but before rRNA-depletion
+  * Information regarding the spike-ins can be found here: http://products.invitrogen.com/ivgn/product/4456739
 
 1. Unzip Files 
 ---------------
@@ -45,7 +49,7 @@ Raw Reads/Read Fragments
 ---------------------------
 
 ```{r, results='asis',echo=FALSE}
-kable(forPrint,align=rep("c",ncol(readFragments)))
+kable(forPrint,align=rep("c",ncol(forPrint)),row.names=FALSE)
 ```
 
 Total Number of Paired End Reads: `r prettyNum(sum(rawCounts$readFrag)/2,big.mark=",",scientific=FALSE)`  
@@ -94,7 +98,7 @@ Trimmed Reads/Read Fragments
 ---------------------------
 
 ```{r, results='asis',echo=FALSE}
-kable(forPrint2,align=rep("c",ncol(forPrint2)))
+kable(forPrint2,align=rep("c",ncol(forPrint2)),row.names=FALSE)
 ```
 
 Total Number of Paired End Reads After Trimming: `r prettyNum(sum(bySample$numReads),big.mark=",",scientific=FALSE)`  
@@ -107,18 +111,6 @@ Average Number of Paired End Reads Per Sample After Trimming: `r prettyNum(sum(b
 ```
 qsub -q smp /home/data/saba/BNLx.SHR.Brain.Females.totalRNA/programs/alignTo.rRNA.femaleBrain.sh
 ```
-
-
-
-
-
-***STOPPED HERE***
-
-
-
-
-
-
 **move files**
 ```
 get SHR1.rRNA/align_summary.txt rRNA.summary.SHR1.txt
@@ -135,12 +127,12 @@ Proportion of Reads Aligned to rRNA
 -----------------------------------
 ```{r,echo=FALSE}
 rm(list=ls())
-setwd("/Volumes/LauraS/NextGenSeq/BNLx.SHR.Heart.totalRNA/data")
+setwd("/Volumes/LauraS/NextGenSeq/BNLx.SHR.Brain.Female.totalRNA/data")
 options(stringsAsFactors=FALSE)
 
 sampleList = paste(rep(c("BNLx","SHR"),each=4),c(1:4),sep="")
 
-alignStats = c()
+rStats = c()
 for(i in sampleList){
   x = read.table(file=paste("rRNA.summary.",i,".txt",sep=""),sep="\t",header=FALSE)
   sample = i
@@ -148,36 +140,43 @@ for(i in sampleList){
   mappedLeft = as.numeric(gsub(":","",gsub("Mapped","",unlist(lapply(strsplit(x[3,1],split="(",fixed=TRUE),function(a) a[1])))))
   mappedRight = as.numeric(gsub(":","",gsub("Mapped ","",unlist(lapply(strsplit(x[7,1],split="(",fixed=TRUE),function(a) a[1])))))
   mappedPairs = as.numeric(gsub("Aligned pairs: ","",x[10,1]))  
-  alignStats = rbind(alignStats,data.frame(sample,numReads,mappedLeft,mappedRight,mappedPairs))
+  rStats = rbind(rStats,data.frame(sample,numReads,mappedLeft,mappedRight,mappedPairs))
 }
 
-alignStats$numReadFrag = (alignStats$mappedLeft + alignStats$mappedRight)
-alignStats$numDeletedPairedReads = (alignStats$mappedLeft + alignStats$mappedRight - alignStats$mappedPairs)
+rStats$numReadFrag = (rStats$mappedLeft + rStats$mappedRight)
+rStats$numDeletedPairedReads = (rStats$mappedLeft + rStats$mappedRight - rStats$mappedPairs)
 
-alignStats = alignStats[,c("sample","numReads","numReadFrag","mappedPairs","numDeletedPairedReads")]
+rStats = rStats[,c("sample","numReads","numReadFrag","mappedPairs","numDeletedPairedReads")]
 
-alignTable = data.frame(sample=alignStats$sample,numTrimmedReads=prettyNum(alignStats$numReads,big.mark=","),numDeleted=prettyNum(alignStats$numDeletedPairedReads,big.mark=","),pctRiboReads=as.numeric(alignStats$numDeletedPairedReads)/as.numeric(alignStats$numReads),numRemaining=prettyNum(alignStats$numReads-alignStats$numDeletedPairedReads,big.mark=","))
+rTable = data.frame(sample=rStats$sample,numTrimmedReads=prettyNum(rStats$numReads,big.mark=",",scientific=FALSE),numDeleted=prettyNum(rStats$numDeletedPairedReads,big.mark=",",scientific=FALSE),pctRiboReads=as.numeric(rStats$numDeletedPairedReads)/as.numeric(rStats$numReads),numRemaining=prettyNum(rStats$numReads-rStats$numDeletedPairedReads,big.mark=",",scientific=FALSE))
 
-alignTable$pctRiboReads = paste(sprintf("%.1f",round(100*alignTable$pctRiboReads,1)),"%",sep="")
-colnames(alignTable) = c("Sample","Number of Paired-End Reads After Trimming","Number of Paired-End Reads with at Least One Fragment Aligned to rRNA","Percent of Paired-End Reads Aligned to rRNA","Number of Paired-End Reads NOT Aligned to rRNA")
+rTable$pctRiboReads = paste(sprintf("%.1f",round(100*rTable$pctRiboReads,1)),"%",sep="")
+colnames(rTable) = c("Sample","Number of Paired-End Reads After Trimming","Number of Paired-End Reads with at Least One Fragment Aligned to rRNA","Percent of Paired-End Reads Aligned to rRNA","Number of Paired-End Reads NOT Aligned to rRNA")
 ```
 
 ```{r, results='asis',echo=FALSE}
-kable(alignTable,align=rep("c",ncol(alignTable)))
+kable(rTable,align=rep("c",ncol(rTable)),row.names=FALSE)
 ```
 
-6.  Convert unmapped.bam file into fastq files
+**Total Number of Paired End Reads After Eliminating rRNA Aligned Reads:** `r prettyNum(sum(rStats$numReads-rStats$numDeletedPairedReads),big.mark=",",scientific=FALSE)`  
+**Average Number of Paired End Reads Per Sample After Eliminating rRNA Aligned Reads:** `r prettyNum(mean(rStats$numReads-rStats$numDeletedPairedReads),big.mark=",",scientific=FALSE)`  
+**Average Percent of Paired End Reads Eliminated Due to Alignment to rRNA:** `r paste(sprintf("%.1f",round(mean(100*rStats$numDeletedPairedReads/rStats$numReads))),"%",sep="")`  
+
+
+6.  Convert unmapped.bam file into fastq files - DONE
 -----------------------------------------------
 ```
-qsub -q smp /home/data/saba/BNLx.SHR.Heart.totalRNA/programs/convertToFastQ.heart.sh
+qsub -q smp /home/data/saba/BNLx.SHR.Brain.Females.totalRNA/programs/convertToFastQ.female.brain.sh
 ```
 
-7. Align to strain-specific genome
+7. Align to strain-specific genome - RUNNING (started 7/18/14)
 ---------------
 ```
-qsub -q smp /home/data/saba/BNLx.SHR.Heart.totalRNA/programs/updateRatGenome.wChrM.sh
-qsub -q smp /home/data/saba/BNLx.SHR.Heart.totalRNA/programs/tophatAlign.heart.sh
+qsub -q smp /home/data/saba/BNLx.SHR.Brain.Females.totalRNA/programs/tophatAlign.female.brain.sh
 ```
+
+
+***STOPPED HERE***
 
 8. Sort and merge BAM files by strain
 ---------------

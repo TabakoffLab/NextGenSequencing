@@ -1,11 +1,13 @@
-BN-Lx and SHR left ventricle total RNA RNA-Seq
+BN-Lx and SHR Heart (Left Ventricle) Total RNA RNA-Seq
 ========================================================
 
 * 4 samples per strain (SHR1, SHR2, SHR3, SHR4, BNLx1, BNLx2, BNLx3, BNLx4)
 * ribosomal RNA depleted total RNA
 * 2X100 reads using the stranded protocol
 * sequencing done by Beckman Coulter Genomics - received May 22, 2014
-* synthetic spike-in were added to each sample (SHR1, SHR3, BNLx2, and BNLx4 have mix 1; SHR2, SHR4, BNLx1, and BNLx3 have mix 2)
+* synthetic spike-in were added to each sample 
+  * SHR1, SHR3, BNLx2, and BNLx4 have mix 1; SHR2, SHR4, BNLx1, and BNLx3 have mix 2
+  * 4 mL of 1:100 diluted spikes were add after RNA extraction but before rRNA-depletion
   * Information regarding the spike-ins can be found here: http://products.invitrogen.com/ivgn/product/4456739
 
 1. Unzip Files - DONE
@@ -103,7 +105,8 @@ Average Number of Paired End Reads Per Sample After Trimming: `r prettyNum(mean(
 5. Align to ribosomal RNA - DONE
 ---------------------------
 ```
-qsub -q smp /home/data/saba/BNLx.SHR.Heart.totalRNA/programs/alignTo.rRNA.heart.01Jul14.sh
+qsub -q smp /storage/saba/BNLx.SHR.Heart.totalRNA/programs/alignTo.rRNA.heart.26Aug14.sh
+qsub -q smp /storage/saba/BNLx.SHR.Heart.totalRNA/programs/alignTo.rRNA.heart.SHR2.sh
 ```
 **move files**
 ```
@@ -152,24 +155,27 @@ colnames(rTable) = c("Sample","Number of Paired-End Reads After Trimming","Numbe
 kable(rTable,align=rep("c",ncol(rTable)))
 ```
 
-6.  Convert unmapped.bam file into fastq files - DONE
+6.  Convert unmapped.bam file into fastq files - 
 -----------------------------------------------
 ```
-qsub -q smp /home/data/saba/BNLx.SHR.Heart.totalRNA/programs/convertToFastQ.heart.sh
+qsub -q smp /storage/saba/BNLx.SHR.Heart.totalRNA/programs/convertToFastQ.heart.sh
+qsub -q smp /storage/saba/BNLx.SHR.Heart.totalRNA/programs/convertToFastQ.heart.v2.sh
 ```
 
-7. Align to strain-specific genome - DONE
+7. Align to strain-specific genome - 
 ---------------
 ```
 qsub -q smp /home/data/saba/BNLx.SHR.Heart.totalRNA/programs/updateRatGenome.wChrM.sh
-qsub -q smp /home/data/saba/BNLx.SHR.Heart.totalRNA/programs/tophatAlign.heart.sh
+qsub -q smp /storage/saba/BNLx.SHR.Heart.totalRNA/programs/tophatAlign.heart.SHR.sh
+qsub -q smp /storage/saba/BNLx.SHR.Heart.totalRNA/programs/tophatAlign.heart.BNLx.sh
+
 ```
 
-8. Sort and merge BAM files by strain - DONE
+8. Sort and merge BAM files by strain - 
 ---------------
 ```
-qsub -q smp /home/data/saba/BNLx.SHR.Heart.totalRNA/programs/sortAndMerge.heart.BNLx.sh
-qsub -q smp /home/data/saba/BNLx.SHR.Heart.totalRNA/programs/sortAndMerge.heart.SHR.sh
+qsub -q smp /storage/saba/BNLx.SHR.Heart.totalRNA/programs/sortAndMerge.heart.BNLx.sh
+qsub -q smp /storage/saba/BNLx.SHR.Heart.totalRNA/programs/sortAndMerge.heart.SHR.sh
 ```
 
 
@@ -241,6 +247,11 @@ colnames(alignTable) = c("Label",paste(rep(sampleList,each=2),rep(c(" (num)"," (
 ```{r, results='asis',echo=FALSE,eval=TRUE}
 kable(alignTable,align=rep("c",ncol(alignTable)),row.names=FALSE)
 ```
+**Total Number of Aligned Paired End Reads:** `r prettyNum(sum(alignStats$mappedPairs),big.mark=",",scientific=FALSE)`    
+**Total Number of Aligned Read Fragments:** `r prettyNum(sum(alignStats[,c("mappedRight","mappedLeft")]),big.mark=",",scientific=FALSE)`  
+**Average Number of Aligned Read Fragments Per Sample:** `r prettyNum(mean(rowSums(alignStats[,c("mappedRight","mappedLeft")])),big.mark=",",scientific=FALSE)`  
+**Average Rate of Alignment (Read Fragments):** `r paste(sprintf("%.1f",round(100*mean(rowSums(alignStats[,c("mappedLeft","mappedRight")])/(alignStats$numReads*2)),1)),"%",sep="")`  
+
 
 ### Characteristics of Alignments
 ```
@@ -276,6 +287,7 @@ plot(hclust(as.dist(1-cor(t(pctBySampleChr))),method="average"),main="Comparison
 ```
 
 ```{r,echo=FALSE}
+
 controls = chrCnts[grep("ER",chrCnts$id),]
 
 spikes = read.table(file="/Volumes/LauraS/BxH.HxB.Rats/RNA-Seq/spikeSource/ERCC_Controls_Analysis.txt",sep="\t",header=TRUE)
@@ -296,28 +308,33 @@ colnames(spikeSummary) = c("Sample","Num of Read Fragments","Num of rRNA Aligned
 kable(spikeSummary,align=rep("c",ncol(spikeSummary)),row.names=FALSE)
 ```
 
-9. Create BigWig Files - RUNNING
+
+```{r}
+
+ercc = merge(controls,spikes,by.x="id",by.y="ERCC.ID")
+
+plot(ercc$Mix.2,ercc$SHR2,ylim=c(0,630000))
+points(ercc$Mix.1,ercc$BNLx4,col="blue")
+
+plot(ercc$SHR2[ercc$Mix.1==ercc$Mix.2],ercc$BNLx4[ercc$Mix.1==ercc$Mix.2])
+summary(lm(BNLx4 ~ SHR2,data=ercc[ercc$Mix.1==ercc$Mix.2,]))
+abline(a=161,b=2.711)
+
+plot(ercc$SHR1,ercc$BNLx4)
+test = lm(BNLx4 ~ SHR1,data=ercc)
+abline(a=161,b=2.711)
+
+```
+
+
+
+8. Transcriptome Reconstruction (Ensembl-Guided) - 
 ---------------
-```
-qsub -q smp /home/data/saba/BNLx.SHR.Heart.totalRNA/programs/createBigWig.heart.sh
-```
 
-**UCSC Browser Tracks**
+Trying to speed things up by using a mask on mitochondrial genes
 ```
-track type=bigWig name="SHR.plus.heart" description="SHR Total RNA Heart - plus strand" bigDataUrl=http://ucsc:JU7etr5t@phenogen.ucdenver.edu/ucsc/SHR.heart.genome.plus.bw
-
-track type=bigWig name="SHR.minus.heart" description="SHR Total RNA Heart - minus strand" bigDataUrl=http://ucsc:JU7etr5t@phenogen.ucdenver.edu/ucsc/SHR.heart.genome.minus.bw
-
-track type=bigWig name="BNLx.plus.heart" description="BNLx Total RNA Heart - plus strand" bigDataUrl=http://ucsc:JU7etr5t@phenogen.ucdenver.edu/ucsc/BNLx.heart.genome.plus.bw
-
-track type=bigWig name="BNLx.minus.heart" description="BNLx Total RNA Heart - minus strand" bigDataUrl=http://ucsc:JU7etr5t@phenogen.ucdenver.edu/ucsc/BNLx.heart.genome.minus.bw
-```
-
-9. Transcriptome Reconstruction (Ensembl-Guided) - RUNNING (started 8am 7/14/14)
----------------
-```
-qsub -q smp /home/data/saba/BNLx.SHR.Heart.totalRNA/programs/reconSHR.heart.sh
-qsub -q smp /home/data/saba/BNLx.SHR.Heart.totalRNA/programs/reconBNLx.heart.sh
+qsub -q smp /storage/saba/BNLx.SHR.Heart.totalRNA/programs/reconWMaskSHR.heart.sh
+qsub -q smp /storage/saba/BNLx.SHR.Heart.totalRNA/programs/reconWMaskBNLx.heart.sh
 ```
 
 

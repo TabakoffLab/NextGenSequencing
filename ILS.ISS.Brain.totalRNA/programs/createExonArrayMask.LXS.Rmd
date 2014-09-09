@@ -12,6 +12,9 @@ recon$V1 = paste("chr",recon$V1,sep="")
 recon$transcript_id = unlist(lapply(strsplit(recon$V9,split=";",fixed=TRUE),function(a) gsub(" transcript_id ","",a[2])))
 recon$gene_id = unlist(lapply(strsplit(recon$V9,split=";",fixed=TRUE),function(a) gsub("gene_id ","",a[1])))
 
+length(unique(recon$transcript_id))
+length(unique(recon$gene_id))
+
 recon$exonID = paste(recon$V1,":",recon$V4,"-",recon$V5,sep="")
 recon$ID = paste(recon$exonID,";",recon$transcript_id,sep="")
 
@@ -127,6 +130,9 @@ load("data/reducedDABG.Rdata")
 
 isoform = read.table(file="data/totalReconstruction.withStrand.isoformLevel.txt",sep="\t",header=TRUE)
 gene = read.table(file="data/totalReconstruction.withStrand.geneLevel.txt",sep="\t",header=TRUE)
+
+gene = gene[gene$probeset_id %in% rownames(gene.rma),]
+length(unique(gene$transcript_cluster_id))
 
 numPresent = rowSums(gene.dabg[,grep("LXS",colnames(gene.rma))]<0.0001)/sum(grepl("LXS",colnames(gene.rma)))
 datExpr = gene.rma[names(numPresent)[numPresent>0.5],grep("LXS",colnames(gene.rma))]

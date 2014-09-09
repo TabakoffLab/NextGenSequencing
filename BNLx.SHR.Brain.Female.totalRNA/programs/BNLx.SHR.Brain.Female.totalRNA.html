@@ -148,9 +148,19 @@ hr {
 <li>4 samples per strain (SHR1, SHR2, SHR3, SHR4, BNLx1, BNLx2, BNLx3, BNLx4)</li>
 <li>ribosomal RNA depleted total RNA</li>
 <li>2X100 reads using the stranded protocol</li>
-<li>sequencing done by Beckman Coulter Genomics - received June 18th, 2014</li>
-<li>synthetic spike-in were added to each sample (SHR1, SHR3, BNLx2, and BNLx4 have mix 1; SHR2, SHR4, BNLx1, and BNLx3 have mix 2)</li>
+<li>sequencing done by Beckman Coulter Genomics - received June 18th, 2014
+
+<ul>
+<li>sequenced on HiSeq2500 (rapid runs)</li>
+<li>each sample was pooled with a sample from the opposite strain and each pool was put into two lanes of the HiSeq2500</li>
+</ul></li>
+<li>synthetic spike-in were added to each sample 
+
+<ul>
+<li>SHR1, SHR3, BNLx2, and BNLx4 have mix 1; SHR2, SHR4, BNLx1, and BNLx3 have mix 2</li>
+<li>4 microliters of 1:100 diluted spikes were add after RNA extraction but before rRNA-depletion</li>
 <li>Information regarding the spike-ins can be found here: <a href="http://products.invitrogen.com/ivgn/product/4456739">http://products.invitrogen.com/ivgn/product/4456739</a></li>
+</ul></li>
 </ul>
 
 <h2>1. Unzip Files </h2>
@@ -167,7 +177,6 @@ hr {
 
 <table><thead>
 <tr>
-<th align="left">id</th>
 <th align="center">sample</th>
 <th align="center">lane</th>
 <th align="center">Number of Paired-End Reads</th>
@@ -175,112 +184,96 @@ hr {
 </tr>
 </thead><tbody>
 <tr>
-<td align="left">1</td>
 <td align="center">BNLx1</td>
 <td align="center">L001</td>
 <td align="center">62,784,996</td>
 <td align="center">125,569,992</td>
 </tr>
 <tr>
-<td align="left">9</td>
 <td align="center">BNLx1</td>
 <td align="center">L002</td>
 <td align="center">64,290,267</td>
 <td align="center">128,580,534</td>
 </tr>
 <tr>
-<td align="left">2</td>
 <td align="center">BNLx2</td>
 <td align="center">L001</td>
 <td align="center">68,391,044</td>
 <td align="center">136,782,088</td>
 </tr>
 <tr>
-<td align="left">10</td>
 <td align="center">BNLx2</td>
 <td align="center">L002</td>
 <td align="center">68,269,835</td>
 <td align="center">136,539,670</td>
 </tr>
 <tr>
-<td align="left">3</td>
 <td align="center">BNLx3</td>
 <td align="center">L001</td>
 <td align="center">64,358,304</td>
 <td align="center">128,716,608</td>
 </tr>
 <tr>
-<td align="left">11</td>
 <td align="center">BNLx3</td>
 <td align="center">L002</td>
 <td align="center">66,204,000</td>
 <td align="center">132,408,000</td>
 </tr>
 <tr>
-<td align="left">4</td>
 <td align="center">BNLx4</td>
 <td align="center">L001</td>
 <td align="center">51,229,872</td>
 <td align="center">102,459,744</td>
 </tr>
 <tr>
-<td align="left">12</td>
 <td align="center">BNLx4</td>
 <td align="center">L002</td>
 <td align="center">51,698,100</td>
 <td align="center">103,396,200</td>
 </tr>
 <tr>
-<td align="left">5</td>
 <td align="center">SHR1</td>
 <td align="center">L001</td>
 <td align="center">60,154,945</td>
 <td align="center">120,309,890</td>
 </tr>
 <tr>
-<td align="left">13</td>
 <td align="center">SHR1</td>
 <td align="center">L002</td>
 <td align="center">61,642,412</td>
 <td align="center">123,284,824</td>
 </tr>
 <tr>
-<td align="left">6</td>
 <td align="center">SHR2</td>
 <td align="center">L001</td>
 <td align="center">49,555,245</td>
 <td align="center">99,110,490</td>
 </tr>
 <tr>
-<td align="left">14</td>
 <td align="center">SHR2</td>
 <td align="center">L002</td>
 <td align="center">49,452,858</td>
 <td align="center">98,905,716</td>
 </tr>
 <tr>
-<td align="left">7</td>
 <td align="center">SHR3</td>
 <td align="center">L001</td>
 <td align="center">62,786,750</td>
 <td align="center">125,573,500</td>
 </tr>
 <tr>
-<td align="left">15</td>
 <td align="center">SHR3</td>
 <td align="center">L002</td>
 <td align="center">64,265,863</td>
 <td align="center">128,531,726</td>
 </tr>
 <tr>
-<td align="left">8</td>
 <td align="center">SHR4</td>
 <td align="center">L001</td>
 <td align="center">68,375,841</td>
 <td align="center">136,751,682</td>
 </tr>
 <tr>
-<td align="left">16</td>
 <td align="center">SHR4</td>
 <td align="center">L002</td>
 <td align="center">68,643,223</td>
@@ -487,8 +480,6 @@ Average Number of Paired End Reads Per Sample After Trimming: 121,284,185  </p>
 <pre><code>qsub -q smp /home/data/saba/BNLx.SHR.Brain.Females.totalRNA/programs/alignTo.rRNA.femaleBrain.sh
 </code></pre>
 
-<p><strong><em>STOPPED HERE</em></strong></p>
-
 <p><strong>move files</strong></p>
 
 <pre><code>get SHR1.rRNA/align_summary.txt rRNA.summary.SHR1.txt
@@ -514,72 +505,77 @@ get BNLx4.rRNA/align_summary.txt rRNA.summary.BNLx4.txt
 </thead><tbody>
 <tr>
 <td align="center">BNLx1</td>
-<td align="center">99,471,069</td>
-<td align="center">3,577,529</td>
-<td align="center">3.6%</td>
-<td align="center">95,893,540</td>
+<td align="center">125,313,193</td>
+<td align="center">6,050,278</td>
+<td align="center">4.8%</td>
+<td align="center">119,262,915</td>
 </tr>
 <tr>
 <td align="center">BNLx2</td>
-<td align="center">102,155,190</td>
-<td align="center">6,192,366</td>
-<td align="center">6.1%</td>
-<td align="center">95,962,824</td>
+<td align="center">134,874,303</td>
+<td align="center">15,043,918</td>
+<td align="center">11.2%</td>
+<td align="center">119,830,385</td>
 </tr>
 <tr>
 <td align="center">BNLx3</td>
-<td align="center">96,263,241</td>
-<td align="center">3,687,942</td>
-<td align="center">3.8%</td>
-<td align="center">92,575,299</td>
+<td align="center">129,251,687</td>
+<td align="center">16,080,441</td>
+<td align="center">12.4%</td>
+<td align="center">113,171,246</td>
 </tr>
 <tr>
 <td align="center">BNLx4</td>
-<td align="center">95,300,383</td>
-<td align="center">5,035,410</td>
-<td align="center">5.3%</td>
-<td align="center">90,264,973</td>
+<td align="center">101,953,751</td>
+<td align="center">4,891,544</td>
+<td align="center">4.8%</td>
+<td align="center">97,062,207</td>
 </tr>
 <tr>
 <td align="center">SHR1</td>
-<td align="center">90,207,317</td>
-<td align="center">8,244,503</td>
-<td align="center">9.1%</td>
-<td align="center">81,962,814</td>
+<td align="center">120,229,520</td>
+<td align="center">3,224,820</td>
+<td align="center">2.7%</td>
+<td align="center">117,004,700</td>
 </tr>
 <tr>
 <td align="center">SHR2</td>
-<td align="center">87,660,464</td>
-<td align="center">3,898,849</td>
-<td align="center">4.4%</td>
-<td align="center">83,761,615</td>
+<td align="center">98,080,359</td>
+<td align="center">10,168,864</td>
+<td align="center">10.4%</td>
+<td align="center">87,911,495</td>
 </tr>
 <tr>
 <td align="center">SHR3</td>
-<td align="center">90,342,353</td>
-<td align="center">17,765,222</td>
-<td align="center">19.7%</td>
-<td align="center">72,577,131</td>
+<td align="center">125,163,318</td>
+<td align="center">2,556,359</td>
+<td align="center">2.0%</td>
+<td align="center">122,606,959</td>
 </tr>
 <tr>
 <td align="center">SHR4</td>
-<td align="center">99,677,640</td>
-<td align="center">7,391,434</td>
-<td align="center">7.4%</td>
-<td align="center">92,286,206</td>
+<td align="center">135,407,350</td>
+<td align="center">3,074,718</td>
+<td align="center">2.3%</td>
+<td align="center">132,332,632</td>
 </tr>
 </tbody></table>
 
-<h2>6.  Convert unmapped.bam file into fastq files</h2>
+<p><strong>Total Number of Paired End Reads After Eliminating rRNA Aligned Reads:</strong> 909,182,539<br/>
+<strong>Average Number of Paired End Reads Per Sample After Eliminating rRNA Aligned Reads:</strong> 113,647,817<br/>
+<strong>Average Percent of Paired End Reads Eliminated Due to Alignment to rRNA:</strong> 6.0%  </p>
 
-<pre><code>qsub -q smp /home/data/saba/BNLx.SHR.Heart.totalRNA/programs/convertToFastQ.heart.sh
+<h2>6.  Convert unmapped.bam file into fastq files - DONE</h2>
+
+<pre><code>qsub -q smp /home/data/saba/BNLx.SHR.Brain.Females.totalRNA/programs/convertToFastQ.female.brain.sh
 </code></pre>
 
-<h2>7. Align to strain-specific genome</h2>
+<h2>7. Align to strain-specific genome - RUNNING (started 7/18/14)</h2>
 
-<pre><code>qsub -q smp /home/data/saba/BNLx.SHR.Heart.totalRNA/programs/updateRatGenome.wChrM.sh
-qsub -q smp /home/data/saba/BNLx.SHR.Heart.totalRNA/programs/tophatAlign.heart.sh
+<pre><code>qsub -q smp /home/data/saba/BNLx.SHR.Brain.Females.totalRNA/programs/tophatAlign.female.brain.sh
 </code></pre>
+
+<p><strong><em>STOPPED HERE</em></strong></p>
 
 <h2>8. Sort and merge BAM files by strain</h2>
 

@@ -1,0 +1,161 @@
+Exploring Spike-In Normalization
+========================================================
+
+Create Ensembl Gene BED Files
+----------------------------
+```{r}
+rm(list=ls())
+options(stringsAsFactors=FALSE)
+setwd("/Volumes/LauraS/")
+
+orig = read.table(file="gtfFiles/ensembl.proteinCoding.RGSC5.0.rn5.bed",sep="\t",header=FALSE)
+anno = read.table(file="annotation/ensemblGenes.Rnor_5.0.08Jul14.txt",sep="\t",header=TRUE)
+
+new = merge(orig,anno,by.x="V4",by.y="EnsemblTranscriptID")
+
+byGene = aggregate(new$V2,by=list(geneID=new$EnsemblGeneID,geneSymbol=new$GeneSymbol,V1=new$V1,V6=new$V6),min)
+colnames(byGene)[ncol(byGene)]="V2"
+
+byGene = merge(byGene,aggregate(new$V3,by=list(geneID=new$EnsemblGeneID),max),by="geneID")
+colnames(byGene)[ncol(byGene)]="V3"
+
+byGene$label = paste(byGene$geneID,byGene$geneSymbol,sep=";")
+byGene$V5=1000
+
+bedFormat = byGene[,c("V1","V2","V3","label","V5","V6")]
+write.table(bedFormat,file="gtfFiles/ensembl.proteinCodingGenes.RGSC5.0.rn5.bed",sep="\t",row.names=FALSE,col.names=FALSE,quote=FALSE)
+```
+
+Count number of alignments by Ensembl protein-coding gene
+-----------------------
+```
+qsub -q smp /home/data/saba/BNLx.SHR.Heart.totalRNA/programs/quant.ensGene.heart.sh
+```
+
+Pull in ensembl protein-coding gene counts
+----------------------------
+```{r}
+rm(list=ls())
+options(stringsAsFactors=FALSE)
+setwd("/Volumes/LauraS/BNLx.SHR/RNA-Seq.Heart/totalRNA/quantitation/ensGene.cnts")
+
+sampleList = paste(rep(c("SHR","BNLx"),each=4),c(1:4),sep="")
+
+for (sample in sampleList){
+  cnt = read.table(file=paste("ensGene.cnts.",sample,".txt",sep=""),header=FALSE)
+  cnt = cnt[,c("V4","V8")]
+  colnames(cnt) = c("gene",sample)
+  if(sample==sampleList[1]) geneCnt = cnt
+  if(sample!=sampleList[1]) geneCnt = merge(geneCnt,cnt,by="gene",all=TRUE)
+  }
+
+for(sample in sampleList){
+  x = read.table(file=paste("/Volumes/LauraS/NextGenSeq/BNLx.SHR.Heart.totalRNA/data/countByChr.",sample,".heart.txt",sep=""),header=FALSE,sep="\t")
+  colnames(x) = c("id","length",sample,"V4")
+  x = x[,-4]
+  if(sample==sampleList[1]) chrCnts = x
+  if(sample!=sampleList[1]) chrCnts = merge(chrCnts,x,by=c("id","length"))
+}
+
+geneCnt = geneCnt[order(geneCnt$SHR1,decreasing=TRUE),]
+geneCnt[is.na(geneCnt)] = 0
+expGene = geneCnt[rowSums(geneCnt[,-1]==0)==0,]
+spikeCnt = chrCnts[grep("ERCC",chrCnts$id),]
+
+expGene$ratio.SHR1 = apply(expGene[,-1],1,median)/expGene$SHR1
+expGene$ratio.SHR2 = apply(expGene[,-1],1,median)/expGene$SHR2
+expGene$ratio.SHR3 = apply(expGene[,-1],1,median)/expGene$SHR3
+expGene$ratio.SHR4 = apply(expGene[,-1],1,median)/expGene$SHR4
+
+expGene$ratio.BNLx1 = apply(expGene[,-1],1,median)/expGene$BNLx1
+expGene$ratio.BNLx2 = apply(expGene[,-1],1,median)/expGene$BNLx2
+expGene$ratio.BNLx3 = apply(expGene[,-1],1,median)/expGene$BNLx3
+expGene$ratio.BNLx4 = apply(expGene[,-1],1,median)/expGene$BNLx4
+
+summary(expGene$ratio.SHR1)
+summary(expGene$ratio.SHR2)
+summary(expGene$ratio.SHR3)
+summary(expGene$ratio.SHR4)
+
+summary(expGene[,grep("ratio",colnames(expGene))])
+
+colSums(expGene[,c("SHR1","SHR2","SHR3","SHR4")])
+
+FPKM = apply(expGene[,sampleList],1,function(a) 1000000*a/colSums(expGene[,sampleList]))
+dim(FPKM)
+FPKM[,1:5]
+
+FPKM.ratios = apply(FPKM,2,function(a) a/median(a))
+summary(t(FPKM.ratios))
+boxplot(t(FPKM.ratios),ylim=c(0,2))
+abline(h=1,col="red")
+
+FPKM.v2 = apply(expGene[,sampleList],1,function(a) 1000000*a/colSums(chrCnts[,sampleList]))
+FPKM.v2.ratios = apply(FPKM.v2,2,function(a) a/median(a))
+summary(t(FPKM.v2.ratios))
+
+boxplot(t(FPKM.v2.ratios))
+abline(h=1,col="red")
+
+
+FPKM.spike = apply(expGene[,sampleList],1,function(a) 1000000*a/colSums(spikeCnt[,sampleList]))
+FPKM.spike.ratios = apply(FPKM.spike,2,function(a) a/median(a))
+summary(t(FPKM.spike.ratios))
+boxplot(t(FPKM.spike.ratios))
+abline(h=1,col="red")
+
+
+rawReads = c(186461866,180306588,187885132,207556362,204833468,210693838,203099632,198509460)
+names(rawReads) = sampleList
+
+plot(colSums(spikeCnt[,sampleList]) / colSums(expGene[,sampleList]),colSums(spikeCnt[,sampleList]) /rawReads[sampleList])
+abline(a=0,b=1,col="red")
+
+summary(lm(colSums(expGene[,sampleList]) ~ colSums(spikeCnt[,sampleList])))
+
+###  DESeq  ###
+library(limma)
+library(DESeq) 
+
+mix = as.factor(paste("mix",c(2,1,2,1,1,2,1,2),sep=""))
+mix.design = model.matrix(~ mix)
+
+##  DESeq Size Factors - Spike-Ins Only
+spikes = spikeCnt[,sampleList]
+rownames(spikes) = spikeCnt$id
+spikes = spikes[rowSums(spikes)>50,]
+
+cds = newCountDataSet(spikes, mix)
+#cds = estimateSizeFactors(cds)
+sizeFactors(cds) = colSums(spikes)
+#sizeFactors(cds) = colSums(geneCnt[,sampleList])/rawReads[sampleList]
+cds = estimateDispersions(cds)
+
+res = nbinomTest(cds,"mix1","mix2")
+ercc = read.table(file="/Volumes/LauraS/BxH.HxB.Rats/RNA-Seq/spikeSource/ERCC_Controls_Analysis.txt",sep="\t",header=TRUE)
+results = merge(res,ercc,by.x="id",by.y="ERCC.ID")
+boxplot(log2FoldChange ~ log2.Mix.1.Mix.2.,data=results)
+abline(h=-1)
+abline(h=-0.58)
+abline(h=0)
+abline(h=2)
+
+##  DESeq Size Factors - Ensembl Genes
+ensembl = expGene[,-1]
+rownames(ensembl) = expGene[,1]
+strain = as.factor(rep(c("SHR","BNLx"),each=4))
+
+cds = newCountDataSet(ensembl, strain)
+cds = estimateSizeFactors(cds)
+#sizeFactors(cds) = colSums(spikes)
+#sizeFactors(cds) = colSums(geneCnt[,sampleList])/rawReads[sampleList]
+cds = estimateDispersions(cds)
+
+res = nbinomTest(cds,"SHR","BNLx")
+boxplot(res$log2FoldChange)
+abline(h=0,col="red")
+
+summary(res$log2FoldChange)
+
+head(res[order(res$pval),],10)
+```

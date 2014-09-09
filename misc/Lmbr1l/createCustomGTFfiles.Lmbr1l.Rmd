@@ -1,0 +1,47 @@
+Title
+========================================================
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring web pages (click the **Help** toolbar button for more details on using R Markdown).
+
+When you click the **Knit HTML** button a web page will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+rm(list=ls())
+options(stringsAsFactors=FALSE)
+setwd("/Volumes/LauraS/BNLx.SHR")
+heart = read.table(file = "RNA-Seq.Heart/totalRNA/reconstruction/SHR.Heart.ensemblGuided.wMask/transcripts.gtf",sep="\t",header=FALSE)
+
+heart.v1 = heart[grep("CUFF.166029.1",heart$V9),]
+heart.v1$V9 = gsub("CUFF.166029.1","unannotated_FPKM:0.67",heart.v1$V9)
+heart.v2 = heart[grep("ENSRNOT00000046287",heart$V9),]
+heart.v2$V9 = gsub("ENSRNOT00000046287","ENSRNOT00000046287_FPKM:1.33",heart.v2$V9)
+heart.gtf = rbind(heart.v1,heart.v2)
+
+trackLine = "track name='Heart' description='Lmbr1l - Top 2 Isoforms' visibility=3 color=228,26,28"
+write.table(trackLine,file="RNA-Seq.Heart/totalRNA/reconstruction/SHR.Heart.ensemblGuided.wMask/Lmbrl1.heart.gtf",sep="\t",row.names=FALSE,col.names=FALSE,quote=FALSE)
+write.table(heart.gtf,file="RNA-Seq.Heart/totalRNA/reconstruction/SHR.Heart.ensemblGuided.wMask/Lmbrl1.heart.gtf",sep="\t",row.names=FALSE,col.names=FALSE,quote=FALSE,append=TRUE)
+
+brain = read.table(file = "RNA-Seq.Brain.total/reconstruction/reconstruct.total.brain.23Jul14.v2.gtf",sep="\t",header=FALSE)
+brain.v1 = brain[grep("BNLx.16551.1",brain$V9),]
+brain.v1$V9 = gsub("BNLx.16551.1","unannotated_FPKM:1.87",brain.v1$V9)
+brain.v2 = brain[grep("ENSRNOT00000046287",brain$V9),]
+brain.v2$V9 = gsub("ENSRNOT00000046287","ENSRNOT00000046287_FPKM:1.95",brain.v2$V9)
+brain.gtf = rbind(brain.v1,brain.v2)
+
+trackLine = "track name='Brain' description='Lmbr1l - Top 2 Isoforms' visibility=3 color=55,126,184"
+write.table(trackLine,file="RNA-Seq.Brain.total/reconstruction/Lmbrl1.brain.gtf",sep="\t",row.names=FALSE,col.names=FALSE,quote=FALSE)
+write.table(brain.gtf,file="RNA-Seq.Brain.total/reconstruction/Lmbrl1.brain.gtf",sep="\t",row.names=FALSE,col.names=FALSE,quote=FALSE,append=TRUE)
+
+liver = read.table(file = "RNA-Seq.Liver/totalRNA.UCD/reconstruction/BNLx.Liver.UCD.ensemblGuided/transcripts.gtf",sep="\t",header=FALSE)
+liver.v1 = liver[grep("CUFF.111706.3",liver$V9),]
+liver.v1$V9 = gsub("CUFF.111706.3","unannotated1_FPKM:0.82",liver.v1$V9)
+liver.v2 = liver[grep("CUFF.111706.2",liver$V9),]
+liver.v2$V9 = gsub("CUFF.111706.2","unannotated2_FPKM:0.50",liver.v2$V9)
+liver.gtf = rbind(liver.v1,liver.v2)
+trackLine = "track name='Liver' description='Lmbr1l - Top 2 Isoforms' visibility=3 color=77,175,74"
+write.table(trackLine,file="RNA-Seq.Liver/totalRNA.UCD/reconstruction/BNLx.Liver.UCD.ensemblGuided/Lmbrl1.liver.gtf",sep="\t",row.names=FALSE,col.names=FALSE,quote=FALSE)
+write.table(liver.gtf,file="RNA-Seq.Liver/totalRNA.UCD/reconstruction/BNLx.Liver.UCD.ensemblGuided/Lmbrl1.liver.gtf",sep="\t",row.names=FALSE,col.names=FALSE,quote=FALSE,append=TRUE)
+
+
+
+```

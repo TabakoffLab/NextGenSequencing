@@ -1,0 +1,34 @@
+Examine Unannotated polyA+ Transcripts
+========================================================
+
+```{r}
+rm(list=ls())
+options(stringsAsFactors=FALSE)
+polya = read.table(file="/Volumes/saba/BNLx.SHR/RNA-Seq.Brain.polyA/unannotated/unannotated.brain.polyA_BLAToutput_noRandom.txt",sep="\t",header=TRUE)
+
+sum(polya$match==polya$qSize)
+length(unique(polya$qName))
+
+reduced = polya[polya$match/polya$qSize>0.75,]
+
+dups = reduced[reduced$qName %in% reduced$qName[duplicated(reduced$qName)],]
+dups = dups[order(dups$qName),]
+
+table(table(dups$qName))
+length(unique(dups$qName))
+
+dups.qName = aggregate(dups$qName,by=list(dups$qName),length)
+dups.qName[grepl("matched",dups.qName$Group.1) & dups.qName$x==2,]
+
+dups[dups$qName=="rn5_ct_UserTrack_3545_matched.12921.1",]
+unique(dups$qName)[1:10]
+
+dups.qName$Group.1
+```
+
+You can also embed plots, for example:
+
+```{r fig.width=7, fig.height=6}
+plot(cars)
+```
+

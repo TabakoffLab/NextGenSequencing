@@ -136,7 +136,7 @@ colnames(rTable) = c("Sample","Number of Paired-End Reads After Trimming","Numbe
 ```
 
 ```{r, results='asis',echo=FALSE}
-kable(rTable,align=rep("c",ncol(alignTable)))
+kable(rTable,align=rep("c",ncol(rTable)))
 ```
 
 Total Number of Paired End Reads After Eliminating rRNA Aligned Reads: `r prettyNum(sum(rStats$numReads-rStats$numDeletedPairedReads),big.mark=",",scientific=FALSE)`    
@@ -226,8 +226,9 @@ kable(alignTable,align=rep("c",ncol(alignTable)),row.names=FALSE)
 ```
 
 Total Number of Aligned Paired End Reads: `r prettyNum(sum(alignStats$mappedPairs),big.mark=",",scientific=FALSE)`    
-Total Number of Aligned Read Fragments: `r prettyNum(sum(alignStats[,c("mappedRight","mappedLeft")]),big.mark=",",scientific=FALSE)` 
+Total Number of Aligned Read Fragments: `r prettyNum(sum(alignStats[,c("mappedRight","mappedLeft")]),big.mark=",",scientific=FALSE)`  
 Average Number of Aligned Read Fragments Per Sample: `r prettyNum(mean(rowSums(alignStats[,c("mappedRight","mappedLeft")])),big.mark=",",scientific=FALSE)`  
+**Average Rate of Alignment (Read Fragments):** `r paste(sprintf("%.1f",round(100*mean(rowSums(alignStats[,c("mappedLeft","mappedRight")])/(alignStats$numReads*2)),1)),"%",sep="")`  
 
 ### Statistics By Chromosome and By Spike
 ```

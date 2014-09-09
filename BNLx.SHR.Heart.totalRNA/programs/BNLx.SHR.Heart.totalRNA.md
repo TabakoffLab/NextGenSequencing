@@ -5,8 +5,10 @@ BN-Lx and SHR left ventricle total RNA RNA-Seq
 * ribosomal RNA depleted total RNA
 * 2X100 reads using the stranded protocol
 * sequencing done by Beckman Coulter Genomics - received May 22, 2014
-* synthetic spike-in were added to each sample (SHR1, SHR3, BNLx2, and BNLx4 have mix 1; SHR2, SHR4, BNLx1, and BNLx3 have mix 2)
+* synthetic spike-in were added to each sample 
+  * SHR1, SHR3, BNLx2, and BNLx4 have mix 1; SHR2, SHR4, BNLx1, and BNLx3 have mix 2
   * Information regarding the spike-ins can be found here: http://products.invitrogen.com/ivgn/product/4456739
+  * 4 mL of 1:100 diluted spikes were add after RNA extraction but before rRNA-depletion
 
 1. Unzip Files - DONE
 ---------------
@@ -164,6 +166,11 @@ get ./SHR4/align_summary.txt align_summary.SHR4.txt
 |                number of mapped read pairs                | 90,676,921  |   94.56%    | 91,505,530  |   95.36%    | 87,069,865  |   94.05%    | 85,972,094  |   95.24%    | 75,462,909 |   92.07%   | 77,066,121 |   92.01%   | 66,796,381 |   92.04%   | 85,637,749 |   92.80%   |
 |   number of mapped read pairs with multiple alignments    |  6,500,481  |    6.78%    |  5,531,524  |    5.76%    |  6,013,314  |    6.50%    |  4,995,113  |    5.53%    |  5,059,805 |   6.17%    |  5,393,028 |   6.44%    |  3,948,087 |   5.44%    |  6,149,622 |   6.66%    |
 |  number of mapped read pairs with discordant alignments   |  1,111,407  |    1.16%    |  1,233,744  |    1.29%    |  1,498,511  |    1.62%    |    985,238  |    1.09%    |  1,235,862 |   1.51%    |  1,186,536 |   1.42%    |  1,134,793 |   1.56%    |  1,624,973 |   1.76%    |
+
+**Total Number of Aligned Paired End Reads:** 660,187,570    
+**Total Number of Aligned Read Fragments:** 1,353,282,804  
+**Average Number of Aligned Read Fragments Per Sample:** 169,160,350  
+**Average Rate of Alignment (Read Fragments):** 95.9%  
 
 
 ### Characteristics of Alignments

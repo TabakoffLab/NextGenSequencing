@@ -1,0 +1,396 @@
+Added Benefit of RNA-Seq - Heart
+========================================================
+For Boris's departmental retreat presentation
+
+Heart RNA-Seq
+-------------
+
+1. Number of raw reads
+2. Number of uniquely aligned and filtered reads
+3. Number of reads aligned to Ensembl protein-coding exons (out of uniquely aligned and filtered reads)
+4. Number of Ensembl protein-coding exons expressed above background
+5. Number of reads aligned to non-coding Ensembl genes (out of uniquely aligned and filtered reads)
+6. Number of non-coding Ensembl genes expressed above background
+7. Number of reads aligned to unannotated genes in the heart transcriptome reconstruction
+8. Number of unannotated genes in the heart transcriptome reconstruction expressed above background
+
+
+### 1.  Number of raw reads
+
+```{r,echo=FALSE}
+rm(list=ls())
+options(stringsAsFactors=FALSE)
+setwd("/Volumes/LauraS/NextGenSeq/BNLx.SHR.Heart.totalRNA/")
+rawCounts = read.table(file="data/rawReadCounts.02Jul14.txt",sep=" ",header=FALSE,fill=TRUE)
+rawCounts$readFrag = as.numeric(rawCounts$V3)
+
+rawReads = sum(rawCounts$readFrag)
+```
+
+**Number of raw read fragments:** `r prettyNum(rawReads,big.mark=",",scientific=FALSE)`
+
+### 2. Number of uniquely aligned and filtered reads
+
+Identify uniquely aligned reads based on mapping quality score in BAM file (MAPQ=50)
+```
+qsub -q smp /home/data/saba/BNLx.SHR.Heart.totalRNA/programs/uniquelyAligned.heart.sh
+```
+Count number of uniquely aligned read fragments
+```
+qsub -q smp /home/data/saba/BNLx.SHR.Heart.totalRNA/programs/uniqueAlignedCounts.heart.sh
+```
+
+```{r,echo=FALSE}
+options(stringsAsFactors=FALSE)
+setwd("/Volumes/LauraS/NextGenSeq/BNLx.SHR.Heart.totalRNA/")
+uniqueCounts = read.table(file="data/uniquelyAlignedCounts.25Jul14.txt",sep=" ",header=FALSE,fill=TRUE)
+uniqueCounts = uniqueCounts[!grepl("test.chrX",uniqueCounts$V1),]
+uniqueCounts$readFrag = as.numeric(uniqueCounts$V2)
+
+uniquelyAlignedReads = sum(uniqueCounts$readFrag)
+```
+
+**Number of uniquely aligned read fragments:** `r prettyNum(uniquelyAlignedReads,big.mark=",",scientific=FALSE)`
+
+### 3. Number of reads aligned to Ensembl exons (out of uniquely aligned and filtered reads)
+
+Create BED files for overlap with unique BAM
+```{r,echo=FALSE,eval=FALSE}
+options(stringsAsFactors=FALSE)
+setwd("/Volumes/LauraS/gtfFiles")
+
+protein = read.table(file="ensembl.proteinCodingExons.RGSC5.0.rn5.txt",sep="\t",header=TRUE)
+protein$V1 = paste("chr",protein$Chromosome,sep="")
+protein$V1 = gsub("MT","M",protein$V1)
+protein$V6 = "-"
+protein$V6[protein$Strand>0] = "+"
+protein$V5 = 1000
+
+write.table(protein[,c("V1","start","end","EnsemblExonID","V5","V6")],file="ensembl.proteinCodingExons.RGSC5.0.rn5.bed",sep="\t",row.names=FALSE,col.names=FALSE,quote=FALSE)
+
+all = read.table(file="ensembl.allExons.RGSC5.0.rn5.txt",sep="\t",header=TRUE)
+all$V1 = paste("chr",all$Chromosome,sep="")
+all$V1 = gsub("MT","M",all$V1)
+all$V6 = "-"
+all$V6[all$Strand>0] = "+"
+all$V5 = 1000
+
+write.table(all[,c("V1","start","end","EnsemblExonID","V5","V6")],file="ensembl.allExons.RGSC5.0.rn5.bed",sep="\t",row.names=FALSE,col.names=FALSE,quote=FALSE)
+
+recon = read.table(file="/Volumes/LauraS/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/reconstruct.total.heart.02Aug14.v1.gtf",sep="\t",header=FALSE)
+recon = recon[!duplicated(recon[,c("V1","V4","V5","V7")]),]
+
+all.v2 = merge(all,recon[,c("V1","V4","V5","V7")],by.x=c("V1","start","end","V6"),by.y=c("V1","V4","V5","V7"),all=TRUE)
+all.v2$EnsemblExonID[is.na(all.v2$EnsemblExonID)] = paste("unanno.",c(1:sum(is.na(all.v2$EnsemblExonID))),sep="")
+
+write.table(all.v2[,c("V1","start","end","EnsemblExonID","V5","V6")],file="ensemblAndHeartRecon.allExons.RGSC5.0.rn5.bed",sep="\t",row.names=FALSE,col.names=FALSE,quote=FALSE)
+
+all.gtf = all.v2
+all.gtf$V2 = "CuffLinks"
+all.gtf$V3 = "exon"
+all.gtf$V4 = all.gtf$start
+all.gtf$V5 = all.gtf$end
+all.gtf$V7 = all.gtf$V6
+all.gtf$V6 = 176
+all.gtf$V8 = "."
+all.gtf$V9 = paste("gene_id ",all.gtf$EnsemblExonID,"; transcript_id ",all.gtf$EnsemblExonID,";",sep="")
+
+write.table(all.gtf[,paste("V",1:9,sep="")],file="ensemblAndHeartRecon.allExons.RGSC5.0.rn5.gtf",sep="\t",row.names=FALSE,col.names=FALSE,quote=FALSE)
+
+
+```
+
+Count uniquely aligned reads by annotation
+```
+qsub -q smp /home/data/saba/BNLx.SHR.Heart.totalRNA/programs/cntReadsByAnno.heart.sh
+qsub -q smp /home/data/saba/BNLx.SHR.Heart.totalRNA/programs/cntReadsByAnno.heart.v3.sh
+```
+
+```{r,echo=FALSE}
+options(stringsAsFactors=FALSE)
+setwd("/Volumes/LauraS/NextGenSeq/BNLx.SHR.Heart.totalRNA/data")
+
+ensCnt = read.table(file="cntByAnno.heart.25Jul14.txt",sep=" ",header=FALSE)
+
+bySample = merge(ensCnt[ensCnt$V2=="proteinCodingExons",],ensCnt[ensCnt$V2=="allExons",],by="V1")
+bySample$pct = bySample$V3.x / bySample$V3.y
+
+proteinCodingReads = sum(bySample$V3.x)
+```
+
+**Number of read fragments aligned to exons from protein-coding Ensembl transcripts (out of uniquely aligned and filtered reads:** `r prettyNum(proteinCodingReads,big.mark=",",scientific=FALSE)`
+
+### 4. Number of Ensembl protein-coding exons expressed above background
+```
+qsub -q smp /home/data/saba/BNLx.SHR.Heart.totalRNA/programs/quant.ensWRecon.unique.sh
+```
+
+```{r}
+options(stringsAsFactors=FALSE)
+setwd("/Volumes/LauraS/BNLx.SHR/RNA-Seq.Heart/totalRNA/quantitation")
+
+samples = paste(rep(c("SHR","BNLx"),each=4),c(1:4),sep="")
+
+for(i in samples[8]){
+  x=read.table(file=paste(i,".Heart.ensemblWRecon/isoforms.fpkm_tracking",sep=""),sep="\t",header=TRUE)
+  if(i==samples[1]) quantExon = x[-grep("ERCC",x$locus),c("tracking_id","FPKM")]
+  if(i!=samples[1]) quantExon = merge(quantExon,x[-grep("ERCC",x$locus),c("tracking_id","FPKM")],by="tracking_id",all=TRUE)
+  }
+
+colnames(quantExon) = c("tracking_id",samples)
+expressed = quantExon[rowSums(quantExon[,-1]>1)>0,]
+
+expressed$type = NA
+expressed$type[grep("unanno",expressed$tracking_id)] = "unannotated"
+expressed$type[expressed$tracking_id %in% protein$EnsemblExonID] = "protein"
+expressed$type[is.na(expressed$type)] = "non-coding"
+
+table(expressed$type)
+  
+protein = read.table(file="/Volumes/LauraS/gtfFiles/ensembl.proteinCodingExons.RGSC5.0.rn5.txt",sep="\t",header=TRUE)
+ 
+```
+
+### 5. Number of reads aligned to non-coding Ensembl genes (out of uniquely aligned and filtered reads)
+```{r,echo=FALSE}
+options(stringsAsFactors=FALSE)
+setwd("/Volumes/LauraS/NextGenSeq/BNLx.SHR.Heart.totalRNA/data")
+
+nonCodingReads = sum(bySample$V3.y) - sum(bySample$V3.x)
+```
+
+**Number of read fragments aligned to exons from non-coding Ensembl transcripts (out of uniquely aligned and filtered reads:** `r prettyNum(nonCodingReads,big.mark=",",scientific=FALSE)`
+
+
+### 6. Number of non-coding Ensembl genes expressed above background
+
+### 7. Number of reads aligned to unannotated exons in the heart transcriptome reconstruction
+
+```{r,echo=FALSE}
+options(stringsAsFactors=FALSE)
+setwd("/Volumes/LauraS/NextGenSeq/BNLx.SHR.Heart.totalRNA/data")
+
+allCnt = read.table(file="cntByAnno.heart.02Aug14.txt",sep=" ",header=FALSE)
+
+unAnnoReads = sum(allCnt$V3) - sum(bySample$V3.y)
+```
+
+**Number of read fragments aligned to unannotated exons (out of uniquely aligned and filtered reads):** `r prettyNum(unAnnoReads,big.mark=",",scientific=FALSE)`
+
+
+### 8. Number of unannotated genes in the heart transcriptome reconstruction expressed above background
+
+
+Rat Exon 1.0 ST Array
+-------------
+
+1. Number of probe sets on the array
+2. Number of probe sets retained after masking
+3. Number of probe sets aligned to protein-coding Ensembl exons
+4. Number of protein-coding Ensembl exons expressed above background
+5. Number of probe sets aligned to non-coding Ensembl exons
+6. Number of non-coding Ensembl exons expressed above background
+7. Number of probe sets aligned to unannotated genes in the reconstructed heart transcriptome
+8. Number of unannotated exons in the reconstructed heart transcriptome expressed above background
+
+
+### 1. Number of probe sets on the array
+```
+wc -l /Volumes/LauraS/Affymetrix/SNP.Masks/Exon.Array/Rat/Source/RaEx-1_0-st-v1.probe.tab
+awk '{print $2}' /Volumes/LauraS/Affymetrix/SNP.Masks/Exon.Array/Rat/Source/RaEx-1_0-st-v1.probe.tab | sort | uniq | wc -l
+```
+**Number of probes on the array:** 4,108,266  
+**Number of probe sets on the array:** 1,065,841  
+
+
+### 2. Number of probe sets retained after masking
+
+```
+wc -l /Volumes/LauraS/Affymetrix/SNP.Masks/Exon.Array/Rat/Results/RaEx-1_0-st-v1.r2.dt1.rn5.all.MASKED.ps
+```
+**Number of probe sets retained after masking:** 890,611  
+
+
+### 3. Number of probe sets aligned to protein-coding Ensembl exons
+
+```{r,echo=FALSE,eval=FALSE}
+options(stringsAsFactors=FALSE)
+setwd("/Volumes/LauraS/Affymetrix/SNP.Masks/Exon.Array/Rat/Results")
+orig = read.table(file="probeSetLocations.wStrand.ratExonArray.18Apr2013.bed",sep="\t",header=FALSE)
+orig$score = 1000
+write.table(orig[,c("V1","V2","V3","V4","score","V5")],file="probeSetLocations.wStrand.ratExonArray.25Jul2014.bed",sep="\t",row.names=FALSE,col.names=FALSE,quote=FALSE)
+```
+
+BEDtools version = bedtools v2.19.1
+```
+export PATH=/usr/local/bedtools2/bin:$PATH
+cd /data/Tabastore3/LauraS/Affymetrix/SNP.Masks/Exon.Array/Rat/Results
+intersectBed -s -wo -f 1  -a probeSetLocations.wStrand.ratExonArray.25Jul2014.bed -b /data/Tabastore3/LauraS/gtfFiles/ensembl.proteinCodingExons.RGSC5.0.rn5.bed > probeSetOverlapWithEnsemblProteinCodingExons.txt
+```
+
+```{r,echo=FALSE}
+options(stringsAsFactors=FALSE)
+setwd("/Volumes/LauraS/Affymetrix/SNP.Masks/Exon.Array/Rat/Results")
+
+overlapPC = read.table(file="probeSetOverlapWithEnsemblProteinCodingExons.txt",sep="\t",header=FALSE)
+numPS.ensProteinCoding = length(unique(overlapPC$V4))
+```
+
+**Number of protein-coding Ensembl exons:** `r prettyNum(209999,big.mark=",",scientific=FALSE)`
+
+**Number of probe sets that overlap a protein-coding Ensembl exon:** `r prettyNum(numPS.ensProteinCoding,big.mark=",",scientific=FALSE)`
+
+### 4. Number of protein-coding Ensembl genes expressed above background
+
+```{r,echo=FALSE,eval=FALSE}
+##  Ran on server  ##
+dabg = read.table(file="/data/Users/saba/ForPhenoGen/HXB.BXH.Heart.allPS/dabg.allPS.HXB_BXH.heart.rn5.PhenoGen.txt",row.names=1,header=TRUE,sep="\t")
+overlap = read.table(file="/data/Tabastore3/LauraS/Affymetrix/SNP.Masks/Exon.Array/Rat/Results/probeSetOverlapWithEnsemblProteinCodingExons.txt",sep="\t",header=FALSE)
+keepers = dabg[as.character(unique(overlap$V4)),]
+save(keepers,file="/data/Tabastore3/LauraS/BxH.HxB.Rats/Exon.Arrays/Heart/Data/ensProtCodExon.dabg.Rdata")
+```
+
+```{r,echo=FALSE}
+options(stringsAsFactors=FALSE)
+load("/Volumes/LauraS/BxH.HxB.Rats/Exon.Arrays/Heart/Data/ensProtCodExon.dabg.Rdata")
+parents = keepers[,grepl("BN.LX",colnames(keepers),fixed=TRUE) | grepl("SHR.H",colnames(keepers),fixed=TRUE)]
+
+## limit to only 3 of each strain ##
+parents = parents[,!grepl("BN.LX_04",colnames(parents),fixed=TRUE)]
+
+present = parents[rowSums(parents<0.0001)>0,]
+presentExons = overlapPC[overlapPC$V4 %in% rownames(present),]
+
+numPresent.ensProteinCoding = length(unique(presentExons$V10))
+```
+
+**Number of protein-coding Ensembl exon detected above background (dabg p-value<0.0001) in at least one sample (3 SHR samples and 3 BNLx samples):** `r prettyNum(numPresent.ensProteinCoding,big.mark=",",scientific=FALSE)`
+
+### 5. Number of probe sets aligned to non-coding Ensembl exons
+BEDtools version = bedtools v2.19.1
+```
+export PATH=/usr/local/bedtools2/bin:$PATH
+cd /data/Tabastore3/LauraS/Affymetrix/SNP.Masks/Exon.Array/Rat/Results
+intersectBed -s -wo -f 1  -a probeSetLocations.wStrand.ratExonArray.25Jul2014.bed -b /data/Tabastore3/LauraS/gtfFiles/ensembl.allExons.RGSC5.0.rn5.bed > probeSetOverlapWithEnsemblExons.txt
+```
+
+```{r,echo=FALSE}
+options(stringsAsFactors=FALSE)
+setwd("/Volumes/LauraS/Affymetrix/SNP.Masks/Exon.Array/Rat/Results")
+
+overlapAll = read.table(file="probeSetOverlapWithEnsemblExons.txt",sep="\t",header=FALSE)
+numPS.ensNonCoding = length(unique(overlapAll$V4)) - length(unique(overlapPC$V4))
+```
+
+**Number of non-coding Ensembl exons:** `r prettyNum(216477-209999,big.mark=",",scientific=FALSE)`  
+**Number of probe sets that overlap a non-coding Ensembl exon:** `r prettyNum(numPS.ensNonCoding,big.mark=",",scientific=FALSE)`
+
+### 6. Number of non-coding Ensembl exons expressed above background
+
+```{r,echo=FALSE,eval=FALSE}
+##  Ran on server  ##
+dabg = read.table(file="/data/Users/saba/ForPhenoGen/HXB.BXH.Heart.allPS/dabg.allPS.HXB_BXH.heart.rn5.PhenoGen.txt",row.names=1,header=TRUE,sep="\t")
+overlap = read.table(file="/data/Tabastore3/LauraS/Affymetrix/SNP.Masks/Exon.Array/Rat/Results/probeSetOverlapWithEnsemblExons.txt",sep="\t",header=FALSE)
+keepers.v2 = dabg[as.character(unique(overlap$V4)),]
+save(keepers.v2,file="/data/Tabastore3/LauraS/BxH.HxB.Rats/Exon.Arrays/Heart/Data/ensExon.dabg.Rdata")
+```
+
+```{r,echo=FALSE}
+options(stringsAsFactors=FALSE)
+load("/Volumes/LauraS/BxH.HxB.Rats/Exon.Arrays/Heart/Data/ensExon.dabg.Rdata")
+parents.v2 = keepers.v2[,grepl("BN.LX",colnames(keepers.v2),fixed=TRUE) | grepl("SHR.H",colnames(keepers.v2),fixed=TRUE)]
+
+## limit to only 3 of each strain ##
+parents.v2 = parents.v2[,!grepl("BN.LX_04",colnames(parents.v2),fixed=TRUE)]
+
+present.v2 = parents.v2[rowSums(parents.v2<0.0001)>0,]
+presentExons.v2 = overlapAll[overlapAll$V4 %in% rownames(present.v2),]
+
+numPresent.ensNonCoding = length(unique(presentExons.v2$V10)) - length(unique(presentExons$V10))
+```
+
+**Number of non-coding Ensembl exon detected above background (dabg p-value<0.0001) in at least one sample (3 SHR samples and 3 BNLx samples):** `r prettyNum(numPresent.ensNonCoding,big.mark=",",scientific=FALSE)`
+
+### 7. Number of probe sets aligned to unannotated exons in the reconstructed heart transcriptome
+
+BEDtools version = bedtools v2.19.1
+```
+export PATH=/usr/local/bedtools2/bin:$PATH
+cd /data/Tabastore3/LauraS/Affymetrix/SNP.Masks/Exon.Array/Rat/Results
+intersectBed -s -wo -f 1  -a probeSetLocations.wStrand.ratExonArray.25Jul2014.bed -b /data/Tabastore3/LauraS/gtfFiles/ensemblAndHeartRecon.allExons.RGSC5.0.rn5.bed > probeSetOverlapWithEnsemblAndReconExons.txt
+```
+
+```{r,echo=FALSE}
+options(stringsAsFactors=FALSE)
+setwd("/Volumes/LauraS/Affymetrix/SNP.Masks/Exon.Array/Rat/Results")
+
+overlapWRecon = read.table(file="probeSetOverlapWithEnsemblAndReconExons.txt",sep="\t",header=FALSE)
+numPS.wRecon = length(unique(overlapWRecon$V4)) - length(unique(overlapAll$V4))
+```
+
+**Number of unannotated exons:** `r prettyNum(57217,big.mark=",",scientific=FALSE)`  
+**Number of probe sets that overlap a unannotated exon:** `r prettyNum(numPS.wRecon,big.mark=",",scientific=FALSE)`
+
+### 8. Number of unannotated exons in the reconstructed heart transcriptome expressed above background
+
+```{r,echo=FALSE,eval=FALSE}
+##  Ran on server  ##
+dabg = read.table(file="/data2/saba/ForPhenoGen/HXB.BXH.Heart.allPS/dabg.allPS.HXB_BXH.heart.rn5.PhenoGen.txt",row.names=1,header=TRUE,sep="\t")
+overlap = read.table(file="/data/Tabastore3/LauraS/Affymetrix/SNP.Masks/Exon.Array/Rat/Results/probeSetOverlapWithEnsemblAndReconExons.txt",sep="\t",header=FALSE)
+keepers.v3 = dabg[as.character(unique(overlap$V4)),]
+save(keepers.v3,file="/data/Tabastore3/LauraS/BxH.HxB.Rats/Exon.Arrays/Heart/Data/wReconExon.dabg.Rdata")
+```
+
+```{r,echo=FALSE}
+options(stringsAsFactors=FALSE)
+load("/Volumes/LauraS/BxH.HxB.Rats/Exon.Arrays/Heart/Data/wReconExon.dabg.Rdata")
+parents.v3 = keepers.v3[,grepl("BN.LX",colnames(keepers.v3),fixed=TRUE) | grepl("SHR.H",colnames(keepers.v3),fixed=TRUE)]
+
+## limit to only 3 of each strain ##
+parents.v3 = parents.v3[,!grepl("BN.LX_04",colnames(parents.v3),fixed=TRUE)]
+
+present.v3 = parents.v3[rowSums(parents.v3<0.0001)>0,]
+presentExons.v3 = overlapWRecon[overlapWRecon$V4 %in% rownames(present.v3),]
+
+numPresent.ensWRecon = length(unique(presentExons.v3$V10)) - length(unique(presentExons.v2$V10))
+```
+
+**Number of non-coding Ensembl exon detected above background (dabg p-value<0.0001) in at least one sample (3 SHR samples and 3 BNLx samples):** `r prettyNum(numPresent.ensNonCoding,big.mark=",",scientific=FALSE)`
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Create Table
+-----------
+
+```{r}
+row1 = c(1,"Number of raw reads/Number of probe sets on the array",prettyNum(rawReads,big.mark=",",scientific=FALSE),"1,065,841")
+
+row2 = c(2,"Number of uniquely aligned and filtered read fragments/Number of probe sets retained after masking",prettyNum(uniquelyAlignedReads,big.mark=",",scientific=FALSE),"890,611")
+
+row3 = c(3,"Number of reads aligned to Ensembl protein-coding exons (out of uniquely aligned and filtered reads)/Number of probe sets aligned to protein-coding Ensembl exons",prettyNum(proteinCodingReads,big.mark=",",scientific=FALSE),prettyNum(numPS.ensProteinCoding,big.mark=",",scientific=FALSE))
+
+row4 = c(4,"Number of Ensembl protein-coding exons expressed above background (out of 209,999 exons)",NA,prettyNum(numPresent.ensProteinCoding,big.mark=",",scientific=FALSE))
+
+row5 = c(5,"Number of read fragments aligned to non-coding Ensembl genes (out of uniquely aligned and filtered reads)/Number of probe sets aligned to non-coding Ensembl exons",prettyNum(nonCodingReads,big.mark=",",scientific=FALSE),prettyNum(numPS.ensNonCoding,big.mark=",",scientific=FALSE))
+
+row6 = c(6,"Number of non-coding Ensembl exons expressed above background (out of 6,478 exons)",NA,prettyNum(numPresent.ensNonCoding,big.mark=",",scientific=FALSE))
+
+row7 = c(7,"Number of read fragments (probe sets) aligned to unannotated genes in the heart transcriptome reconstruction",NA,NA)
+
+row8 = c(8,"Number of unannotated exons in the heart transcriptome reconstruction expressed above background",NA,NA)
+
+finalTable = data.frame(rbind(row1,row2,row3,row4,row5,row6,row7,row8))
+write.table(finalTable,file="/Volumes/LauraS/NextGenSeq/BNLx.SHR.Heart.totalRNA/programs/addedBenefit/finalTable.txt",sep="\t",row.names=FALSE,col.names=FALSE)
+```
+

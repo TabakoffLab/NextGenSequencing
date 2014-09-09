@@ -1,0 +1,8 @@
+"1"	"Number of raw reads/Number of probe sets on the array"	"1,579,346,346"	"1,065,841"
+"2"	"Number of uniquely aligned and filtered read fragments/Number of probe sets retained after masking"	"1,263,485,502"	"890,611"
+"3"	"Number of reads aligned to Ensembl protein-coding exons (out of uniquely aligned and filtered reads)/Number of probe sets aligned to protein-coding Ensembl exons"	"374,286,889"	"179,858"
+"4"	"Number of Ensembl protein-coding exons expressed above background"	NA	"68,036"
+"5"	"Number of read fragments aligned to non-coding Ensembl genes (out of uniquely aligned and filtered reads)/Number of probe sets aligned to non-coding Ensembl exons"	"538,187,663"	"2,041"
+"6"	"Number of non-coding Ensembl genes expressed above background"	NA	"368"
+"7"	"Number of read fragments (probe sets) aligned to unannotated genes in the heart transcriptome reconstruction"	NA	NA
+"8"	"Number of unannotated exons in the heart transcriptome reconstruction expressed above background"	NA	NA

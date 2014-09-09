@@ -1,0 +1,16 @@
+BNLx1 proteinCodingExons 50783543
+BNLx1 allExons 125980335
+BNLx2 proteinCodingExons 48816434
+BNLx2 allExons 128515947
+BNLx3 proteinCodingExons 46491261
+BNLx3 allExons 122150235
+BNLx4 proteinCodingExons 45336740
+BNLx4 allExons 121125646
+SHR1 proteinCodingExons 46902173
+SHR1 allExons 106890738
+SHR2 proteinCodingExons 46195475
+SHR2 allExons 103778745
+SHR3 proteinCodingExons 39744371
+SHR3 allExons 89998800
+SHR4 proteinCodingExons 50016892
+SHR4 allExons 114034106

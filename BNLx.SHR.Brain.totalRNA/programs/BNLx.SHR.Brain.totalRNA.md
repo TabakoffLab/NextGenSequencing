@@ -9,7 +9,7 @@ BNLx and SHR Brain ribosomal RNA depleted total RNA
 qsub -q smp /home/data/saba/BNLx.SHR.Brain.totalRNA/programs/unzip.yucca.sh
 ```
 
-2. Consolidate reads by sample and determine number of reads sent for each sample 
+2. Consolidate reads by sample and determine number of reads sent for each sample - DONE
 -------------------------------------------------
 ```
 qsub -q smp /home/data/saba/BNLx.SHR.Brain.totalRNA/programs/countRawReads.sh
@@ -104,29 +104,79 @@ Average Number of Paired End Reads Per Sample After Eliminating rRNA Aligned Rea
 qsub -q smp /home/data/saba/BNLx.SHR.Brain.totalRNA/programs/convertToFastQ.brain.sh
 ```
 
-7.  Align non-ribosomal trimmed reads to strain specific genomes including mitochondrial chromosome - RUNNING
+7.  Align non-ribosomal trimmed reads to strain specific genomes including mitochondrial chromosome - DONE
 ----------------
 ```
 qsub -q smp /home/data/saba/BNLx.SHR.Brain.totalRNA/programs/tophatAlign.brain.sh
 ```
 
-***STOPPED HERE***
-
-
-
-8.  Sort and merge BAM files by strain
+8.  Sort and merge BAM files by strain -DONE
 ----------------
 ```
-qsub -q smp /home/data/saba/BNLx.SHR.Brain.totalRNA/programs/sortAndMerge.brain.sh
+qsub -q smp /home/data/saba/BNLx.SHR.Brain.totalRNA/programs/sortAndMerge.brain.BNLx.sh
+qsub -q smp /home/data/saba/BNLx.SHR.Brain.totalRNA/programs/sortAndMerge.brain.SHR.sh
 ```
 
-9.  Strain-Specific Transcriptome Reconstruction (Ensembl-Guided)
+9. Characterize aligned reads - BNLx is DONE, SHR is RUNNING
+-----------------------------
+**move files**
+```
+cd /home/data/saba/BNLx.SHR.Brain.totalRNA/alignedReads
+get ./BNLx1/align_summary.txt align_summary.BNLx1.txt
+get ./BNLx2/align_summary.txt align_summary.BNLx2.txt
+get ./BNLx3/align_summary.txt align_summary.BNLx3.txt
+get ./SHR1/align_summary.txt align_summary.SHR1.txt
+get ./SHR2/align_summary.txt align_summary.SHR2.txt
+get ./SHR3/align_summary.txt align_summary.SHR3.txt
+```
+
+
+
+
+### Statistics on Alignment to Genome
+|                           Label                           | BNLx1 (num) | BNLx1 (pct) | BNLx2 (num) | BNLx2 (pct) | BNLx3 (num) | BNLx3 (pct) | SHR1 (num)  | SHR1 (pct) | SHR2 (num)  | SHR2 (pct) | SHR3 (num)  | SHR3 (pct) |
+|:---------------------------------------------------------:|:-----------:|:-----------:|:-----------:|:-----------:|:-----------:|:-----------:|:-----------:|:----------:|:-----------:|:----------:|:-----------:|:----------:|
+|                number of paired-end reads                 |  85,758,515 |   100.00%   |  93,028,161 |   100.00%   | 100,107,072 |   100.00%   |  93,964,165 |  100.00%   |  92,947,238 |  100.00%   | 146,373,125 |  100.00%   |
+|           number of left reads mapped to genome           |  81,416,527 |   94.94%    |  88,937,543 |   95.60%    |  96,132,612 |   96.03%    |  88,958,448 |   94.67%   |  87,047,555 |   93.65%   | 138,486,084 |   94.61%   |
+|          number of right reads mapped to genome           |  81,753,165 |   95.33%    |  88,497,261 |   95.13%    |  95,734,275 |   95.63%    |  88,179,222 |   93.84%   |  87,301,329 |   93.93%   | 135,828,380 |   92.80%   |
+|   number of mapped left reads with multiple alignments    |   6,720,985 |    7.84%    |   6,847,953 |    7.36%    |   7,615,074 |    7.61%    |   7,515,136 |   8.00%    |   7,046,859 |   7.58%    |  11,531,979 |   7.88%    |
+|   number of mapped right reads with multiple alignments   |   6,790,612 |    7.92%    |   6,806,098 |    7.32%    |   7,586,124 |    7.58%    |   7,469,209 |   7.95%    |   7,091,888 |   7.63%    |  11,340,491 |   7.75%    |
+| number of mapped left reads with more than 20 alignments  |     557,159 |    0.65%    |     601,092 |    0.65%    |     603,423 |    0.60%    |     702,058 |   0.75%    |     579,214 |   0.62%    |     933,649 |   0.64%    |
+| number of mapped right reads with more than 20 alignments |     561,028 |    0.65%    |     603,449 |    0.65%    |     604,315 |    0.60%    |     704,183 |   0.75%    |     580,721 |   0.62%    |     934,769 |   0.64%    |
+|                number of mapped read pairs                |  79,626,822 |   92.85%    |  86,617,196 |   93.11%    |  93,683,557 |   93.58%    |  85,877,441 |   91.39%   |  84,232,953 |   90.62%   | 132,070,847 |   90.23%   |
+|   number of mapped read pairs with multiple alignments    |   6,529,296 |    7.61%    |   6,587,582 |    7.08%    |   7,334,529 |    7.33%    |   7,227,138 |   7.69%    |   6,781,111 |   7.30%    |  10,946,798 |   7.48%    |
+|  number of mapped read pairs with discordant alignments   |   1,579,894 |    1.84%    |   1,266,620 |    1.36%    |   1,537,274 |    1.54%    |   1,430,056 |   1.52%    |   1,692,702 |   1.82%    |   2,342,484 |   1.60%    |
+
+
+Total Number of Aligned Paired End Reads: 562,108,816    
+Total Number of Aligned Read Fragments: 1,158,272,401  
+Average Number of Aligned Read Fragments Per Sample: 193,045,400  
+**Average Rate of Alignment (Read Fragments):** 94.7%  
+
+### Statistics By Chromosome and By Spike
+```
+qsub -q smp /home/data/saba/BNLx.SHR.Brain.totalRNA/programs/countByChrom.brain.total.sh
+```
+
+
+
+
+![plot of chunk unnamed-chunk-10](figure/unnamed-chunk-10.png) 
+
+
+![plot of chunk unnamed-chunk-11](figure/unnamed-chunk-11.png) 
+
+
+10.  Strain-Specific Transcriptome Reconstruction (Ensembl-Guided) - BNLx and SHR are RUNNING
 --------------------------
 ```
-qsub -q smp /home/data/saba/BNLx.SHR.Brain.totalRNA/programs/reconSHR.brain.sh
 qsub -q smp /home/data/saba/BNLx.SHR.Brain.totalRNA/programs/reconBNLx.brain.sh
+qsub -q smp /home/data/saba/BNLx.SHR.Brain.totalRNA/programs/reconSHR.brain.sh
 ```
 
-10.  Generate BigWig files
+11.  Generate BigWig files - didn't run because of memory?
 -------------------------
 
+```
+qsub -q smp /home/data/saba/BNLx.SHR.Brain.totalRNA/programs/createBigWig.brain.total.sh
+```

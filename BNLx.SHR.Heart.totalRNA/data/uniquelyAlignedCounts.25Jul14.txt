@@ -1,0 +1,9 @@
+/home/data/saba/BNLx.SHR.Heart.totalRNA/alignedReads/BNLx1.heart.unique.bam 171851421
+/home/data/saba/BNLx.SHR.Heart.totalRNA/alignedReads/BNLx2.heart.unique.bam 174910693
+/home/data/saba/BNLx.SHR.Heart.totalRNA/alignedReads/BNLx3.heart.unique.bam 165702095
+/home/data/saba/BNLx.SHR.Heart.totalRNA/alignedReads/BNLx4.heart.unique.bam 164750269
+/home/data/saba/BNLx.SHR.Heart.totalRNA/alignedReads/SHR1.heart.unique.bam 145159308
+/home/data/saba/BNLx.SHR.Heart.totalRNA/alignedReads/SHR2.heart.unique.bam 147969751
+/home/data/saba/BNLx.SHR.Heart.totalRNA/alignedReads/SHR3.heart.unique.bam 129625968
+/home/data/saba/BNLx.SHR.Heart.totalRNA/alignedReads/SHR4.heart.unique.bam 163515997
+/home/data/saba/BNLx.SHR.Heart.totalRNA/alignedReads/test.chrX.unique.bam 4463526

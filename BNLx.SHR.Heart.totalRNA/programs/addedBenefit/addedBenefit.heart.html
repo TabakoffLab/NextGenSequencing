@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<!-- saved from url=(0014)about:internet -->
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=9" >
+
+<title>Added Benefit of RNA-Seq - Heart</title>
+
+<style type="text/css">
+body, td {
+   font-family: sans-serif;
+   background-color: white;
+   font-size: 12px;
+   margin: 8px;
+}
+
+tt, code, pre {
+   font-family: 'DejaVu Sans Mono', 'Droid Sans Mono', 'Lucida Console', Consolas, Monaco, monospace;
+}
+
+h1 { 
+   font-size:2.2em; 
+}
+
+h2 { 
+   font-size:1.8em; 
+}
+
+h3 { 
+   font-size:1.4em; 
+}
+
+h4 { 
+   font-size:1.0em; 
+}
+
+h5 { 
+   font-size:0.9em; 
+}
+
+h6 { 
+   font-size:0.8em; 
+}
+
+a:visited {
+   color: rgb(50%, 0%, 50%);
+}
+
+pre {	
+   margin-top: 0;
+   max-width: 95%;
+   border: 1px solid #ccc;
+   white-space: pre-wrap;
+}
+
+pre code {
+   display: block; padding: 0.5em;
+}
+
+code.r, code.cpp {
+   background-color: #F8F8F8;
+}
+
+table, td, th {
+  border: none;
+}
+
+blockquote {
+   color:#666666;
+   margin:0;
+   padding-left: 1em;
+   border-left: 0.5em #EEE solid;
+}
+
+hr {
+   height: 0px;
+   border-bottom: none;
+   border-top-width: thin;
+   border-top-style: dotted;
+   border-top-color: #999999;
+}
+
+@media print {
+   * { 
+      background: transparent !important; 
+      color: black !important; 
+      filter:none !important; 
+      -ms-filter: none !important; 
+   }
+
+   body { 
+      font-size:12pt; 
+      max-width:100%; 
+   }
+       
+   a, a:visited { 
+      text-decoration: underline; 
+   }
+
+   hr { 
+      visibility: hidden;
+      page-break-before: always;
+   }
+
+   pre, blockquote { 
+      padding-right: 1em; 
+      page-break-inside: avoid; 
+   }
+
+   tr, img { 
+      page-break-inside: avoid; 
+   }
+
+   img { 
+      max-width: 100% !important; 
+   }
+
+   @page :left { 
+      margin: 15mm 20mm 15mm 10mm; 
+   }
+     
+   @page :right { 
+      margin: 15mm 10mm 15mm 20mm; 
+   }
+
+   p, h2, h3 { 
+      orphans: 3; widows: 3; 
+   }
+
+   h2, h3 { 
+      page-break-after: avoid; 
+   }
+}
+
+</style>
+
+
+
+
+
+</head>
+
+<body>
+<h1>Added Benefit of RNA-Seq - Heart</h1>
+
+<p>For Boris&#39;s departmental retreat presentation</p>
+
+<h2>Heart RNA-Seq</h2>
+
+<ol>
+<li>Number of raw reads</li>
+<li>Number of uniquely aligned and filtered reads</li>
+<li>Number of reads aligned to Ensembl protein-coding exons (out of uniquely aligned and filtered reads)</li>
+<li>Number of Ensembl protein-coding exons expressed above background</li>
+<li>Number of reads aligned to non-coding Ensembl genes (out of uniquely aligned and filtered reads)</li>
+<li>Number of non-coding Ensembl genes expressed above background</li>
+<li>Number of reads aligned to unannotated genes in the heart transcriptome reconstruction</li>
+<li>Number of unannotated genes in the heart transcriptome reconstruction expressed above background</li>
+</ol>
+
+<h3>1.  Number of raw reads</h3>
+
+<p><strong>Number of raw read fragments:</strong> 1,579,346,346</p>
+
+<h3>2. Number of uniquely aligned and filtered reads</h3>
+
+<p>Identify uniquely aligned reads based on mapping quality score in BAM file (MAPQ=50)</p>
+
+<pre><code>qsub -q smp /home/data/saba/BNLx.SHR.Heart.totalRNA/programs/uniquelyAligned.heart.sh
+</code></pre>
+
+<p>Count number of uniquely aligned read fragments</p>
+
+<pre><code>qsub -q smp /home/data/saba/BNLx.SHR.Heart.totalRNA/programs/uniqueAlignedCounts.heart.sh
+</code></pre>
+
+<p><strong>Number of uniquely aligned read fragments:</strong> 1,263,485,502</p>
+
+<h3>3. Number of reads aligned to Ensembl exons (out of uniquely aligned and filtered reads)</h3>
+
+<p>Create BED files for overlap with unique BAM</p>
+
+<p>Count uniquely aligned reads by annotation</p>
+
+<pre><code>qsub -q smp /home/data/saba/BNLx.SHR.Heart.totalRNA/programs/cntReadsByAnno.heart.sh
+</code></pre>
+
+<p><strong>Number of read fragments aligned to exons from protein-coding Ensembl transcripts (out of uniquely aligned and filtered reads:</strong> 374,286,889</p>
+
+<h3>4. Number of Ensembl protein-coding exons expressed above background</h3>
+
+<p>???</p>
+
+<h2>Rat Exon 1.0 ST Array</h2>
+
+<ol>
+<li>Number of probe sets on the array</li>
+<li>Number of probe sets retained after masking</li>
+<li>Number of probe sets aligned to protein-coding Ensembl exons</li>
+<li>Number of protein-coding Ensembl exons expressed above background</li>
+<li>Number of probe sets aligned to non-coding Ensembl exons</li>
+<li>Number of non-coding Ensembl exons expressed above background</li>
+<li>Number of probe sets aligned to unannotated genes in the reconstructed heart transcriptome</li>
+<li>Number of unannotated exons in the reconstructed heart transcriptome expressed above background</li>
+</ol>
+
+<h3>1. Number of probe sets on the array</h3>
+
+<pre><code>wc -l /Volumes/LauraS/Affymetrix/SNP.Masks/Exon.Array/Rat/Source/RaEx-1_0-st-v1.probe.tab
+awk &#39;{print $2}&#39; /Volumes/LauraS/Affymetrix/SNP.Masks/Exon.Array/Rat/Source/RaEx-1_0-st-v1.probe.tab | sort | uniq | wc -l
+</code></pre>
+
+<p><strong>Number of probes on the array:</strong> 4,108,266<br/>
+<strong>Number of probe sets on the array:</strong> 1,065,841  </p>
+
+<h3>2. Number of probe sets retained after masking</h3>
+
+<pre><code>wc -l /Volumes/LauraS/Affymetrix/SNP.Masks/Exon.Array/Rat/Results/RaEx-1_0-st-v1.r2.dt1.rn5.all.MASKED.ps
+</code></pre>
+
+<p><strong>Number of probe sets retained after masking:</strong> 890,611  </p>
+
+<h3>3. Number of probe sets aligned to protein-coding Ensembl exons</h3>
+
+<p>BEDtools version = bedtools v2.19.1</p>
+
+<pre><code>export PATH=/usr/local/bedtools2/bin:$PATH
+cd /data/Tabastore3/LauraS/Affymetrix/SNP.Masks/Exon.Array/Rat/Results
+intersectBed -s -wo -f 1  -a probeSetLocations.wStrand.ratExonArray.25Jul2014.bed -b /data/Tabastore3/LauraS/gtfFiles/ensembl.proteinCodingExons.RGSC5.0.rn5.bed &gt; probeSetOverlapWithEnsemblProteinCodingExons.txt
+</code></pre>
+
+<p><strong>Number of protein-coding Ensembl exons:</strong> 209,999</p>
+
+<p><strong>Number of probe sets that overlap a protein-coding Ensembl exon:</strong> 179,858</p>
+
+<h3>4. Number of protein-coding Ensembl genes expressed above background</h3>
+
+<p><strong>Number of protein-coding Ensembl exon detected above background (dabg p-value&lt;0.0001) in at least one sample (3 SHR samples and 3 BNLx samples):</strong> 68,036</p>
+
+<h3>5. Number of probe sets aligned to non-coding Ensembl exons</h3>
+
+<p>BEDtools version = bedtools v2.19.1</p>
+
+<pre><code>export PATH=/usr/local/bedtools2/bin:$PATH
+cd /data/Tabastore3/LauraS/Affymetrix/SNP.Masks/Exon.Array/Rat/Results
+intersectBed -s -wo -f 1  -a probeSetLocations.wStrand.ratExonArray.25Jul2014.bed -b /data/Tabastore3/LauraS/gtfFiles/ensembl.allExons.RGSC5.0.rn5.bed &gt; probeSetOverlapWithEnsemblExons.txt
+</code></pre>
+
+<p><strong>Number of non-coding Ensembl exons:</strong> 6,478<br/>
+<strong>Number of probe sets that overlap a non-coding Ensembl exon:</strong> 2,041</p>
+
+<h3>6. Number of non-coding Ensembl exons expressed above background</h3>
+
+<p><strong>Number of non-coding Ensembl exon detected above background (dabg p-value&lt;0.0001) in at least one sample (3 SHR samples and 3 BNLx samples):</strong> 368</p>
+
+</body>
+
+</html>
+

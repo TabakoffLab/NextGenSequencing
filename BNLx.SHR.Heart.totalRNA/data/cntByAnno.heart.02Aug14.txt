@@ -1,0 +1,8 @@
+SHR1 reconAndEnsembl 118903502
+SHR2 reconAndEnsembl 116999105
+SHR3 reconAndEnsembl 101701017
+SHR4 reconAndEnsembl 128874795
+BNLx1 reconAndEnsembl 140482617
+BNLx2 reconAndEnsembl 142736876
+BNLx3 reconAndEnsembl 135865261
+BNLx4 reconAndEnsembl 135004613
