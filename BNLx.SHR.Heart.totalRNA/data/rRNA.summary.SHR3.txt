@@ -1,15 +1,14 @@
 Left reads:
           Input     :  90342353
-           Mapped   :  16487144 ( 3.3% of input)
-            of these:    563994 (19.5%) have multiple alignments (227603 have >2)
+           Mapped   :  16487144 (18.2% of input)
+            of these:   7798078 (47.3%) have multiple alignments (3281702 have >2)
 Right reads:
           Input     :  90342353
-           Mapped   :  16820574 ( 3.8% of input)
-            of these:    571370 (17.0%) have multiple alignments (227606 have >2)
- 3.6% overall read mapping rate.
+           Mapped   :  16820574 (18.6% of input)
+            of these:   7607466 (45.2%) have multiple alignments (3281748 have >2)
+18.4% overall read mapping rate.
 
 Aligned pairs:  15542496
-     of these:    541544 (23.0%) have multiple alignments
-                      34 ( 0.0%) are discordant alignments
- 2.7% concordant pair alignment rate.
-#FAKE DELETED REAL FILE ACCIDENTLY
+     of these:   7319391 (47.1%) have multiple alignments
+                     142 ( 0.0%) are discordant alignments
+17.2% concordant pair alignment rate.

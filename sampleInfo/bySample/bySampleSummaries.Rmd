@@ -1,0 +1,51 @@
+By Sample Summary Of RNA-Seq Data
+========================================================
+
+Male Rats From Michal Pravenec:
+-----------------------
+
+```{r,echo=FALSE}
+rm(list=ls())
+options(stringsAsFactors=FALSE)
+setwd("~/Documents/NextGenSeq")
+
+strains = read.table(file="sampleInfo/pravenecStrains.txt",sep="\t",header=FALSE)
+tissues = c("brain","heart","liver","brown adipose")
+numSamples = 4
+
+malesPravenec = data.frame(strain=rep(strains$V1,each=4),sampleNum=rep(c(1:4),nrow(strains)))
+malesPravenec$sample = paste(gsub("/Cub","",gsub("/Ola","",gsub("-","",malesPravenec$strain,fixed=TRUE),fixed=TRUE),fixed=TRUE),malesPravenec$sampleNum,sep="_")
+
+malesPravenec$brain = "in freezer"
+malesPravenec$heart = "in freezer"
+malesPravenec$liver = "in freezer"
+malesPravenec$bat = "in freezer"
+
+##  Parental Heart Analysis - 4/14
+malesPravenec$heart[malesPravenec$strain %in% c("BN-Lx/Cub","SHR/Ola")] = "total RNA sequenced (02Jun14); small RNA sequenced (19May14)"
+
+##  Batch 1 RI Brains - 9/14
+batch1 = paste(rep(c("HXB27","HXB7","HXB25","HXB17","HXB2","HXB13","BXH12","SHR"),each=2),rep(c(1:2),8),sep="_")
+malesPravenec$brain[malesPravenec$sample %in% batch1] = "total RNA sequenced (05Sep14); small RNA sequenced (21Jul14)"
+              
+##  Batch 2 RI Brains - 9/14             
+batch2 = c(paste(c("HXB1","HXB3","HXB4","HXB5","HXB10","HXB15","HXB18","HXB20","HXB21","HXB22","HXB23","HXB24","HXB29","HXB31","BXH2"),"_1",sep=""))
+malesPravenec$brain[malesPravenec$sample %in% batch2] = "total RNA/small RNA extracted and sent to Beckman/UCD Core"
+malesPravenec$brain[malesPravenec$sample=="SHR_2"] = "total RNA sequenced (05Sep14); small RNA sequenced (21Jul14); REPLICATE (same extraction/different library prep) - total RNA/small RNA extracted and libraries sent to Beckman/UCD Core"
+```
+
+```{r,results="asis",echo=FALSE}
+#make table pretty for printing
+forPrint = malesPravenec[,c("strain","sample","brain","heart","liver","bat")]
+colnames(forPrint) = c("Strain","Sample ID","Brain","Left Ventricle","Liver","Brown Adipose Tissue")
+kable(forPrint,align=rep("c",ncol(forPrint)))
+```
+
+```{r,echo=FALSE}
+
+
+```
+
+
+Female Rats From Michal Pravenec:
+-----------------------
