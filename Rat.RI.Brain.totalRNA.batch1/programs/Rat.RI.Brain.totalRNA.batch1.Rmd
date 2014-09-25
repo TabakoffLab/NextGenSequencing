@@ -74,16 +74,18 @@ setwd("~/Documents/NextGenSeq/Rat.RI.Brain.totalRNA.batch1/")
 
 trimmed = read.table(file="data/trimmedReadCounts.18Sep14.txt",sep="",header=FALSE)
 trimmed$file = unlist(lapply(strsplit(trimmed$V1,split="/",fixed=TRUE),function(a) a[6]))
-trimmed$sample = unlist(lapply(strsplit(trimmed$file,split="_",fixed=TRUE),function(a) paste(a[1],a[3],sep="")))
-trimmed$sample = gsub("BN","BNLx",trimmed$sample)
-trimmed$read = unlist(lapply(strsplit(trimmed$file,split="_",fixed=TRUE),function(a) a[10]))
-trimmed$lane = unlist(lapply(strsplit(trimmed$file,split="_",fixed=TRUE),function(a) a[9]))
+trimmed$sample = unlist(lapply(strsplit(trimmed$file,split="_",fixed=TRUE),function(a) paste(a[1],a[2],sep="_")))
+trimmed$read = unlist(lapply(strsplit(trimmed$file,split="_",fixed=TRUE),function(a) a[9]))
+trimmed$lane = unlist(lapply(strsplit(trimmed$file,split="_",fixed=TRUE),function(a) a[8]))
 
-bySample = merge(trimmed[trimmed$read=="R1",c("sample","lane","V2","V3")],trimmed[trimmed$read=="R2",c("sample","V2")],by="sample")
+bySample = merge(trimmed[trimmed$read=="R1",c("sample","lane","V2","V3")],trimmed[trimmed$read=="R2",c("sample","lane","V2")],by=c("sample","lane"))
 bySample$numReadFrag = bySample$V3*2
 colnames(bySample) = c("sample","lane","avgFragLength.R1","numReads","avgFragLength.R2","numReadFrag")
 
-bySample = merge(readFragments,bySample,by=c("sample"))
+rawCounts$lane = unlist(lapply(strsplit(rawCounts$file,split="_",fixed=TRUE),function(a) a[8])) 
+rawCounts = rawCounts[grep("_R1",rawCounts$file),]
+
+bySample = merge(rawCounts,bySample,by=c("sample","lane"))
 bySample$pctReadsAfterTrim = paste(sprintf("%.1f",round(100*bySample$numReads/as.numeric(gsub(",","",bySample$numPairedReads)),1)),"%",sep="")
 
 forPrint2 = bySample[,c("sample","numPairedReads","numReadFragments","avgFragLength.R1","avgFragLength.R2","numReadFrag","pctReadsAfterTrim")]
@@ -104,3 +106,56 @@ kable(forPrint2,align=rep("c",ncol(forPrint2)))
 Total Number of Paired End Reads After Trimming: `r prettyNum(sum(bySample$numReads),big.mark=",",scientific=FALSE)`  
 Total Number of Read Fragments After Trimming:  `r prettyNum(sum(bySample$numReadFrag),big.mark=",",scientific=FALSE)`  
 Average Number of Paired End Reads Per Sample After Trimming: `r prettyNum(mean(bySample$numReads),big.mark=",",scientific=FALSE)`  
+
+5. Align to ribosomal RNA - DONE
+---------------------------
+```
+qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/alignTo.rRNA.heart.19Sep14.sh
+```
+**move files**
+```
+get SHR1.rRNA/align_summary.txt rRNA.summary.SHR1.txt
+get SHR2.rRNA/align_summary.txt rRNA.summary.SHR2.txt
+get SHR3.rRNA/align_summary.txt rRNA.summary.SHR3.txt
+get SHR4.rRNA/align_summary.txt rRNA.summary.SHR4.txt
+get BNLx1.rRNA/align_summary.txt rRNA.summary.BNLx1.txt
+get BNLx2.rRNA/align_summary.txt rRNA.summary.BNLx2.txt
+get BNLx3.rRNA/align_summary.txt rRNA.summary.BNLx3.txt
+get BNLx4.rRNA/align_summary.txt rRNA.summary.BNLx4.txt
+```
+
+Proportion of Reads Aligned to rRNA
+-----------------------------------
+```{r,echo=FALSE}
+#rm(list=ls())
+setwd("~/Documents/NextGenSeq/BNLx.SHR.Heart.totalRNA/data")
+options(stringsAsFactors=FALSE)
+
+sampleList = paste(rep(c("BNLx","SHR"),each=4),c(1:4),sep="")
+
+rStats = c()
+for(i in sampleList){
+  x = read.table(file=paste("rRNA.summary.",i,".txt",sep=""),sep="\t",header=FALSE)
+  sample = i
+  numReads = as.numeric(gsub(":","",gsub("Input","",x[2,1])))       
+  mappedLeft = as.numeric(gsub(":","",gsub("Mapped","",unlist(lapply(strsplit(x[3,1],split="(",fixed=TRUE),function(a) a[1])))))
+  mappedRight = as.numeric(gsub(":","",gsub("Mapped ","",unlist(lapply(strsplit(x[7,1],split="(",fixed=TRUE),function(a) a[1])))))
+  mappedPairs = as.numeric(gsub("Aligned pairs: ","",x[10,1]))  
+  rStats = rbind(rStats,data.frame(sample,numReads,mappedLeft,mappedRight,mappedPairs))
+}
+
+rStats$numReadFrag = (rStats$mappedLeft + rStats$mappedRight)
+rStats$numDeletedPairedReads = (rStats$mappedLeft + rStats$mappedRight - rStats$mappedPairs)
+
+rStats = rStats[,c("sample","numReads","numReadFrag","mappedPairs","numDeletedPairedReads")]
+
+rTable = data.frame(sample=rStats$sample,numTrimmedReads=prettyNum(rStats$numReads,big.mark=","),numDeleted=prettyNum(rStats$numDeletedPairedReads,big.mark=","),pctRiboReads=as.numeric(rStats$numDeletedPairedReads)/as.numeric(rStats$numReads),numRemaining=prettyNum(rStats$numReads-rStats$numDeletedPairedReads,big.mark=","))
+
+rTable$pctRiboReads = paste(sprintf("%.1f",round(100*rTable$pctRiboReads,1)),"%",sep="")
+colnames(rTable) = c("Sample","Number of Paired-End Reads After Trimming","Number of Paired-End Reads with at Least One Fragment Aligned to rRNA","Percent of Paired-End Reads Aligned to rRNA","Number of Paired-End Reads NOT Aligned to rRNA")
+```
+
+```{r, results='asis',echo=FALSE}
+kable(rTable,align=rep("c",ncol(rTable)))
+```
+

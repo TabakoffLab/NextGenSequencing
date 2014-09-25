@@ -30,9 +30,15 @@ malesPravenec$brain[malesPravenec$sample %in% batch1] = "total RNA sequenced (05
               
 ##  Batch 2 RI Brains - 9/14             
 batch2 = c(paste(c("HXB1","HXB3","HXB4","HXB5","HXB10","HXB15","HXB18","HXB20","HXB21","HXB22","HXB23","HXB24","HXB29","HXB31","BXH2"),"_1",sep=""))
-malesPravenec$brain[malesPravenec$sample %in% batch2] = "total RNA/small RNA extracted and sent to Beckman/UCD Core"
-malesPravenec$brain[malesPravenec$sample=="SHR_2"] = "total RNA sequenced (05Sep14); small RNA sequenced (21Jul14); REPLICATE (same extraction/different library prep) - total RNA/small RNA extracted and libraries sent to Beckman/UCD Core"
+malesPravenec$brain[malesPravenec$sample %in% batch2] = "total RNA sequenced (24Sep14); small RNA sequenced (23Sep14)"
+malesPravenec$brain[malesPravenec$sample=="SHR_1"] = "total RNA sequenced (05Sep14); small RNA sequenced (21Jul14); REPLICATE (same extraction/different library prep) - total RNA sequenced (24Sep14) and small RNA sequenced (23Sep14)"
+
+##  Batch 3 RI Brains - 9/25
+batch3 = c("BXH3_1","BXH3_2","BXH5_1","BXH6_1","BXH6_2","BXH8_1","BXH9_1","BXH9_2","BXH10_1","BXH10_2","BXH11_1","BXH11_2","BXH13_1","BNLx_1","BNLx_2")
+malesPravenec$brain[malesPravenec$sample %in% batch3] = "libraries being prepped (25Sep14)"
+malesPravenec$brain[malesPravenec$sample=="SHR_1"] = paste(malesPravenec$brain[malesPravenec$sample=="SHR_1"],"; REPLICATE2 libraries being prepped (25Sep14)",sep="")
 ```
+
 
 ```{r,results="asis",echo=FALSE}
 #make table pretty for printing
@@ -41,11 +47,3 @@ colnames(forPrint) = c("Strain","Sample ID","Brain","Left Ventricle","Liver","Br
 kable(forPrint,align=rep("c",ncol(forPrint)))
 ```
 
-```{r,echo=FALSE}
-
-
-```
-
-
-Female Rats From Michal Pravenec:
------------------------
