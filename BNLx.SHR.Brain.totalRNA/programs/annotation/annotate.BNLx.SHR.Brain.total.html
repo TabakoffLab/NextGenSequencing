@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<!-- saved from url=(0014)about:internet -->
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=9" >
+
+<title>Annotate New Transcriptome - Brain Ribosomal-RNA depleted Total RNA</title>
+
+<style type="text/css">
+body, td {
+   font-family: sans-serif;
+   background-color: white;
+   font-size: 12px;
+   margin: 8px;
+}
+
+tt, code, pre {
+   font-family: 'DejaVu Sans Mono', 'Droid Sans Mono', 'Lucida Console', Consolas, Monaco, monospace;
+}
+
+h1 { 
+   font-size:2.2em; 
+}
+
+h2 { 
+   font-size:1.8em; 
+}
+
+h3 { 
+   font-size:1.4em; 
+}
+
+h4 { 
+   font-size:1.0em; 
+}
+
+h5 { 
+   font-size:0.9em; 
+}
+
+h6 { 
+   font-size:0.8em; 
+}
+
+a:visited {
+   color: rgb(50%, 0%, 50%);
+}
+
+pre {	
+   margin-top: 0;
+   max-width: 95%;
+   border: 1px solid #ccc;
+   white-space: pre-wrap;
+}
+
+pre code {
+   display: block; padding: 0.5em;
+}
+
+code.r, code.cpp {
+   background-color: #F8F8F8;
+}
+
+table, td, th {
+  border: none;
+}
+
+blockquote {
+   color:#666666;
+   margin:0;
+   padding-left: 1em;
+   border-left: 0.5em #EEE solid;
+}
+
+hr {
+   height: 0px;
+   border-bottom: none;
+   border-top-width: thin;
+   border-top-style: dotted;
+   border-top-color: #999999;
+}
+
+@media print {
+   * { 
+      background: transparent !important; 
+      color: black !important; 
+      filter:none !important; 
+      -ms-filter: none !important; 
+   }
+
+   body { 
+      font-size:12pt; 
+      max-width:100%; 
+   }
+       
+   a, a:visited { 
+      text-decoration: underline; 
+   }
+
+   hr { 
+      visibility: hidden;
+      page-break-before: always;
+   }
+
+   pre, blockquote { 
+      padding-right: 1em; 
+      page-break-inside: avoid; 
+   }
+
+   tr, img { 
+      page-break-inside: avoid; 
+   }
+
+   img { 
+      max-width: 100% !important; 
+   }
+
+   @page :left { 
+      margin: 15mm 20mm 15mm 10mm; 
+   }
+     
+   @page :right { 
+      margin: 15mm 10mm 15mm 20mm; 
+   }
+
+   p, h2, h3 { 
+      orphans: 3; widows: 3; 
+   }
+
+   h2, h3 { 
+      page-break-after: avoid; 
+   }
+}
+
+</style>
+
+
+
+
+
+</head>
+
+<body>
+<h1>Annotate New Transcriptome - Brain Ribosomal-RNA depleted Total RNA</h1>
+
+<h2>1.  Create BED Files to Identify Overlap With Annotation</h2>
+
+<h2>2.  Identify overlap between transcripts from reconstruction and annotation databases</h2>
+
+<p>BEDtools Version = bedtools v2.19.1</p>
+
+<pre><code>export PATH=/usr/local/bedtools2/bin:$PATH
+cd /data2/saba/BNLx.SHR/RNA-Seq.Brain.total/reconstruction/tmp
+intersectBed -a gtf.bed -b /data2/saba/gtfFiles/ensGene.RGSC5.0.rn5.cleaned.bed -wo &gt; overlap.brain.total.wEnsembl.txt
+intersectBed -a gtf.bed -b /data2/saba/gtfFiles/refSeqGene.RGSC5.0.rn5.cleaned.bed -wo &gt; overlap.brain.total.wRefSeq.txt
+intersectBed -a gtf.bed -b /data2/saba/gtfFiles/xenoRefGene.mouseOnly.RGSC5.0.rn5.bed -wo &gt; overlap.brain.total.wMouseRefSeq.txt
+</code></pre>
+
+<p>Number of Transcripts: 32,704
+Number of Genes: 30,739</p>
+
+<h3>Annotation for Entire Set of Transcripts</h3>
+
+<table><thead>
+<tr>
+<th align="center">Annotation</th>
+<th align="center">Number of Transcripts</th>
+<th align="center">Percent of Transcripts</th>
+</tr>
+</thead><tbody>
+<tr>
+<td align="center">ensembl transcript</td>
+<td align="center">8,591</td>
+<td align="center">26.3%</td>
+</tr>
+<tr>
+<td align="center">novel transcript of Ensembl Gene</td>
+<td align="center">3,413</td>
+<td align="center">10.4%</td>
+</tr>
+<tr>
+<td align="center">associated with Rat RefSeq Gene</td>
+<td align="center">109</td>
+<td align="center">0.3%</td>
+</tr>
+<tr>
+<td align="center">associated with Mouse RefSeq Gene</td>
+<td align="center">141</td>
+<td align="center">0.4%</td>
+</tr>
+<tr>
+<td align="center">unannotated</td>
+<td align="center">20,450</td>
+<td align="center">62.5%</td>
+</tr>
+</tbody></table>
+
+<h3>Annotation for 20% of Transcripts with Highest Expression</h3>
+
+<table><thead>
+<tr>
+<th align="center">Annotation</th>
+<th align="center">Number of Transcripts</th>
+<th align="center">Percent of Transcripts</th>
+</tr>
+</thead><tbody>
+<tr>
+<td align="center">ensembl transcript</td>
+<td align="center">4,680</td>
+<td align="center">71.5%</td>
+</tr>
+<tr>
+<td align="center">novel transcript of Ensembl Gene</td>
+<td align="center">1,139</td>
+<td align="center">17.4%</td>
+</tr>
+<tr>
+<td align="center">associated with Rat RefSeq Gene</td>
+<td align="center">39</td>
+<td align="center">0.6%</td>
+</tr>
+<tr>
+<td align="center">associated with Mouse RefSeq Gene</td>
+<td align="center">36</td>
+<td align="center">0.6%</td>
+</tr>
+<tr>
+<td align="center">unannotated</td>
+<td align="center">647</td>
+<td align="center">9.9%</td>
+</tr>
+</tbody></table>
+
+<h3>Top 10 Most Highly Expressed Transcripts</h3>
+
+<table><thead>
+<tr>
+<th align="center">transcript_id</th>
+<th align="center">chromosome</th>
+<th align="center">start (bp)</th>
+<th align="center">stop (bp)</th>
+<th align="center">annotation summary</th>
+<th align="center">Gene Identifier</th>
+<th align="center">Gene Symbol</th>
+<th align="center">Gene Description</th>
+<th align="center">Ensembl Gene Biotype</th>
+<th align="center">FPKM (BN-Lx)</th>
+<th align="center">FPKM (SHR)</th>
+</tr>
+</thead><tbody>
+<tr>
+<td align="center">matched.32947.1</td>
+<td align="center">chr15</td>
+<td align="center">31571352</td>
+<td align="center">31571712</td>
+<td align="center">associated with Rat RefSeq Gene</td>
+<td align="center">NR_002703</td>
+<td align="center">Rmrp</td>
+<td align="center">Rattus norvegicus RNA component of mitochondrial RNA processing endoribonuclease (Rmrp), RNase MRP RNA</td>
+<td align="center"></td>
+<td align="center">7456.6</td>
+<td align="center">8316.7</td>
+</tr>
+<tr>
+<td align="center">BNLx.10411.1</td>
+<td align="center">chr5</td>
+<td align="center">63519183</td>
+<td align="center">63519708</td>
+<td align="center">associated with Mouse RefSeq Gene</td>
+<td align="center">NR_001460</td>
+<td align="center">Rmrp</td>
+<td align="center">Mus musculus RNA component of mitochondrial RNAase P (Rmrp), RNase MRP RNA</td>
+<td align="center"></td>
+<td align="center">1347.2</td>
+<td align="center">1347.8</td>
+</tr>
+<tr>
+<td align="center">SHR.28958.1</td>
+<td align="center">chr1</td>
+<td align="center">224944742</td>
+<td align="center">224945085</td>
+<td align="center">unannotated</td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center">646.1</td>
+<td align="center">714.7</td>
+</tr>
+<tr>
+<td align="center">ENSRNOT00000003283</td>
+<td align="center">chrX</td>
+<td align="center">107379831</td>
+<td align="center">107394874</td>
+<td align="center">ensembl transcript</td>
+<td align="center">ENSRNOG00000002419</td>
+<td align="center">Plp1</td>
+<td align="center">proteolipid protein 1</td>
+<td align="center">protein_coding</td>
+<td align="center">612.4</td>
+<td align="center">596.0</td>
+</tr>
+<tr>
+<td align="center">ENSRNOT00000058295</td>
+<td align="center">chr18</td>
+<td align="center">78473296</td>
+<td align="center">78504226</td>
+<td align="center">ensembl transcript</td>
+<td align="center">ENSRNOG00000016516</td>
+<td align="center">MBP</td>
+<td align="center">myelin basic protein</td>
+<td align="center">protein_coding</td>
+<td align="center">503.8</td>
+<td align="center">477.1</td>
+</tr>
+<tr>
+<td align="center">ENSRNOT00000041891</td>
+<td align="center">chr1</td>
+<td align="center">81878373</td>
+<td align="center">81881182</td>
+<td align="center">ensembl transcript</td>
+<td align="center">ENSRNOG00000018454</td>
+<td align="center">Apoe</td>
+<td align="center">apolipoprotein E</td>
+<td align="center">protein_coding</td>
+<td align="center">481.9</td>
+<td align="center">474.7</td>
+</tr>
+<tr>
+<td align="center">BNLx.8060.1</td>
+<td align="center">chr3</td>
+<td align="center">136182042</td>
+<td align="center">136236652</td>
+<td align="center">associated with Rat RefSeq Gene</td>
+<td align="center">NM_001270575;NM_030991</td>
+<td align="center">Snap25</td>
+<td align="center">Rattus norvegicus synaptosomal-associated protein 25 (Snap25), transcript variant 1, mRNA</td>
+<td align="center"></td>
+<td align="center">443.1</td>
+<td align="center">444.5</td>
+</tr>
+<tr>
+<td align="center">ENSRNOT00000074404</td>
+<td align="center">chr20</td>
+<td align="center">19258274</td>
+<td align="center">19274198</td>
+<td align="center">ensembl transcript</td>
+<td align="center">ENSRNOG00000048682</td>
+<td align="center">Zwint</td>
+<td align="center">ZW10 interactor, kinetochore protein</td>
+<td align="center">protein_coding</td>
+<td align="center">384.8</td>
+<td align="center">387.9</td>
+</tr>
+<tr>
+<td align="center">ENSRNOT00000022280</td>
+<td align="center">chr18</td>
+<td align="center">78473296</td>
+<td align="center">78504226</td>
+<td align="center">ensembl transcript</td>
+<td align="center">ENSRNOG00000016516</td>
+<td align="center">MBP</td>
+<td align="center">myelin basic protein</td>
+<td align="center">protein_coding</td>
+<td align="center">365.4</td>
+<td align="center">389.1</td>
+</tr>
+<tr>
+<td align="center">ENSRNOT00000022113</td>
+<td align="center">chr18</td>
+<td align="center">15307563</td>
+<td align="center">15314777</td>
+<td align="center">ensembl transcript</td>
+<td align="center">ENSRNOG00000016275</td>
+<td align="center">Ttr</td>
+<td align="center">transthyretin</td>
+<td align="center">protein_coding</td>
+<td align="center">375.7</td>
+<td align="center">378.6</td>
+</tr>
+</tbody></table>
+
+<p>BigWig Tracks For UCSC Genome Browser</p>
+
+<pre><code>track type=bigWig name=&quot;HXB.Brain.polyA&quot; description=&quot;HXB/BXH Brain PolyA+&quot; bigDataUrl=http://ucsc:JU7etr5t@phenogen.ucdenver.edu/ucsc/HXB.brain.polyA.bw
+track type=bigWig name=&quot;HXB.Brain.total&quot; description=&quot;HXB/BXH Brain Total&quot; bigDataUrl=http://ucsc:JU7etr5t@phenogen.ucdenver.edu/ucsc/HXB.brain.total.bw
+</code></pre>
+
+</body>
+
+</html>
+

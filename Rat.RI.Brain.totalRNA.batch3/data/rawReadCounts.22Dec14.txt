@@ -1,0 +1,16 @@
+/storage/saba/Rat.RI.Brain.totalRNA.batch3/rawReads/BNLX_1brain_AGTTCC_L008_R1.fastq 100 149664346
+/storage/saba/Rat.RI.Brain.totalRNA.batch3/rawReads/BNLX_2brain_ATGTCA_L006_R1.fastq 100 147573455
+/storage/saba/Rat.RI.Brain.totalRNA.batch3/rawReads/BXH10_1brain_GCCAAT_L002_R1.fastq 100 136119802
+/storage/saba/Rat.RI.Brain.totalRNA.batch3/rawReads/BXH10_2brain_GTCCGC_L005_R1.fastq 100 143559349
+/storage/saba/Rat.RI.Brain.totalRNA.batch3/rawReads/BXH11_1brain_AGTCAA_L005_R1.fastq 100 143165227
+/storage/saba/Rat.RI.Brain.totalRNA.batch3/rawReads/BXH11_2brain_CTTGTA_L002_R1.fastq 100 142142287
+/storage/saba/Rat.RI.Brain.totalRNA.batch3/rawReads/BXH13_1brain_GTCCGC_L008_R1.fastq 100 136469855
+/storage/saba/Rat.RI.Brain.totalRNA.batch3/rawReads/BXH3_1brain_CGATGT_L001_R1.fastq 100 148297982
+/storage/saba/Rat.RI.Brain.totalRNA.batch3/rawReads/BXH3_2brain_CCGTCC_L004_R1.fastq 100 138276728
+/storage/saba/Rat.RI.Brain.totalRNA.batch3/rawReads/BXH5_1brain_ACAGTG_L003_R1.fastq 100 141525963
+/storage/saba/Rat.RI.Brain.totalRNA.batch3/rawReads/BXH6_1brain_TGACCA_L004_R1.fastq 100 140776240
+/storage/saba/Rat.RI.Brain.totalRNA.batch3/rawReads/BXH6_2brain_GTGAAA_L003_R1.fastq 100 146263134
+/storage/saba/Rat.RI.Brain.totalRNA.batch3/rawReads/BXH8_1brain_AGTTCC_L006_R1.fastq 100 130847183
+/storage/saba/Rat.RI.Brain.totalRNA.batch3/rawReads/BXH9_1brain_AGTCAA_L007_R1.fastq 100 132797003
+/storage/saba/Rat.RI.Brain.totalRNA.batch3/rawReads/BXH9_2brain_CAGATC_L001_R1.fastq 100 133839175
+/storage/saba/Rat.RI.Brain.totalRNA.batch3/rawReads/SHR_1brain_ATGTCA_L007_R1.fastq 100 146707331

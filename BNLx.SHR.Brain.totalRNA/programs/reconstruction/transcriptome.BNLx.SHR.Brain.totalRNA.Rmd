@@ -504,3 +504,11 @@ if(printNow) write.table(new.gtf,file="reconstruction/reconstruct.total.brain.FI
 ````
 
 In the second iteration, `r prettyNum(nrow(keepers),big.mark=",")` out of `r prettyNum(nrow(bnlx),big.mark=",")` transcripts were retained (`r prettyNum(length(unique(keepers$gene_id)),big.mark=",")` out of `r prettyNum(length(unique(bnlx$gene_id)),big.mark=",")` genes).
+
+
+8. Quantitate Final Combined Transcriptome 
+---------------------------------
+```
+qsub -q smp /storage/saba/BNLx.SHR.Brain.totalRNA/programs/quant.Recon.30Sep14.FINAL.SHR.sh
+qsub -q smp /storage/saba/BNLx.SHR.Brain.totalRNA/programs/quant.Recon.30Sep14.FINAL.BNLx.sh
+```

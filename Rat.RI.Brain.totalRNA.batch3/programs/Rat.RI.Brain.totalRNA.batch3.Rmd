@@ -1,0 +1,64 @@
+RI Panel - Batch 3 (Brain) Total RNA RNA-Seq
+========================================================
+
+* 1 sample per strain (SHR, BXH13, BXH5, BXH8)
+* 2 samples per strain (BNLx, BXH10, BXH11, BXH3, BXH6, BXH9)
+* tissues received from Dr. Michal Pravenec at Academy of Sciences of the Czech Republic, Prague, Czech Republic
+* ribosomal RNA depleted total RNA
+* 2X100 reads using the stranded protocol
+* sequencing done by Beckman Coulter Genomics - received November 22, 2014
+  * labeled UColorado Tabakoff Batch 5 by Beckman
+* synthetic spike-in were added to each sample 
+  * BXH3_1, BXH3_2, BXH5_1, BXH8_1, BXH10_1, BXH11_2, BXH13_1, and SHR_1 have mix 1
+  * BXH6_1, BXH6_2, BXH9_1, BXH9_2, BXH10_2, BXH11_1, BNLx_1, and BNLx_2 have mix 2
+  * 4 mL of 1:100 diluted spikes were added after RNA extraction but before rRNA-depletion
+  * Information regarding the spike-ins can be found here: http://products.invitrogen.com/ivgn/product/4456739
+
+1. Unzip Files - DONE
+---------------
+```
+qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/unzip.yucca.sh
+```
+
+2. Determine number of reads sent for each sample - DONE
+-------------------------------------------------
+```
+qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/countRawReads.brain.batch3.sh
+```
+
+```{r,echo=FALSE}
+rm(list=ls())
+options(stringsAsFactors=FALSE)
+setwd("~/Documents/NextGenSeq/Rat.RI.Brain.totalRNA.batch3/")
+rawCounts = read.table(file="data/rawReadCounts.22Dec14.txt",sep=" ",header=FALSE,fill=TRUE)
+
+rawCounts$rawReads = as.numeric(rawCounts$V3)
+rawCounts$file = unlist(lapply(strsplit(rawCounts$V1,split="/",fixed=TRUE),function(a) a[length(a)]))
+rawCounts$strain = unlist(lapply(strsplit(rawCounts$file,split="_",fixed=TRUE),function(a) a[1]))
+rawCounts$sampleNum = unlist(lapply(strsplit(rawCounts$file,split="_",fixed=TRUE),function(a) gsub("brain","",a[2])))
+rawCounts$sample = paste(rawCounts$strain,rawCounts$sampleNum,sep="_")
+
+rawCounts$numPairedReads = prettyNum(rawCounts$rawReads,big.mark=",",scientific=FALSE)
+rawCounts$numReadFragments = prettyNum(rawCounts$rawReads*2,big.mark=",",scientific=FALSE)
+
+forPrint = rawCounts[,c("sample","numPairedReads","numReadFragments")]
+colnames(forPrint) = c("sample","Number of Paired-End Reads","Number of Read Fragments")
+```
+
+Raw Reads/Read Fragments
+---------------------------
+
+```{r, results='asis',echo=FALSE}
+kable(forPrint,align=rep("c",ncol(forPrint)))
+```
+
+Total Number of Paired End Reads: `r prettyNum(sum(rawCounts$rawReads),big.mark=",",scientific=FALSE)`  
+Total Number of Read Fragments:  `r prettyNum(sum(rawCounts$rawReads*2),big.mark=",",scientific=FALSE)`  
+Average Number of Paired End Reads Per Sample: `r prettyNum(sum(rawCounts$rawReads)/length(unique(rawCounts$sample)),big.mark=",",scientific=FALSE)`  
+
+3. Trim reads for adaptors and for quality - RUNNING (job number 44238)
+---------------
+
+```
+qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/trimReads.brain.batch3.sh
+```

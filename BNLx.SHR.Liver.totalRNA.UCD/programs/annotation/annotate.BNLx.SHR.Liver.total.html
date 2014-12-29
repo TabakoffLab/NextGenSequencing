@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<!-- saved from url=(0014)about:internet -->
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=9" >
+
+<title>Annotate New Transcriptome - Liver Ribosomal-RNA depleted Total RNA</title>
+
+<style type="text/css">
+body, td {
+   font-family: sans-serif;
+   background-color: white;
+   font-size: 12px;
+   margin: 8px;
+}
+
+tt, code, pre {
+   font-family: 'DejaVu Sans Mono', 'Droid Sans Mono', 'Lucida Console', Consolas, Monaco, monospace;
+}
+
+h1 { 
+   font-size:2.2em; 
+}
+
+h2 { 
+   font-size:1.8em; 
+}
+
+h3 { 
+   font-size:1.4em; 
+}
+
+h4 { 
+   font-size:1.0em; 
+}
+
+h5 { 
+   font-size:0.9em; 
+}
+
+h6 { 
+   font-size:0.8em; 
+}
+
+a:visited {
+   color: rgb(50%, 0%, 50%);
+}
+
+pre {	
+   margin-top: 0;
+   max-width: 95%;
+   border: 1px solid #ccc;
+   white-space: pre-wrap;
+}
+
+pre code {
+   display: block; padding: 0.5em;
+}
+
+code.r, code.cpp {
+   background-color: #F8F8F8;
+}
+
+table, td, th {
+  border: none;
+}
+
+blockquote {
+   color:#666666;
+   margin:0;
+   padding-left: 1em;
+   border-left: 0.5em #EEE solid;
+}
+
+hr {
+   height: 0px;
+   border-bottom: none;
+   border-top-width: thin;
+   border-top-style: dotted;
+   border-top-color: #999999;
+}
+
+@media print {
+   * { 
+      background: transparent !important; 
+      color: black !important; 
+      filter:none !important; 
+      -ms-filter: none !important; 
+   }
+
+   body { 
+      font-size:12pt; 
+      max-width:100%; 
+   }
+       
+   a, a:visited { 
+      text-decoration: underline; 
+   }
+
+   hr { 
+      visibility: hidden;
+      page-break-before: always;
+   }
+
+   pre, blockquote { 
+      padding-right: 1em; 
+      page-break-inside: avoid; 
+   }
+
+   tr, img { 
+      page-break-inside: avoid; 
+   }
+
+   img { 
+      max-width: 100% !important; 
+   }
+
+   @page :left { 
+      margin: 15mm 20mm 15mm 10mm; 
+   }
+     
+   @page :right { 
+      margin: 15mm 10mm 15mm 20mm; 
+   }
+
+   p, h2, h3 { 
+      orphans: 3; widows: 3; 
+   }
+
+   h2, h3 { 
+      page-break-after: avoid; 
+   }
+}
+
+</style>
+
+
+
+
+
+</head>
+
+<body>
+<h1>Annotate New Transcriptome - Liver Ribosomal-RNA depleted Total RNA</h1>
+
+<h2>1.  Create BED Files to Identify Overlap With Annotation</h2>
+
+<h2>2.  Identify overlap between transcripts from reconstruction and annotation databases</h2>
+
+<p>BEDtools Version = bedtools v2.19.1</p>
+
+<pre><code>export PATH=/usr/local/bedtools2/bin:$PATH
+cd /data2/saba/BNLx.SHR/RNA-Seq.Liver/totalRNA.UCD/reconstruction/tmp
+intersectBed -a gtf.bed -b /data2/saba/gtfFiles/ensGene.RGSC5.0.rn5.cleaned.bed -wo &gt; overlap.liver.total.wEnsembl.txt
+intersectBed -a gtf.bed -b /data2/saba/gtfFiles/refSeqGene.RGSC5.0.rn5.cleaned.bed -wo &gt; overlap.liver.total.wRefSeq.txt
+intersectBed -a gtf.bed -b /data2/saba/gtfFiles/xenoRefGene.mouseOnly.RGSC5.0.rn5.bed -wo &gt; overlap.liver.total.wMouseRefSeq.txt
+</code></pre>
+
+<p>Number of Transcripts: 18,833
+Number of Genes: 15,176</p>
+
+<h3>Annotation for Entire Set of Transcripts</h3>
+
+<table><thead>
+<tr>
+<th align="center">Annotation</th>
+<th align="center">Number of Transcripts</th>
+<th align="center">Percent of Transcripts</th>
+</tr>
+</thead><tbody>
+<tr>
+<td align="center">ensembl transcript</td>
+<td align="center">6,605</td>
+<td align="center">35.1%</td>
+</tr>
+<tr>
+<td align="center">novel transcript of Ensembl Gene</td>
+<td align="center">5,830</td>
+<td align="center">31.0%</td>
+</tr>
+<tr>
+<td align="center">associated with Rat RefSeq Gene</td>
+<td align="center">135</td>
+<td align="center">0.7%</td>
+</tr>
+<tr>
+<td align="center">associated with Mouse RefSeq Gene</td>
+<td align="center">111</td>
+<td align="center">0.6%</td>
+</tr>
+<tr>
+<td align="center">unannotated</td>
+<td align="center">6,152</td>
+<td align="center">32.7%</td>
+</tr>
+</tbody></table>
+
+<h3>Annotation for 20% of Transcripts with Highest Expression</h3>
+
+<table><thead>
+<tr>
+<th align="center">Annotation</th>
+<th align="center">Number of Transcripts</th>
+<th align="center">Percent of Transcripts</th>
+</tr>
+</thead><tbody>
+<tr>
+<td align="center">ensembl transcript</td>
+<td align="center">2,162</td>
+<td align="center">57.4%</td>
+</tr>
+<tr>
+<td align="center">novel transcript of Ensembl Gene</td>
+<td align="center">1,256</td>
+<td align="center">33.3%</td>
+</tr>
+<tr>
+<td align="center">associated with Rat RefSeq Gene</td>
+<td align="center">34</td>
+<td align="center">0.9%</td>
+</tr>
+<tr>
+<td align="center">associated with Mouse RefSeq Gene</td>
+<td align="center">26</td>
+<td align="center">0.7%</td>
+</tr>
+<tr>
+<td align="center">unannotated</td>
+<td align="center">289</td>
+<td align="center">7.7%</td>
+</tr>
+</tbody></table>
+
+<h3>Top 10 Most Highly Expressed Transcripts</h3>
+
+<table><thead>
+<tr>
+<th align="center">transcript_id</th>
+<th align="center">chromosome</th>
+<th align="center">start (bp)</th>
+<th align="center">stop (bp)</th>
+<th align="center">annotation summary</th>
+<th align="center">Gene Identifier</th>
+<th align="center">Gene Symbol</th>
+<th align="center">Gene Description</th>
+<th align="center">Ensembl Gene Biotype</th>
+<th align="center">FPKM (BN-Lx)</th>
+<th align="center">FPKM (SHR)</th>
+</tr>
+</thead><tbody>
+<tr>
+<td align="center">matched.15626.1</td>
+<td align="center">chr15</td>
+<td align="center">31571402</td>
+<td align="center">31571703</td>
+<td align="center">associated with Rat RefSeq Gene</td>
+<td align="center">NR_002703</td>
+<td align="center">Rmrp</td>
+<td align="center">Rattus norvegicus RNA component of mitochondrial RNA processing endoribonuclease (Rmrp), RNase MRP RNA</td>
+<td align="center"></td>
+<td align="center">10614</td>
+<td align="center">17700</td>
+</tr>
+<tr>
+<td align="center">ENSRNOT00000042860</td>
+<td align="center">chr8</td>
+<td align="center">41643250</td>
+<td align="center">41646813</td>
+<td align="center">ensembl transcript</td>
+<td align="center"></td>
+<td align="center">Rup2</td>
+<td align="center">urinary protein 2</td>
+<td align="center">protein_coding</td>
+<td align="center">4455</td>
+<td align="center">4802</td>
+</tr>
+<tr>
+<td align="center">matched.15822.1</td>
+<td align="center">chr5</td>
+<td align="center">63519281</td>
+<td align="center">63519565</td>
+<td align="center">associated with Mouse RefSeq Gene</td>
+<td align="center">NR_001460</td>
+<td align="center">Rmrp</td>
+<td align="center">Mus musculus RNA component of mitochondrial RNAase P (Rmrp), RNase MRP RNA</td>
+<td align="center"></td>
+<td align="center">3378</td>
+<td align="center">3884</td>
+</tr>
+<tr>
+<td align="center">ENSRNOT00000021055</td>
+<td align="center">chr1</td>
+<td align="center">264287001</td>
+<td align="center">264294216</td>
+<td align="center">ensembl transcript</td>
+<td align="center"></td>
+<td align="center">Rbp4</td>
+<td align="center">retinol binding protein 4, plasma</td>
+<td align="center">protein_coding</td>
+<td align="center">2495</td>
+<td align="center">2800</td>
+</tr>
+<tr>
+<td align="center">ENSRNOT00000022113</td>
+<td align="center">chr18</td>
+<td align="center">15307563</td>
+<td align="center">15314777</td>
+<td align="center">ensembl transcript</td>
+<td align="center"></td>
+<td align="center">Ttr</td>
+<td align="center">transthyretin</td>
+<td align="center">protein_coding</td>
+<td align="center">5220</td>
+<td align="center">0</td>
+</tr>
+<tr>
+<td align="center">ENSRNOT00000008840</td>
+<td align="center">chr4</td>
+<td align="center">163840320</td>
+<td align="center">163844102</td>
+<td align="center">ensembl transcript</td>
+<td align="center"></td>
+<td align="center">Fabp1</td>
+<td align="center">fatty acid binding protein 1, liver</td>
+<td align="center">protein_coding</td>
+<td align="center">2320</td>
+<td align="center">2436</td>
+</tr>
+<tr>
+<td align="center">BNLx.4030.1</td>
+<td align="center">chr10</td>
+<td align="center">58888616</td>
+<td align="center">58890287</td>
+<td align="center">unannotated</td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center"></td>
+<td align="center">1571</td>
+<td align="center">2564</td>
+</tr>
+<tr>
+<td align="center">ENSRNOT00000020197</td>
+<td align="center">chr19</td>
+<td align="center">52921330</td>
+<td align="center">52925933</td>
+<td align="center">ensembl transcript</td>
+<td align="center"></td>
+<td align="center">Hp</td>
+<td align="center">haptoglobin</td>
+<td align="center">protein_coding</td>
+<td align="center">4078</td>
+<td align="center">0</td>
+</tr>
+<tr>
+<td align="center">ENSRNOT00000004756</td>
+<td align="center">chr10</td>
+<td align="center">96364126</td>
+<td align="center">96378117</td>
+<td align="center">ensembl transcript</td>
+<td align="center"></td>
+<td align="center">Apoh</td>
+<td align="center">apolipoprotein H</td>
+<td align="center">protein_coding</td>
+<td align="center">1926</td>
+<td align="center">1476</td>
+</tr>
+<tr>
+<td align="center">ENSRNOT00000004662</td>
+<td align="center">chr13</td>
+<td align="center">94223782</td>
+<td align="center">94225667</td>
+<td align="center">ensembl transcript</td>
+<td align="center"></td>
+<td align="center">Apoa2</td>
+<td align="center">apolipoprotein A-II</td>
+<td align="center">protein_coding</td>
+<td align="center">1867</td>
+<td align="center">1482</td>
+</tr>
+</tbody></table>
+
+<p>BigWig Tracks For UCSC Genome Browser</p>
+
+<pre><code>track type=bigWig name=&quot;BNLx.SHR.Liver.plus&quot; description=&quot;BNLx and SHR Liver - Plus Strand&quot; bigDataUrl=http://ucsc:JU7etr5t@phenogen.ucdenver.edu/ucsc/HXB.liver.plus.bw
+track type=bigWig name=&quot;BNLx.SHR.Liver.minus&quot; description=&quot;BNLx and SHR Liver - Minus Strand&quot; bigDataUrl=http://ucsc:JU7etr5t@phenogen.ucdenver.edu/ucsc/HXB.liver.minus.bw
+</code></pre>
+
+</body>
+
+</html>
+

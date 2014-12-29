@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<!-- saved from url=(0014)about:internet -->
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=9" >
+
+<title>Annotate New Transcriptome - Brain PolyA+-selected RNA</title>
+
+<style type="text/css">
+body, td {
+   font-family: sans-serif;
+   background-color: white;
+   font-size: 12px;
+   margin: 8px;
+}
+
+tt, code, pre {
+   font-family: 'DejaVu Sans Mono', 'Droid Sans Mono', 'Lucida Console', Consolas, Monaco, monospace;
+}
+
+h1 { 
+   font-size:2.2em; 
+}
+
+h2 { 
+   font-size:1.8em; 
+}
+
+h3 { 
+   font-size:1.4em; 
+}
+
+h4 { 
+   font-size:1.0em; 
+}
+
+h5 { 
+   font-size:0.9em; 
+}
+
+h6 { 
+   font-size:0.8em; 
+}
+
+a:visited {
+   color: rgb(50%, 0%, 50%);
+}
+
+pre {	
+   margin-top: 0;
+   max-width: 95%;
+   border: 1px solid #ccc;
+   white-space: pre-wrap;
+}
+
+pre code {
+   display: block; padding: 0.5em;
+}
+
+code.r, code.cpp {
+   background-color: #F8F8F8;
+}
+
+table, td, th {
+  border: none;
+}
+
+blockquote {
+   color:#666666;
+   margin:0;
+   padding-left: 1em;
+   border-left: 0.5em #EEE solid;
+}
+
+hr {
+   height: 0px;
+   border-bottom: none;
+   border-top-width: thin;
+   border-top-style: dotted;
+   border-top-color: #999999;
+}
+
+@media print {
+   * { 
+      background: transparent !important; 
+      color: black !important; 
+      filter:none !important; 
+      -ms-filter: none !important; 
+   }
+
+   body { 
+      font-size:12pt; 
+      max-width:100%; 
+   }
+       
+   a, a:visited { 
+      text-decoration: underline; 
+   }
+
+   hr { 
+      visibility: hidden;
+      page-break-before: always;
+   }
+
+   pre, blockquote { 
+      padding-right: 1em; 
+      page-break-inside: avoid; 
+   }
+
+   tr, img { 
+      page-break-inside: avoid; 
+   }
+
+   img { 
+      max-width: 100% !important; 
+   }
+
+   @page :left { 
+      margin: 15mm 20mm 15mm 10mm; 
+   }
+     
+   @page :right { 
+      margin: 15mm 10mm 15mm 20mm; 
+   }
+
+   p, h2, h3 { 
+      orphans: 3; widows: 3; 
+   }
+
+   h2, h3 { 
+      page-break-after: avoid; 
+   }
+}
+
+</style>
+
+
+
+
+
+</head>
+
+<body>
+<h1>Annotate New Transcriptome - Brain PolyA+-selected RNA</h1>
+
+<h2>1.  Create BED Files to Identify Overlap With Annotation</h2>
+
+<h2>2.  Identify overlap between transcripts in order to identify transcripts from the same gene</h2>
+
+<p>BEDtools Version = bedtools v2.19.1</p>
+
+<pre><code>export PATH=/usr/local/bedtools2/bin:$PATH
+cd /data2/saba/BNLx.SHR/RNA-Seq.Brain.polyA/reconstruction/tmp
+intersectBed -a gtf.bed -b /data2/saba/gtfFiles/ensGene.RGSC5.0.rn5.cleaned.bed -wo &gt; overlap.brain.polyA.wEnsembl.txt
+intersectBed -a gtf.bed -b /data2/saba/gtfFiles/refSeqGene.RGSC5.0.rn5.cleaned.bed -wo &gt; overlap.brain.polyA.wRefSeq.txt
+intersectBed -a gtf.bed -b /data2/saba/gtfFiles/xenoRefGene.mouseOnly.RGSC5.0.rn5.bed -wo &gt; overlap.brain.polyA.wMouseRefSeq.txt
+</code></pre>
+
+<p>Number of Transcripts: 17,264
+Number of Genes: 12,305</p>
+
+<h3>Annotation for Entire Set of Transcripts</h3>
+
+<table><thead>
+<tr>
+<th align="center">Annotation</th>
+<th align="center">Number of Transcripts</th>
+<th align="center">Percent of Transcripts</th>
+</tr>
+</thead><tbody>
+<tr>
+<td align="center">ensembl transcript</td>
+<td align="center">7,489</td>
+<td align="center">43.4%</td>
+</tr>
+<tr>
+<td align="center">novel transcript of Ensembl Gene</td>
+<td align="center">7,267</td>
+<td align="center">42.1%</td>
+</tr>
+<tr>
+<td align="center">associated with Rat RefSeq Gene</td>
+<td align="center">140</td>
+<td align="center">0.8%</td>
+</tr>
+<tr>
+<td align="center">associated with Mouse RefSeq Gene</td>
+<td align="center">150</td>
+<td align="center">0.9%</td>
+</tr>
+<tr>
+<td align="center">unannotated</td>
+<td align="center">2,218</td>
+<td align="center">12.8%</td>
+</tr>
+</tbody></table>
+
+<h3>Annotation for 20% of Transcripts with Highest Expression</h3>
+
+<table><thead>
+<tr>
+<th align="center">Annotation</th>
+<th align="center">Number of Transcripts</th>
+<th align="center">Percent of Transcripts</th>
+</tr>
+</thead><tbody>
+<tr>
+<td align="center">ensembl transcript</td>
+<td align="center">2,157</td>
+<td align="center">62.5%</td>
+</tr>
+<tr>
+<td align="center">novel transcript of Ensembl Gene</td>
+<td align="center">970</td>
+<td align="center">28.1%</td>
+</tr>
+<tr>
+<td align="center">associated with Rat RefSeq Gene</td>
+<td align="center">19</td>
+<td align="center">0.6%</td>
+</tr>
+<tr>
+<td align="center">associated with Mouse RefSeq Gene</td>
+<td align="center">19</td>
+<td align="center">0.6%</td>
+</tr>
+<tr>
+<td align="center">unannotated</td>
+<td align="center">288</td>
+<td align="center">8.3%</td>
+</tr>
+</tbody></table>
+
+<h3>Top 10 Most Highly Expressed Transcripts</h3>
+
+<table><thead>
+<tr>
+<th align="center">transcript_id</th>
+<th align="center">chromosome</th>
+<th align="center">start (bp)</th>
+<th align="center">stop (bp)</th>
+<th align="center">annotation summary</th>
+<th align="center">Gene Identifier</th>
+<th align="center">Gene Symbol</th>
+<th align="center">Gene Description</th>
+<th align="center">Ensembl Gene Biotype</th>
+<th align="center">FPKM (BN-Lx)</th>
+<th align="center">FPKM (SHR)</th>
+</tr>
+</thead><tbody>
+<tr>
+<td align="center">ENSRNOT00000022113</td>
+<td align="center">chr18</td>
+<td align="center">15307563</td>
+<td align="center">15314777</td>
+<td align="center">ensembl transcript</td>
+<td align="center">ENSRNOG00000016275</td>
+<td align="center">Ttr</td>
+<td align="center">transthyretin</td>
+<td align="center">protein_coding</td>
+<td align="center">2557.9</td>
+<td align="center">1504.2</td>
+</tr>
+<tr>
+<td align="center">ENSRNOT00000041891</td>
+<td align="center">chr1</td>
+<td align="center">81878373</td>
+<td align="center">81881182</td>
+<td align="center">ensembl transcript</td>
+<td align="center">ENSRNOG00000018454</td>
+<td align="center">Apoe</td>
+<td align="center">apolipoprotein E</td>
+<td align="center">protein_coding</td>
+<td align="center">1677.8</td>
+<td align="center">1639.0</td>
+</tr>
+<tr>
+<td align="center">ENSRNOT00000066885</td>
+<td align="center">chr10</td>
+<td align="center">48664388</td>
+<td align="center">48665064</td>
+<td align="center">ensembl transcript</td>
+<td align="center">ENSRNOG00000042271</td>
+<td align="center">UBB</td>
+<td align="center">Protein LOC100360645</td>
+<td align="center">protein_coding</td>
+<td align="center">1486.8</td>
+<td align="center">1195.2</td>
+</tr>
+<tr>
+<td align="center">ENSRNOT00000074404</td>
+<td align="center">chr20</td>
+<td align="center">19258274</td>
+<td align="center">19274198</td>
+<td align="center">ensembl transcript</td>
+<td align="center">ENSRNOG00000048682</td>
+<td align="center">Zwint</td>
+<td align="center">ZW10 interactor, kinetochore protein</td>
+<td align="center">protein_coding</td>
+<td align="center">1308.9</td>
+<td align="center">1225.8</td>
+</tr>
+<tr>
+<td align="center">ENSRNOT00000071215</td>
+<td align="center">chr3</td>
+<td align="center">178489204</td>
+<td align="center">178490283</td>
+<td align="center">ensembl transcript</td>
+<td align="center">ENSRNOG00000047374</td>
+<td align="center">Gnas</td>
+<td align="center">GNAS complex locus</td>
+<td align="center">protein_coding</td>
+<td align="center">1176.0</td>
+<td align="center">1008.2</td>
+</tr>
+<tr>
+<td align="center">ENSRNOT00000058295</td>
+<td align="center">chr18</td>
+<td align="center">78473296</td>
+<td align="center">78504226</td>
+<td align="center">ensembl transcript</td>
+<td align="center">ENSRNOG00000016516</td>
+<td align="center">MBP</td>
+<td align="center">myelin basic protein</td>
+<td align="center">protein_coding</td>
+<td align="center">1190.4</td>
+<td align="center">806.8</td>
+</tr>
+<tr>
+<td align="center">ENSRNOT00000022280</td>
+<td align="center">chr18</td>
+<td align="center">78473296</td>
+<td align="center">78504226</td>
+<td align="center">ensembl transcript</td>
+<td align="center">ENSRNOG00000016516</td>
+<td align="center">MBP</td>
+<td align="center">myelin basic protein</td>
+<td align="center">protein_coding</td>
+<td align="center">1155.0</td>
+<td align="center">784.6</td>
+</tr>
+<tr>
+<td align="center">ENSRNOT00000003283</td>
+<td align="center">chrX</td>
+<td align="center">107379831</td>
+<td align="center">107394874</td>
+<td align="center">ensembl transcript</td>
+<td align="center">ENSRNOG00000002419</td>
+<td align="center">Plp1</td>
+<td align="center">proteolipid protein 1</td>
+<td align="center">protein_coding</td>
+<td align="center">1050.9</td>
+<td align="center">789.0</td>
+</tr>
+<tr>
+<td align="center">ENSRNOT00000007175</td>
+<td align="center">chr3</td>
+<td align="center">149628698</td>
+<td align="center">149632565</td>
+<td align="center">ensembl transcript</td>
+<td align="center">ENSRNOG00000005195</td>
+<td align="center">Cst3</td>
+<td align="center">cystatin C</td>
+<td align="center">protein_coding</td>
+<td align="center">881.8</td>
+<td align="center">830.3</td>
+</tr>
+<tr>
+<td align="center">ENSRNOT00000071708</td>
+<td align="center">chrX</td>
+<td align="center">28985069</td>
+<td align="center">28987071</td>
+<td align="center">ensembl transcript</td>
+<td align="center">ENSRNOG00000047931</td>
+<td align="center">Tmsb4x</td>
+<td align="center">thymosin, beta 4, X chromosome</td>
+<td align="center">protein_coding</td>
+<td align="center">829.3</td>
+<td align="center">853.6</td>
+</tr>
+</tbody></table>
+
+<p>BigWig Tracks For UCSC Genome Browser</p>
+
+<pre><code></code></pre>
+
+</body>
+
+</html>
+

@@ -1,0 +1,22 @@
+Gender Comparisons in Total RNA-Seq
+========================================================
+
+BNLx and SHR Females from Pravenec
+
+1. Quantitate Ensembl Transcripts
+```
+qsub -q smp /storage/saba/BNLx.SHR.Brain.Females.totalRNA/programs/sailFish.ensemblTranscripts.sh
+```
+
+
+
+```{r}
+summary(cars)
+```
+
+You can also embed plots, for example:
+
+```{r fig.width=7, fig.height=6}
+plot(cars)
+```
+

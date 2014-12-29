@@ -1,0 +1,117 @@
+Identifying top genes in each tissue based on initial reconstruction
+========================================================
+
+```{r}
+rm(list=ls())
+options(stringsAsFactors=FALSE)
+setwd("/Volumes/saba/BNLx.SHR")
+
+#########################
+###  Local Functions  ###
+#########################
+
+importFPKM = function(fileName){
+  x = read.table(file=fileName,sep="\t",header=TRUE)
+  x = x[x$length>200 & x$coverage>50,]
+  x = x[!grepl("ERCC",x$locus),]
+  x = x[,c("tracking_id","gene_id","locus","length","coverage","FPKM")]
+  x = merge(x,ensembl,by.x="tracking_id",by.y="EnsemblTranscriptID",all.x=TRUE)
+  x = x[order(x$FPKM,decreasing=TRUE),]
+  return(x)
+  }
+#########################
+
+
+ensembl = read.table(file="/Volumes/saba/annotation/ensemblGenes.Rnor_5.0.08Jul14.txt",sep="\t",header=TRUE)
+
+###  Brain - polyA RNA  ###
+brainPolyA.shr = importFPKM(fileName="RNA-Seq.Brain.polyA/quantification/recon.Brain.PolyA.v2.SHR/isoforms.fpkm_tracking")
+
+brainPolyA.bnlx = importFPKM(fileName="RNA-Seq.Brain.polyA/quantification/recon.Brain.PolyA.v2.BNLx/isoforms.fpkm_tracking")
+brainPolyA.bnlx[brainPolyA.bnlx$locus=="chr5:160625416-160628473",c("GeneSymbol","Description","GeneBiotype")]=c("Camk2n1","Rattus norvegicus calcium/calmodulin-dependent protein kinase II inhibitor 1 (Camk2n1), mRNA","protein-coding")
+
+
+head(brainPolyA.bnlx,10)
+Rattus norvegicus calcium/calmodulin-dependent protein kinase II inhibitor 1 (Camk2n1), mRNA
+
+###  Brain - Total RNA  ###
+brainTotal.shr = importFPKM(fileName="RNA-Seq.Brain.total/reconstruction/SHR.Brain.total.ensemblGuided/isoforms.fpkm_tracking")
+
+# additional annotation
+brainTotal.shr[brainTotal.shr$locus=="chr15:31571359-31571712",c("GeneSymbol","Description","GeneBiotype")]=c("Rmrp","Rattus norvegicus RNA component of mitochondrial RNA processing endoribonuclease (Rmrp), RNase MRP RNA","non-coding")
+brainTotal.shr[brainTotal.shr$locus=="chr1:224944741-224945085","GeneBiotype"] = "scRNA"
+
+
+brainTotal.bnlx = importFPKM(fileName="RNA-Seq.Brain.total/reconstruction/BNLx.Brain.total.ensemblGuided/isoforms.fpkm_tracking")
+
+# additional annotation
+brainTotal.bnlx[brainTotal.bnlx$locus=="chr15:31571351-31571700",c("GeneSymbol","Description","GeneBiotype")]=c("Rmrp","Rattus norvegicus RNA component of mitochondrial RNA processing endoribonuclease (Rmrp), RNase MRP RNA","non-coding")
+brainTotal.bnlx[brainTotal.bnlx$locus=="chr5:63519182-63519708",c("GeneSymbol","Description","GeneBiotype")] =c("human/mouse Rmrp","Human/Mouse RNA component of mitochondrial RNA processing endoribonuclease (Rmrp), RNase MRP RNA","non-coding")
+brainTotal.bnlx[brainTotal.bnlx$locus=="chr1:224944513-224944892","GeneBiotype"] = "scRNA"
+
+brainTotal.bnlx$tissue = "brain"
+brainTotal.bnlx$rna = "total"
+brainTotal.bnlx$strain = "BNLx"
+
+brainTotal.shr$tissue = "brain"
+brainTotal.shr$rna = "total"
+brainTotal.shr$strain = "SHR"
+
+###  Heart  ###
+
+heart.shr = importFPKM(fileName="RNA-Seq.Heart/totalRNA/reconstruction/SHR.Heart.ensemblGuided.wMask/isoforms.fpkm_tracking")
+
+## additional annotation
+heart.shr[heart.shr$locus=="chr15:31571365-31571698",c("GeneSymbol","Description","GeneBiotype")]=c("Rmrp","Rattus norvegicus RNA component of mitochondrial RNA processing endoribonuclease (Rmrp), RNase MRP RNA","non-coding")
+heart.shr[heart.shr$locus=="chr5:63519280-63519576",c("GeneSymbol","Description","GeneBiotype")] =c("human/mouse Rmrp","Human/Mouse RNA component of mitochondrial RNA processing endoribonuclease (Rmrp), RNase MRP RNA","non-coding")
+
+head(heart.shr,10)
+
+heart.bnlx = importFPKM(fileName="RNA-Seq.Heart/totalRNA/reconstruction/BNLx.Heart.wMask.ensemblGuided/isoforms.fpkm_tracking")
+
+## additional annotation
+heart.bnlx[heart.bnlx$locus=="chr15:31571328-31571699",c("GeneSymbol","Description","GeneBiotype")]=c("Rmrp","Rattus norvegicus RNA component of mitochondrial RNA processing endoribonuclease (Rmrp), RNase MRP RNA","non-coding")
+heart.bnlx[heart.bnlx$locus=="chr5:63519276-63519609",c("GeneSymbol","Description","GeneBiotype")] =c("human/mouse Rmrp","Human/Mouse RNA component of mitochondrial RNA processing endoribonuclease (Rmrp), RNase MRP RNA","non-coding")
+heart.bnlx[heart.bnlx$locus=="chr18:28068413-28068622",c("GeneSymbol","Description","GeneBiotype")] =c("mouse Snora74a","Mus musculus small nucleolar RNA, H/ACA box 74A (Snora74a), small nucleolar RNA","snoRNA")
+
+head(heart.bnlx,10)
+
+###  Liver  ###
+
+liver.shr = importFPKM(fileName="RNA-Seq.Liver/totalRNA.UCD/reconstruction/SHR.Liver.UCD.ensemblGuided.wMask/isoforms.fpkm_tracking")
+
+## additional annotation
+liver.shr[liver.shr$locus=="chr15:31571401-31571699",c("GeneSymbol","Description","GeneBiotype")]=c("Rmrp","Rattus norvegicus RNA component of mitochondrial RNA processing endoribonuclease (Rmrp), RNase MRP RNA","non-coding")
+liver.shr[liver.shr$locus=="chr5:63519280-63519562",c("GeneSymbol","Description","GeneBiotype")] =c("human/mouse Rmrp","Human/Mouse RNA component of mitochondrial RNA processing endoribonuclease (Rmrp), RNase MRP RNA","non-coding")
+liver.shr[liver.shr$locus=="chr9:79365923-79366140",c("GeneBiotype")] =c("snRNA")
+liver.shr[liver.shr$locus=="chr10:58888597-58890282",c("GeneBiotype")] =c("unknown")
+
+liver.bnlx = importFPKM(fileName="RNA-Seq.Liver/totalRNA.UCD/reconstruction/BNLx.Liver.UCD.ensemblGuided.wMask/isoforms.fpkm_tracking")
+
+head(liver.bnlx,10)
+
+## additional annotation
+liver.bnlx[liver.bnlx$locus=="chr15:31571401-31571703",c("GeneSymbol","Description","GeneBiotype")]=c("Rmrp","Rattus norvegicus RNA component of mitochondrial RNA processing endoribonuclease (Rmrp), RNase MRP RNA","non-coding")
+liver.bnlx[liver.bnlx$locus=="chr5:63519280-63519565",c("GeneSymbol","Description","GeneBiotype")] =c("human/mouse Rmrp","Human/Mouse RNA component of mitochondrial RNA processing endoribonuclease (Rmrp), RNase MRP RNA","non-coding")
+
+###################
+##  Consolidate  ##
+###################
+
+brainTotal.shr$tissue = brainTotal.bnlx$tissue = brainPolyA.shr$tissue = brainPolyA.bnlx$tissue = "brain"
+liver.shr$tissue = liver.bnlx$tissue = "liver"
+heart.shr$tissue = heart.bnlx$tissue = "heart"
+
+brainTotal.shr$rna = brainTotal.bnlx$rna = liver.shr$rna = liver.bnlx$rna = heart.shr$rna = heart.bnlx$rna = "total"
+brainPolyA.shr$rna = brainPolyA.bnlx$rna = "polyA"
+
+brainTotal.shr$strain = liver.shr$strain = heart.shr$strain = brainPolyA.shr$strain = "SHR"
+brainTotal.bnlx$strain = liver.bnlx$strain = heart.bnlx$strain = brainPolyA.bnlx$strain = "BNLx"
+
+topGenes = rbind(brainPolyA.shr[1:5,],brainPolyA.bnlx[1:5,],brainTotal.shr[1:5,],brainTotal.bnlx[1:5,],liver.shr[1:5,],liver.bnlx[1:5,],heart.shr[1:5,],heart.bnlx[1:5,])
+
+write.table(topGenes,file="top5Genes.txt",sep="\t",row.names=FALSE)
+
+
+
+

@@ -1,0 +1,317 @@
+Annotate New Transcriptome - Brain Ribosomal-RNA depleted Total RNA
+========================================================
+
+1.  Create BED Files to Identify Overlap With Annotation
+----------------------------------------------------
+
+```{r,echo=FALSE,eval=TRUE}
+rm(list=ls())
+options(stringsAsFactors=FALSE)
+setwd("/Volumes/saba/BNLx.SHR/RNA-Seq.Brain.total")
+printNow=FALSE
+
+###  Local Functions  ###
+gtfFormat = function(data,FPKM=TRUE){
+  data$transcript_id = unlist(lapply(strsplit(data$V9,split=";",fixed=TRUE),function(a) gsub(" transcript_id ","",a[grep("transcript",a)]))) 
+  data$gene_id = unlist(lapply(strsplit(data$V9,split=";",fixed=TRUE),function(a) gsub("gene_id ","",a[grep("gene",a)]))) 
+  if(FPKM) data$fpkm = as.numeric(unlist(lapply(strsplit(data$V9,split=";",fixed=TRUE),function(a) gsub(" FPKM ","",a[grep("FPKM",a)]))))
+  return(data)
+}
+
+findJunct <- function(starts,stops){
+  start <- strsplit(starts,split=",",fixed=TRUE)[[1]]
+  stop <- strsplit(stops,split=",",fixed=TRUE)[[1]]
+  junct <- NA
+  if(length(start)>1) junct <- paste(paste(stop[-length(stop)],start[-1],sep="//"),collapse=",")
+  return(junct)
+  }
+
+checkSame = function(x){
+  sameGene = FALSE
+  if(x["start.x"]==x["start.y"] | x["stop.x"]==x["stop.y"]) sameGene = TRUE
+  if(!is.na(x["exonJunct.x"]) & !is.na(x["exonJunct.y"]) & sum(duplicated(c(unlist(strsplit(x["exonJunct.x"],split=",")),unlist(strsplit(x["exonJunct.y"],split=",")))))>0) sameGene = TRUE
+  if(is.na(x["exonJunct.x"]) & is.na(x["exonJunct.y"]) & abs(as.numeric(x["start.x"])-as.numeric(x["start.y"]))<100 & abs(as.numeric(x["stop.x"])-as.numeric(x["stop.y"]))<100) sameGene=TRUE
+  if(is.na(x["exonJunct.x"]) & is.na(x["exonJunct.y"]) & as.numeric(x["start.x"])<as.numeric(x["start.y"]) & as.numeric(x["stop.x"])>as.numeric(x["stop.y"])) sameGene=TRUE
+  return(sameGene)
+}
+
+#transform gtf file into one record per transcript
+transcriptWise = function(x){
+  x = x[x$V3=="exon",]
+  x = x[order(x$transcript_id,x$V4),]
+  start <- aggregate(x$V4,by=list(x$transcript_id),function(a) paste(a,collapse=","))
+  stop <- aggregate(x$V5,by=list(x$transcript_id),function(a) paste(a,collapse=","))
+  transcripts <- x[!duplicated(x[,c("transcript_id","V1")]),c("transcript_id","V1","V6","V7")]
+  z <- merge(start,stop,by=1)
+  z <- merge(transcripts,z,by=1)
+
+  z$exonNum = unlist(lapply(strsplit(z$x.x,split=",",fixed=TRUE),length))
+  z$start <- as.integer(unlist(lapply(strsplit(z$x.x,split=",",fixed=TRUE),function(a) min(as.numeric(a)))))
+  z$stop <- as.integer(unlist(lapply(strsplit(z$x.y,split=",",fixed=TRUE),function(a) max(as.numeric(a)))))
+  z$exonJunct = apply(z[,c("x.x","x.y")],1,function(a) findJunct(a[1],a[2]))
+  return(z)
+  }
+
+
+####################
+```
+
+```{r,echo=FALSE,eval=TRUE}
+options(stringsAsFactors=FALSE)
+setwd("/Volumes/saba/BNLx.SHR/RNA-Seq.Brain.total")
+printNow=FALSE
+
+gtf = gtfFormat(read.table(file="reconstruction/reconstruct.total.brain.FINAL.26Aug14.gtf",sep="\t",header=FALSE),FPKM=FALSE)
+
+gtf.bed = merge(aggregate(gtf$V4,by=list(id = gtf$transcript_id, chr=gtf$V1, strand=gtf$V7),min),aggregate(gtf$V5,by=list(id = gtf$transcript_id, chr=gtf$V1, strand=gtf$V7),max),by=c("id","chr","strand"))
+
+gtf.bed$score=1000
+gtf.bed = gtf.bed[,c("chr","x.x","x.y","id","score","strand")]
+if(printNow) write.table(gtf.bed,file="reconstruction/tmp/gtf.bed",sep="\t",row.names=FALSE,col.names=FALSE,quote=FALSE)
+
+```
+
+
+2.  Identify overlap between transcripts from reconstruction and annotation databases
+------------------------------------------------------
+
+BEDtools Version = bedtools v2.19.1
+```
+export PATH=/usr/local/bedtools2/bin:$PATH
+cd /data2/saba/BNLx.SHR/RNA-Seq.Brain.total/reconstruction/tmp
+intersectBed -a gtf.bed -b /data2/saba/gtfFiles/ensGene.RGSC5.0.rn5.cleaned.bed -wo > overlap.brain.total.wEnsembl.txt
+intersectBed -a gtf.bed -b /data2/saba/gtfFiles/refSeqGene.RGSC5.0.rn5.cleaned.bed -wo > overlap.brain.total.wRefSeq.txt
+intersectBed -a gtf.bed -b /data2/saba/gtfFiles/xenoRefGene.mouseOnly.RGSC5.0.rn5.bed -wo > overlap.brain.total.wMouseRefSeq.txt
+```
+
+
+```{r,eval=TRUE,echo=FALSE}
+options(stringsAsFactors=FALSE)
+setwd("/Volumes/saba/BNLx.SHR/RNA-Seq.Brain.total")
+printNow=FALSE
+
+## create a data set for new transcriptome with only one read per transcript ##
+onePerTrans = transcriptWise(gtf) 
+
+## create a data set for ensembl transcripts with only one read per transcript ##
+ensembl = gtfFormat(read.table(file="/Volumes/saba/gtfFiles/ensGene.RGSC5.0.rn5.cleaned.gtf",sep="\t",header=FALSE),FPKM=FALSE)
+onePerTrans.ens = transcriptWise(ensembl)
+
+# overlap between Ensembl transcripts and reconstruction
+overlap = read.table(file="reconstruction/tmp/overlap.brain.total.wEnsembl.txt",sep="\t",header=FALSE)
+overlap = overlap[overlap$V4!=overlap$V10,]
+overlap = overlap[overlap$V6=="." | overlap$V12=="." | overlap$V6==overlap$V12,]
+overlap = overlap[!grepl("ENSRNO",overlap$V4),]
+
+overlap2 = merge(overlap[,c("V4","V10")],onePerTrans[,c("transcript_id","start","stop","exonJunct")],by.x="V4",by.y="transcript_id")
+overlap2 = merge(overlap2,onePerTrans.ens[,c("transcript_id","start","stop","exonJunct")],by.x="V10",by.y="transcript_id")
+
+ensMatch = apply(overlap2,1,checkSame)
+pairs = overlap2[ensMatch,c("V4","V10")]
+
+## add annotation to look at gene level overlap  ##
+anno = read.table(file="/Volumes/saba/annotation/ensemblGenes.Rnor_5.0.08Jul14.txt",sep="\t",header=TRUE)
+pairs = merge(pairs,anno,by.x=2,by.y="EnsemblTranscriptID",all.x=TRUE)
+
+##  create one record per reconstructed transcript  ##
+withGeneID = aggregate(pairs$EnsemblGeneID,by=list(transcript_id=pairs$V4),function(a) paste(sort(unique(a)),collapse=";"))
+colnames(withGeneID)[2] = "ensemblGeneID"
+
+tmp = anno[,c("EnsemblTranscriptID","EnsemblGeneID")]
+colnames(tmp) = c("transcript_id","ensemblGeneID")
+
+withGeneID = rbind(withGeneID,tmp)
+
+withAnno = merge(onePerTrans[,c("transcript_id","V1","V7","start","stop","exonNum")],withGeneID,by="transcript_id",all.x=TRUE)
+
+## ensembl gene ID by gene groupings
+
+transToGene = gtf[!duplicated(gtf[,c("transcript_id","gene_id")]),c("transcript_id","gene_id")]
+withAnno = merge(withAnno,transToGene,by="transcript_id")
+byGene = aggregate(withAnno$ensemblGeneID,by=list(gene_id=withAnno$gene_id),function(a) paste(sort(unique(unlist(strsplit(a,split=";",fixed=TRUE)))),collapse=";"))
+colnames(byGene)[2] = "ensemblGeneID.gene"
+  
+withAnno = merge(withAnno,byGene,by="gene_id",all.x=TRUE)
+
+#####################################
+####  Overlap with RefSeq Genes  ####
+#####################################
+
+## create a data set for refseq transcripts with only one read per transcript ##
+refseq = gtfFormat(read.table(file="/Volumes/saba/gtfFiles/refSeqGene.RGSC5.0.rn5.cleaned.gtf",sep="\t",header=FALSE),FPKM=FALSE)
+refseq$transcript_id = paste(refseq$transcript_id,refseq$V1,sep=".") 
+onePerTrans.refseq <- transcriptWise(refseq)
+
+# overlap between Ensembl transcripts and reconstruction
+overlap = read.table(file="reconstruction/tmp/overlap.brain.total.wRefSeq.txt",sep="\t",header=FALSE)
+overlap = overlap[overlap$V4!=overlap$V10,]
+overlap = overlap[overlap$V6=="." | overlap$V12=="." | overlap$V6==overlap$V12,]
+
+overlap2 = merge(overlap[,c("V4","V10")],onePerTrans[,c("transcript_id","start","stop","exonJunct")],by.x="V4",by.y="transcript_id")
+overlap2 = merge(overlap2,onePerTrans.refseq[,c("transcript_id","start","stop","exonJunct")],by.x="V10",by.y="transcript_id")
+
+refseqMatch = apply(overlap2,1,checkSame)
+pairs = overlap2[refseqMatch,c("V4","V10")]
+
+colnames(pairs) = c("transcript_id","tmp_id")
+pairs = data.frame(pairs)
+pairs$refSeq.ID = gsub("\\..*","",pairs[,2])
+
+##  create one record per reconstructed transcript  ##
+withRefSeqID = aggregate(pairs$refSeq.ID,by=list(transcript_id=pairs$transcript_id),function(a) paste(sort(unique(a)),collapse=";"))
+colnames(withRefSeqID)[2] = "refSeqID"
+
+withAnno = merge(withAnno,withRefSeqID,by="transcript_id",all.x=TRUE)
+
+## refseq ID by gene groupings
+
+byGene.refseq = aggregate(withAnno$refSeqID,by=list(gene_id=withAnno$gene_id),function(a) paste(sort(unique(unlist(strsplit(a,split=";",fixed=TRUE)))),collapse=";"))
+colnames(byGene.refseq)[2] = "refSeqID.gene"
+  
+withAnno = merge(withAnno,byGene.refseq,by="gene_id",all.x=TRUE)
+
+#sum(is.na(withAnno$ensemblGeneID))
+#sum(withAnno$ensemblGeneID.gene=="" & withAnno$refSeqID.gene=="") 
+#sum(withAnno$ensemblGeneID.gene=="") 
+
+withAnno$unannotated = (withAnno$ensemblGeneID.gene=="" & withAnno$refSeqID.gene=="") 
+
+
+###########################################
+####  Overlap with Mouse RefSeq Genes  ####
+###########################################
+
+## create a data set for ensembl transcripts with only one read per transcript ##
+mouse = gtfFormat(read.table(file="/Volumes/saba/gtfFiles/xenoRefGene.RGSC5.0.rn5.gtf",sep="\t",header=FALSE),FPKM=FALSE)
+mouse.anno = read.table(file="/Volumes/saba/annotation/refGene.GRCm38.mm10.txt",sep="\t",header=FALSE)
+mouse = mouse[mouse$transcript_id %in% mouse.anno$V2,]
+mouse$transcript_id =paste(mouse$transcript_id,mouse$V1,sep=".")
+onePerTrans.mouse = transcriptWise(mouse)
+
+
+# overlap between Ensembl transcripts and reconstruction
+overlap = read.table(file="reconstruction/tmp/overlap.brain.total.wMouseRefSeq.txt",sep="\t",header=FALSE)
+overlap = overlap[overlap$V4!=overlap$V10,]
+overlap = overlap[overlap$V6=="." | overlap$V12=="." | overlap$V6==overlap$V12,]
+
+overlap2 = merge(overlap[,c("V4","V10")],onePerTrans[,c("transcript_id","start","stop","exonJunct")],by.x="V4",by.y="transcript_id")
+overlap2 = merge(overlap2,onePerTrans.mouse[,c("transcript_id","start","stop","exonJunct")],by.x="V10",by.y="transcript_id")
+
+mouseMatch = apply(overlap2,1,checkSame)
+pairs = overlap2[mouseMatch,c("V4","V10")]
+
+colnames(pairs) = c("transcript_id","tmp_id")
+pairs = data.frame(pairs)
+pairs$mouseRefSeq.ID = gsub("\\..*","",pairs[,2])
+#colnames(pairs)[3] = "mouseRefSeq.ID"
+
+##  create one record per reconstructed transcript  ##
+withMouseRefSeqID = aggregate(pairs$mouseRefSeq.ID,by=list(transcript_id=pairs$transcript_id),function(a) paste(sort(unique(a)),collapse=";"))
+colnames(withMouseRefSeqID)[2] = "mouseRefSeqID"
+
+withAnno = merge(withAnno,withMouseRefSeqID,by="transcript_id",all.x=TRUE)
+
+## refseq ID by gene groupings
+
+byGene.mouse = aggregate(withAnno$mouseRefSeqID,by=list(gene_id=withAnno$gene_id),function(a) paste(sort(unique(unlist(strsplit(a,split=";",fixed=TRUE)))),collapse=";"))
+colnames(byGene.mouse)[2] = "mouseRefSeqID.gene"
+  
+withAnno = merge(withAnno,byGene.mouse,by="gene_id",all.x=TRUE)
+
+#sum(is.na(withAnno$ensemblGeneID))
+#sum(withAnno$ensemblGeneID.gene=="" & withAnno$refSeqID.gene=="") 
+#sum(withAnno$ensemblGeneID.gene=="") 
+
+withAnno$unannotated = (withAnno$ensemblGeneID.gene=="" & withAnno$refSeqID.gene=="" & withAnno$mouseRefSeqID.gene=="") 
+
+
+###  Add Quantitation Information  ###
+
+shr = read.table(file="quantitation/recon.Brain.total.FINAL.SHR/isoforms.fpkm_tracking",sep="\t",header=TRUE)
+bnlx = read.table(file="quantitation/recon.Brain.total.FINAL.BNLx/isoforms.fpkm_tracking",sep="\t",header=TRUE)
+quant = merge(shr[,c("tracking_id","gene_id","locus","length","coverage","FPKM")],bnlx[,c("tracking_id","gene_id","locus","length","coverage","FPKM")],by=c("tracking_id","gene_id","locus","length"),suffixes=c(".shr",".bnlx"))
+
+withAnno = merge(withAnno,quant,by.x=c("transcript_id","gene_id"),by.y=c("tracking_id","gene_id"),)
+withAnno = withAnno[order(withAnno$FPKM.bnlx,decreasing=TRUE),]
+
+###  Categorize Annotation  ###
+withAnno$summary = NA
+withAnno$summary[grepl("ENSRN",withAnno$transcript_id)] = "ensembl transcript"
+withAnno$summary[!grepl("ENSRN",withAnno$transcript_id) & withAnno$ensemblGeneID.gene!=""] = "novel transcript of Ensembl Gene"
+withAnno$summary[is.na(withAnno$summary) & withAnno$refSeqID.gene!=""] = "associated with Rat RefSeq Gene"
+withAnno$summary[is.na(withAnno$summary) & withAnno$mouseRefSeqID.gene!=""] = "associated with Mouse RefSeq Gene"
+withAnno$summary[is.na(withAnno$summary)] = "unannotated"
+
+if(printNow) save(withAnno,file="reconstruction/Rdata/withAnno.brain.total.Rdata")
+
+sumTable = data.frame(table(withAnno$summary,useNA="ifany"))
+sumTable$pct = paste(sprintf("%.1f",round(100*sumTable$Freq/sum(sumTable$Freq),1)),"%",sep="")
+sumTable$Freq = prettyNum(sumTable$Freq,big.mark=",")
+sumTable = sumTable[c(3,4,2,1,5),]
+colnames(sumTable) = c("Annotation","Number of Transcripts","Percent of Transcripts")
+
+
+top20pct = withAnno[rowMeans(withAnno[,grep("FPKM",colnames(withAnno))])>quantile(rowMeans(withAnno[,grep("FPKM",colnames(withAnno))]),0.80),]
+
+sumTable2 = data.frame(table(top20pct$summary,useNA="ifany"))
+sumTable2$pct = paste(sprintf("%.1f",round(100*sumTable2$Freq/sum(sumTable2$Freq),1)),"%",sep="")
+sumTable2$Freq = prettyNum(sumTable2$Freq,big.mark=",")
+sumTable2 = sumTable2[c(3,4,2,1,5),]
+colnames(sumTable2) = c("Annotation","Number of Transcripts","Percent of Transcripts")
+
+
+top10 = withAnno[order(rowMeans(withAnno[,grep("FPKM",colnames(withAnno))]),decreasing=TRUE),][1:10,]
+top10 = merge(top10,anno,by.x="transcript_id",by.y="EnsemblTranscriptID",all.x=TRUE)
+top10$Description = gsub("\\(.*","",gsub("\\[.*","",top10$Description))
+
+top10$geneID = top10$EnsemblGeneID
+top10$geneID[top10$summary=="associated with Mouse RefSeq Gene"] = top10$mouseRefSeqID[top10$summary=="associated with Mouse RefSeq Gene"]
+top10$geneID[top10$summary=="associated with Rat RefSeq Gene"] = top10$refSeqID[top10$summary=="associated with Rat RefSeq Gene"]
+
+
+
+top10 = top10[,c("transcript_id","V1","start","stop","summary","geneID","GeneSymbol","Description","GeneBiotype","FPKM.bnlx","FPKM.shr")]
+
+top10[!is.na(top10$geneID) & top10$geneID=="NR_001460",c("Description","GeneSymbol")] = c("Mus musculus RNA component of mitochondrial RNAase P (Rmrp), RNase MRP RNA","Rmrp")
+top10[!is.na(top10$geneID) & top10$geneID=="NM_001270575;NM_030991",c("Description","GeneSymbol")] = c("Rattus norvegicus synaptosomal-associated protein 25 (Snap25), transcript variant 1, mRNA","Snap25")
+top10[!is.na(top10$geneID) & top10$geneID=="NR_002703",c("Description","GeneSymbol")] = c("Rattus norvegicus RNA component of mitochondrial RNA processing endoribonuclease (Rmrp), RNase MRP RNA","Rmrp")
+
+top10 = top10[order(rowMeans(top10[,grep("FPKM",colnames(top10))]),decreasing=TRUE),]
+top10[is.na(top10)]=""
+
+colnames(top10) = c("transcript_id","chromosome","start (bp)","stop (bp)"," annotation summary","Gene Identifier","Gene Symbol","Gene Description","Ensembl Gene Biotype","FPKM (BN-Lx)","FPKM (SHR)")
+
+unanno = withAnno[withAnno$summary=="unannotated",]
+unanno = unanno[order(rowMeans(unanno[,grep("FPKM",colnames(unanno))]),decreasing=TRUE),]
+unanno.gtf = gtf[gtf$transcript_id %in% unanno$transcript_id,]
+if(printNow) write.table(unanno.gtf[,paste("V",1:9,sep="")],file="reconstruction/unannotated.07Oct14.gtf",sep="\t",row.names=FALSE,col.names=FALSE,quote=FALSE)
+```
+
+Number of Transcripts: `r prettyNum(nrow(withAnno),big.mark=",")`
+Number of Genes: `r prettyNum(length(unique(withAnno$gene_id)),big.mark=",")`
+
+### Annotation for Entire Set of Transcripts  
+
+```{r, results='asis',echo=FALSE}
+kable(sumTable,align=rep("c",ncol(sumTable)),row.names=FALSE)
+```
+
+### Annotation for 20% of Transcripts with Highest Expression   
+
+```{r, results='asis',echo=FALSE}
+kable(sumTable2,align=rep("c",ncol(sumTable2)),row.names=FALSE)
+```
+
+### Top 10 Most Highly Expressed Transcripts   
+
+```{r, results='asis',echo=FALSE}
+kable(top10,align=rep("c",ncol(top10)),row.names=FALSE)
+```
+
+
+
+BigWig Tracks For UCSC Genome Browser
+```
+track type=bigWig name="HXB.Brain.polyA" description="HXB/BXH Brain PolyA+" bigDataUrl=http://ucsc:JU7etr5t@phenogen.ucdenver.edu/ucsc/HXB.brain.polyA.bw
+track type=bigWig name="HXB.Brain.total" description="HXB/BXH Brain Total" bigDataUrl=http://ucsc:JU7etr5t@phenogen.ucdenver.edu/ucsc/HXB.brain.total.bw
+```

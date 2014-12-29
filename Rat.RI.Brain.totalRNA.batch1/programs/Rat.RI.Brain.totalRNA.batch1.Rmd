@@ -62,7 +62,7 @@ Average Number of Paired End Reads Per Sample: `r prettyNum(sum(rawCounts$readFr
 qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/trimReads.brain.batch1.sh
 ```
 
-4. Characterize Trimmed Reads - RUNNING
+4. Characterize Trimmed Reads - DONE
 ---------------
 ```
 qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/countTrimmedReads.sh
@@ -86,14 +86,20 @@ rawCounts$lane = unlist(lapply(strsplit(rawCounts$file,split="_",fixed=TRUE),fun
 rawCounts = rawCounts[grep("_R1",rawCounts$file),]
 
 bySample = merge(rawCounts,bySample,by=c("sample","lane"))
-bySample$pctReadsAfterTrim = paste(sprintf("%.1f",round(100*bySample$numReads/as.numeric(gsub(",","",bySample$numPairedReads)),1)),"%",sep="")
+bySample$pctReadsAfterTrim = paste(sprintf("%.1f",round(100*bySample$numReads/bySample$readFrag,1)),"%",sep="")
 
-forPrint2 = bySample[,c("sample","numPairedReads","numReadFragments","avgFragLength.R1","avgFragLength.R2","numReadFrag","pctReadsAfterTrim")]
+bySample$numPairedReads = bySample$readFrag
+bySample$numReadFragments = bySample$readFrag*2
+
+forPrint2 = bySample[,c("sample","lane","numPairedReads","numReadFragments","avgFragLength.R1","avgFragLength.R2","numReadFrag","pctReadsAfterTrim")]
 forPrint2$avgFragLength.R1 = sprintf("%.1f",round(forPrint2$avgFragLength.R1,1))
 forPrint2$avgFragLength.R2 = sprintf("%.1f",round(forPrint2$avgFragLength.R2,1))
-forPrint2$numReadFrag = prettyNum(forPrint2$numReadFrag,big.mark=",")
+forPrint2$numReadFrag = prettyNum(forPrint2$numReadFrag,big.mark=",",scientific=FALSE)
+forPrint2$numPairedReads = prettyNum(forPrint2$numPairedReads,big.mark=",",scientific=FALSE)
+forPrint2$numReadFragments = prettyNum(forPrint2$numReadFragments,big.mark=",",scientific=FALSE)
 
-colnames(forPrint2) = c("sample","Number of Paired-End Reads","Number of Read Fragments","Average Read Fragment Length After Trimming (first read fragment)","Average Read Fragment Length After Trimming (second read fragment)","Number of Read Fragments After Trimming","Percent of Read Fragments That Remained After Trimming")
+
+colnames(forPrint2) = c("sample","lane","Number of Paired-End Reads","Number of Read Fragments","Average Read Fragment Length After Trimming (first read fragment)","Average Read Fragment Length After Trimming (second read fragment)","Number of Read Fragments After Trimming","Percent of Read Fragments That Remained After Trimming")
 ```
 
 Trimmed Reads/Read Fragments
@@ -103,35 +109,54 @@ Trimmed Reads/Read Fragments
 kable(forPrint2,align=rep("c",ncol(forPrint2)))
 ```
 
-Total Number of Paired End Reads After Trimming: `r prettyNum(sum(bySample$numReads),big.mark=",",scientific=FALSE)`  
+Total Number of Paired End Reads After Trimming: `r prettyNum(sum(as.numeric(bySample$numReads)),big.mark=",",scientific=FALSE)`  
 Total Number of Read Fragments After Trimming:  `r prettyNum(sum(bySample$numReadFrag),big.mark=",",scientific=FALSE)`  
-Average Number of Paired End Reads Per Sample After Trimming: `r prettyNum(mean(bySample$numReads),big.mark=",",scientific=FALSE)`  
+Average Number of Paired End Reads Per Sample After Trimming: `r prettyNum(2*mean(bySample$numReads),big.mark=",",scientific=FALSE)`  
 
 5. Align to ribosomal RNA - DONE
 ---------------------------
 ```
-qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/alignTo.rRNA.heart.19Sep14.sh
+qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/alignTo.rRNA.batch1.10Oct14.sh
+qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/alignTo.rRNA.batch1.10Oct14.HXB27.sh
+qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/alignTo.rRNA.heart.30Sep14.BXH12_2.sh
+qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/alignTo.rRNA.batch1.13Oct14.HXB7_2.sh
+
+
 ```
 **move files**
-```
-get SHR1.rRNA/align_summary.txt rRNA.summary.SHR1.txt
-get SHR2.rRNA/align_summary.txt rRNA.summary.SHR2.txt
-get SHR3.rRNA/align_summary.txt rRNA.summary.SHR3.txt
-get SHR4.rRNA/align_summary.txt rRNA.summary.SHR4.txt
-get BNLx1.rRNA/align_summary.txt rRNA.summary.BNLx1.txt
-get BNLx2.rRNA/align_summary.txt rRNA.summary.BNLx2.txt
-get BNLx3.rRNA/align_summary.txt rRNA.summary.BNLx3.txt
-get BNLx4.rRNA/align_summary.txt rRNA.summary.BNLx4.txt
+```{r,echo=FALSE,eval=FALSE}
+## NOT R code, but don't want in Md file
+get BXH12_1.rRNA/align_summary.txt rRNA.summary.BXH12_1.txt
+get BXH12_2.rRNA.v1/align_summary.txt rRNA.summary.BXH12_2.v1.txt
+get BXH12_2.rRNA.v2/align_summary.txt rRNA.summary.BXH12_2.v2.txt
+get HXB13_1.rRNA/align_summary.txt rRNA.summary.HXB13_1.txt 
+get HXB13_2.rRNA/align_summary.txt rRNA.summary.HXB13_2.txt 
+get HXB17_1.rRNA/align_summary.txt rRNA.summary.HXB17_1.txt
+get HXB17_2.rRNA/align_summary.txt rRNA.summary.HXB17_2.txt 
+get HXB2_1.rRNA/align_summary.txt rRNA.summary.HXB2_1.txt 
+get HXB2_2.rRNA/align_summary.txt rRNA.summary.HXB2_2.txt
+get HXB25_1.rRNA/align_summary.txt rRNA.summary.HXB25_1.txt 
+get HXB25_2.rRNA/align_summary.txt rRNA.summary.HXB25_2.txt 
+get HXB27_1.rRNA/align_summary.txt rRNA.summary.HXB27_1.txt 
+get HXB27_2.rRNA/align_summary.txt rRNA.summary.HXB27_2.txt 
+get HXB7_1.rRNA/align_summary.txt rRNA.summary.HXB7_1.txt
+get HXB7_2.rRNA/align_summary.txt rRNA.summary.HXB7_2.txt
+get SHR_1.rRNA/align_summary.txt rRNA.summary.SHR_1.txt
+get SHR_2.rRNA/align_summary.txt rRNA.summary.SHR_2.txt
 ```
 
 Proportion of Reads Aligned to rRNA
 -----------------------------------
-```{r,echo=FALSE}
+This batch was only subjected to 1 wash with riboZero.  The next batch received two washes.  
+```{r,echo=FALSE,eval=TRUE}
 #rm(list=ls())
-setwd("~/Documents/NextGenSeq/BNLx.SHR.Heart.totalRNA/data")
+setwd("~/Documents/NextGenSeq/Rat.RI.Brain.totalRNA.batch1/data")
 options(stringsAsFactors=FALSE)
 
-sampleList = paste(rep(c("BNLx","SHR"),each=4),c(1:4),sep="")
+sampleList = paste(rep(c("SHR", "BXH12", "HXB13", "HXB17", "HXB2", "HXB25", "HXB27", "HXB7"),each=2),c(1:2),sep="_")
+
+sampleList = gsub("BXH12_2","BXH12_2.v1",sampleList)
+sampleList = c(sampleList,"BXH12_2.v2")
 
 rStats = c()
 for(i in sampleList){
@@ -147,9 +172,13 @@ for(i in sampleList){
 rStats$numReadFrag = (rStats$mappedLeft + rStats$mappedRight)
 rStats$numDeletedPairedReads = (rStats$mappedLeft + rStats$mappedRight - rStats$mappedPairs)
 
+rStats[rStats$sample=="BXH12_2.v1",-1]=colSums(rStats[grep("BXH12_2",rStats$sample),-1])
+rStats$sample = gsub(".v1","",rStats$sample)
+rStats = rStats[-grep(".v2",rStats$sample),]
+
 rStats = rStats[,c("sample","numReads","numReadFrag","mappedPairs","numDeletedPairedReads")]
 
-rTable = data.frame(sample=rStats$sample,numTrimmedReads=prettyNum(rStats$numReads,big.mark=","),numDeleted=prettyNum(rStats$numDeletedPairedReads,big.mark=","),pctRiboReads=as.numeric(rStats$numDeletedPairedReads)/as.numeric(rStats$numReads),numRemaining=prettyNum(rStats$numReads-rStats$numDeletedPairedReads,big.mark=","))
+rTable = data.frame(sample=rStats$sample,numTrimmedReads=prettyNum(rStats$numReads,big.mark=",",scientific=FALSE),numDeleted=prettyNum(rStats$numDeletedPairedReads,big.mark=",",scientific=FALSE),pctRiboReads=as.numeric(rStats$numDeletedPairedReads)/as.numeric(rStats$numReads),numRemaining=prettyNum(rStats$numReads-rStats$numDeletedPairedReads,big.mark=",",scientific=FALSE))
 
 rTable$pctRiboReads = paste(sprintf("%.1f",round(100*rTable$pctRiboReads,1)),"%",sep="")
 colnames(rTable) = c("Sample","Number of Paired-End Reads After Trimming","Number of Paired-End Reads with at Least One Fragment Aligned to rRNA","Percent of Paired-End Reads Aligned to rRNA","Number of Paired-End Reads NOT Aligned to rRNA")
@@ -157,5 +186,11 @@ colnames(rTable) = c("Sample","Number of Paired-End Reads After Trimming","Numbe
 
 ```{r, results='asis',echo=FALSE}
 kable(rTable,align=rep("c",ncol(rTable)))
+```
+
+6.  Convert unmapped.bam file into fastq files - RUNNING
+-----------------------------------------------
+```
+qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/convertToFastQ.batch1.sh
 ```
 

@@ -20,16 +20,26 @@ gtfFormat = function(data,FPKM=TRUE){
   if(FPKM) data$fpkm = as.numeric(unlist(lapply(strsplit(data$V9,split=";",fixed=TRUE),function(a) gsub(" FPKM ","",a[grep("FPKM",a)]))))
   return(data)
 }
+
+checkSame = function(x){
+  sameGene = FALSE
+  if(x["start.x"]==x["start.y"] | x["stop.x"]==x["stop.y"]) sameGene = TRUE
+  if(!is.na(x["exonJunct.x"]) & !is.na(x["exonJunct.y"]) & sum(duplicated(c(unlist(strsplit(x["exonJunct.x"],split=",")),unlist(strsplit(x["exonJunct.y"],split=",")))))>0) sameGene = TRUE
+  return(sameGene)
+}
+
+
+
 ```
 
 ```{r,echo=FALSE}
 options(stringsAsFactors=FALSE)
-setwd("/Volumes/LauraS/BNLx.SHR")
+setwd("/Volumes/saba/BNLx.SHR")
 
 shr = read.table(file = "RNA-Seq.Heart/totalRNA/reconstruction/SHR.Heart.ensemblGuided.wMask/transcripts.gtf",sep="\t",header=FALSE)
 shr = gtfFormat(shr)
 
-bnlx = read.table(file = "RNA-Seq.Heart/totalRNA/reconstruction/BNLx.Heart.ensemblGuided.wMask/transcripts.gtf",sep="\t",header=FALSE)
+bnlx = read.table(file = "RNA-Seq.Heart/totalRNA/reconstruction/BNLx.Heart.wMask.ensemblGuided/transcripts.gtf",sep="\t",header=FALSE)
 bnlx = gtfFormat(bnlx)
 
 shr.transcripts = shr[shr$V3=="transcript",]
@@ -59,20 +69,23 @@ Complete BNLx Transcriptome:
 
 ```{r,echo=FALSE}
 options(stringsAsFactors=FALSE)
-setwd("/Volumes/LauraS/BNLx.SHR")
+setwd("/Volumes/saba/BNLx.SHR")
 
 #########################################################
 ###  Look For Overlap of High Confidence Transcripts  ###
 #########################################################
 
 shr.tracking = read.table(file = "RNA-Seq.Heart/totalRNA/reconstruction/SHR.Heart.ensemblGuided.wMask/isoforms.fpkm_tracking",sep="\t",header=TRUE)
-bnlx.tracking = read.table(file = "RNA-Seq.Heart/totalRNA/reconstruction/BNLx.Heart.ensemblGuided.wMask/isoforms.fpkm_tracking",sep="\t",header=TRUE)
+bnlx.tracking = read.table(file = "RNA-Seq.Heart/totalRNA/reconstruction/BNLx.Heart.wMask.ensemblGuided/isoforms.fpkm_tracking",sep="\t",header=TRUE)
 
 high.bnlx = bnlx.tracking[bnlx.tracking$coverage>50,]
 high.bnlx = high.bnlx[high.bnlx$length>200,]
+high.bnlx = high.bnlx[-grep("ERCC",high.bnlx$locus),]
 
 high.shr = shr.tracking[shr.tracking$coverage>50,]
 high.shr = high.shr[high.shr$length>200,]
+high.shr = high.shr[-grep("ERCC",high.shr$locus),]
+
 
 high.bnlx$transcript_id = gsub("CUFF","BNLx",high.bnlx$tracking_id)
 high.shr$transcript_id = gsub("CUFF","SHR",high.shr$tracking_id)
@@ -86,13 +99,15 @@ high.bnlx = merge(high.bnlx,gene.bnlx,by="gene_id")
 
 ###  Examine High Expressors  ###
 high.shr = high.shr[order(high.shr$FPKM,decreasing=TRUE),]
-# top gene is Rmrp (Rattus norvegicus RNA component of mitochondrial RNA processing endoribonuclease (Rmrp), RNase MRP RNA)
-# second gene is Ubb (ubiquitin B)
-# third gene is only in repeat masker (scRNA)
+# top gene is Myl2 (myosin, light chain 2, regulatory, cardiac, slow (Myl2), mRNA)
+# second gene is Rmrp (Rattus norvegicus RNA component of mitochondrial RNA processing endoribonuclease (Rmrp), RNase MRP RNA)
+# third gene is Fabp3 (Rattus norvegicus fatty acid binding protein 3, muscle and heart (Fabp3), mRNA)
 
 
 high.bnlx = high.bnlx[order(high.bnlx$FPKM,decreasing=TRUE),]
-# top gene is Rmrp (Rattus norvegicus RNA component of mitochondrial RNA processing endoribonuclease (Rmrp), RNase MRP RNA)
+# top gene is Myl2 (myosin, light chain 2, regulatory, cardiac, slow (Myl2), mRNA)
+# second gene is Rmrp (Rattus norvegicus RNA component of mitochondrial RNA processing endoribonuclease (Rmrp), RNase MRP RNA)
+# third gene is Slc25a4 (Rattus norvegicus solute carrier family 25 (mitochondrial carrier; adenine nucleotide translocator), member 4 (Slc25a4), mRNA)
 ```
 
 High Confidence SHR Transcripts:  
@@ -135,8 +150,9 @@ if(printNow) write.table(bnlx.bed,file="RNA-Seq.Heart/totalRNA/reconstruction/tm
 BEDtools version = bedtools v2.19.1
 ```
 export PATH=/usr/local/bedtools2/bin:$PATH
- 
-cd /data/Tabastore3/LauraS/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/tmp
+bedtools -version 
+
+cd /data2/saba/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/tmp
 intersectBed -a shr.bed -b bnlx.bed -wo > overlap.brain.total.byStrain.txt
 ```
 
@@ -144,7 +160,6 @@ intersectBed -a shr.bed -b bnlx.bed -wo > overlap.brain.total.byStrain.txt
 ------------------------------------------------------
 Two transcripts were "merged" into one transcripts if:  
 * they are both assigned to the same strand or one/both did not have a strand designation
-* they were identified as novel in opposite strains (one from SHR and one from BNLx)
 * if 1) all exon starts and exon stops matched OR 2) all exon junctions matched, transcription start and stop sites could differ OR 3) two one-exon transcripts with transcription start sites within 100 bp of each other and transcription stop sites within 100 bp of each other
 
 ```{r,eval=TRUE,echo=FALSE}
@@ -219,21 +234,21 @@ for(i in 1:nrow(overlap)){
   
 overlap = overlap[intronCheck==0,]
 
-## transcripts without any overlap - 20,493 transcripts
+## transcripts without any overlap - 20,485 transcripts
 noOverlap = onePerTrans[!(onePerTrans$transcript_id %in% unique(c(overlap$transcript_id.SHR,overlap$transcript_id.BNLx))),]
 
-##  perfect overlap - 108 transcripts
+##  perfect overlap - 88 transcripts
 perfect = overlap[overlap$exonStarts.SHR==overlap$exonStarts.BNLx & overlap$exonStops.SHR==overlap$exonStops.BNLx,]
 
-##  identify exon junction matches - 2,477 transcripts
+##  identify exon junction matches - 2,471 transcripts
 reduced = overlap[!(overlap$ID %in% perfect$ID),]
 exonJunctMatch <- reduced[!is.na(reduced$exonJunct.SHR) & !is.na(reduced$exonJunct.BNLx) & reduced$exonJunct.SHR==reduced$exonJunct.BNLx,]
 
-##  examine one-exon transcripts - 12,068 transcripts
+##  examine one-exon transcripts - 12,113 overlaps with one-exon transcripts
 reduced = overlap[!(overlap$ID %in% c(perfect$ID,exonJunctMatch$ID)),]
 oneExons = reduced[reduced$exonNum.SHR==1 & reduced$exonNum.BNLx==1,]
 
-## close match one-exon transcripts - 610
+## close match one-exon transcripts - 4,037 transcripts
 closeMatch.oneExon = oneExons[abs(oneExons$start.SHR - oneExons$start.BNLx)<100 & abs(oneExons$stop.SHR - oneExons$stop.BNLx)<100, ]
 
 ##  Check for overlap between renamed  ##
@@ -270,7 +285,7 @@ matched.dups.toAdd$x.y[matched.dups.toAdd$stop==matched.dups.toAdd$stop.Ens] = m
 
 matched.undup = matched[!(matched$transcript_id.BNLx %in% matched.dups$transcript_id.BNLx) & !(matched$transcript_id.SHR %in% matched.dups$transcript_id.SHR),]
 
-##  create new transcript for matched transcripts - 2,107 matches
+##  create new transcript for matched transcripts - 6,059 matches
 matched.undup$transcript_id = paste("matched",c(1:nrow(matched.undup)),sep=".")
 matched.undup$gene_id = NA
 matched.undup$V1 = matched.undup$chr.SHR
@@ -293,7 +308,31 @@ matched.toAdd = rbind(matched.undup[,colnames(onePerTrans)],matched.dups.toAdd[,
 new.transcripts = onePerTrans[!(onePerTrans$transcript_id %in% c(matched$transcript_id.SHR,matched$transcript_id.BNLx)),]
 new.transcripts = rbind(new.transcripts,matched.toAdd)
 
-if(printNow) write.table(new.transcripts[,c("V1","start","stop","transcript_id","V6","V7")],file="RNA-Seq.Heart/totalRNA/reconstruction/tmp/combined.heart.total.02Aug14.bed",sep="\t",quote=FALSE,row.names=FALSE,col.names=FALSE)
+##  Add back chrM genes that were masked in reconstruction
+chrM = read.table(file = "/Volumes/saba/gtfFiles/chrM.ensGene.rn5.gtf",sep="\t",header=FALSE)
+chrM = gtfFormat(chrM,FPKM=FALSE)
+chrM <- chrM[chrM$V3=="exon",]
+chrM = chrM[(chrM$V5-chrM$V4+1)>200,]
+
+chrM <- chrM[order(chrM$transcript_id,chrM$V4,chrM$V5),]
+chrM = chrM[,!(colnames(chrM) %in% c("gene_id","fpkm","V9"))]
+chrM = chrM[!duplicated(chrM),]
+chrM <- chrM[order(chrM$transcript_id,chrM$V4,chrM$V5),]
+
+##  create one per transcript ##
+start <- aggregate(chrM$V4,by=list(chrM$transcript_id),function(a) paste(a,collapse=","))
+stop <- aggregate(chrM$V5,by=list(chrM$transcript_id),function(a) paste(a,collapse=","))
+transcripts <- chrM[!duplicated(chrM[,c("transcript_id","V1")]),c("transcript_id","V1","V6","V7")]
+chrM.trans <- merge(start,stop,by=1)
+chrM.trans <- merge(transcripts,chrM.trans,by=1)
+
+chrM.trans$exonNum = unlist(lapply(strsplit(chrM.trans$x.x,split=",",fixed=TRUE),length))
+chrM.trans$start <- as.integer(unlist(lapply(strsplit(chrM.trans$x.x,split=",",fixed=TRUE),function(a) min(as.numeric(a)))))
+chrM.trans$stop <- as.integer(unlist(lapply(strsplit(chrM.trans$x.y,split=",",fixed=TRUE),function(a) max(as.numeric(a)))))
+
+new.transcripts = rbind(new.transcripts,chrM.trans[!(chrM.trans$transcript_id %in% new.transcripts$transcript_id),])
+
+if(printNow) write.table(rbind(new.transcripts,chrM.trans)[,c("V1","start","stop","transcript_id","V6","V7")],file="RNA-Seq.Heart/totalRNA/reconstruction/tmp/combined.heart.total.03Oct14.bed",sep="\t",quote=FALSE,row.names=FALSE,col.names=FALSE)
 ```
 
 Combined Transcriptome:  
@@ -311,8 +350,8 @@ Combined Transcriptome:
 BEDtools Version = bedtools v2.19.1
 ```
 export PATH=/usr/local/bedtools2/bin:$PATH
-cd /data/Tabastore3/LauraS/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/tmp
-intersectBed -a combined.heart.total.02Aug14.bed -b combined.heart.total.02Aug14.bed -wo > overlap.heart.total.forGeneID.txt
+cd /data2/saba/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/tmp
+intersectBed -a combined.heart.total.03Oct14.bed -b combined.heart.total.03Oct14.bed -wo > overlap.heart.total.forGeneID.txt
 ```
 
 5.  Match transcripts to genes and create new GTF file  
@@ -331,7 +370,7 @@ findJunct <- function(starts,stops){
   if(length(start)>1) junct <- paste(paste(stop[-length(stop)],start[-1],sep="//"),collapse=",")
   return(junct)
   }
-  
+
 new.transcripts$exonJunct = apply(new.transcripts[,c("x.x","x.y")],1,function(a) findJunct(a[1],a[2]))
 
 overlap = read.table(file="RNA-Seq.Heart/totalRNA/reconstruction/tmp/overlap.heart.total.forGeneID.txt",sep="\t",header=FALSE)
@@ -341,16 +380,11 @@ overlap = overlap[overlap$V6=="." | overlap$V12=="." | overlap$V6==overlap$V12,]
 overlap$pair = apply(overlap,1,function(a) paste(sort(a[c("V4","V10")]),collapse="//"))
 overlap = overlap[!duplicated(overlap$pair),]
 
-pairs = c()
-for(i in 1:nrow(overlap)){
-  x = new.transcripts[new.transcripts$transcript_id==overlap$V4[i],]
-  y = new.transcripts[new.transcripts$transcript_id==overlap$V10[i],]
-  sameGene = FALSE
-  if(x$start==y$start | x$stop==y$stop) sameGene = TRUE
-  if(!is.na(y$exonJunct) & !is.na(x$exonJunct) & sum(duplicated(c(unlist(strsplit(x$exonJunct,split=",")),unlist(strsplit(y$exonJunct,split=",")))))>0) sameGene = TRUE
-  if(sameGene) pairs = rbind(pairs,c(x$transcript_id,y$transcript_id))
-}
+overlap2 = merge(overlap[,c("V4","V10")],new.transcripts[,c("transcript_id","start","stop","exonJunct")],by.x="V4",by.y="transcript_id")
+overlap2 = merge(overlap2,new.transcripts[,c("transcript_id","start","stop","exonJunct")],by.x="V10",by.y="transcript_id")
 
+match = apply(overlap2,1,checkSame)
+pairs = overlap2[match,c("V4","V10")]
 
 ##  identify genes with multiple transcripts and create gene identifier  ##
 library("igraph")
@@ -401,42 +435,39 @@ gtf$V9 = paste('gene_id "',gtf$gene_id.new,'"; transcript_id "',gtf$alt.id,'"; o
 gtf = gtf[,paste("V",c(1:9),sep="")]
 gtf = gtf[!duplicated(gtf),]
 
-if(printNow) write.table(gtf,file="RNA-Seq.Heart/totalRNA/reconstruction/reconstruct.total.heart.02Aug14.v1.gtf",row.names=FALSE,col.names=FALSE,quote=FALSE,sep="\t")
+if(printNow) write.table(gtf,file="RNA-Seq.Heart/totalRNA/reconstruction/reconstruct.total.heart.03Oct14.v1.gtf",row.names=FALSE,col.names=FALSE,quote=FALSE,sep="\t")
 ```
 
 6. Quantitate Combined Transcriptome (1st Iteration)
 ---------------------------------
 ```
-qsub -q smp /storage/saba/BNLx.SHR.Heart.totalRNA/programs/quant.Recon.26Aug14.v1.SHR.sh
-qsub -q smp /storage/saba/BNLx.SHR.Heart.totalRNA/programs/quant.Recon.26Aug14.v1.BNLx.sh
+#on PhenoGen server
+cufflinks -u --seed 4356 -p 25 --library-type fr-firststrand -b /data2/saba/index/BNLx_rn5_wSpikesAndM.fa -G /data2/saba/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/reconstruct.total.heart.03Oct14.v1.gtf -o /data2/saba/BNLx.SHR/RNA-Seq.Heart/totalRNA/quantitation/recon.Heart.total.v1.BNLx /hi-seq/BNLx.SHR.Heart.totalRNA.02Jun14/alignedReads/BNLx.heart.bam
+cufflinks -u --seed 4366 -p 25 --library-type fr-firststrand -b /data2/saba/index/SHR_rn5_wSpikesAndM.fa -G /data2/saba/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/reconstruct.total.heart.03Oct14.v1.gtf -o /data2/saba/BNLx.SHR/RNA-Seq.Heart/totalRNA/quantitation/recon.Heart.total.v1.SHR /hi-seq/BNLx.SHR.Heart.totalRNA.02Jun14/alignedReads/SHR.heart.bam
 ```
 
 ```{r,echo=FALSE}
 #rm(list=ls())
 options(stringsAsFactors=FALSE)
-setwd("/Volumes/LauraS/BNLx.SHR/RNA-Seq.Brain.total/")
+setwd("/Volumes/saba/BNLx.SHR/RNA-Seq.Heart/")
 printNow=FALSE
 
-shr = read.table(file="quantitation/recon.Brain.total.v1.SHR/isoforms.fpkm_tracking",sep="\t",header=TRUE)
-bnlx = read.table(file="quantitation/recon.Brain.total.v1.BNLx/isoforms.fpkm_tracking",sep="\t",header=TRUE)
+shr = read.table(file="totalRNA/quantitation/recon.Heart.total.v1.SHR/isoforms.fpkm_tracking",sep="\t",header=TRUE)
+bnlx = read.table(file="totalRNA/quantitation/recon.Heart.total.v1.BNLx/isoforms.fpkm_tracking",sep="\t",header=TRUE)
 
-## started wtih 37,699 transcripts  ##
+## started wtih 50,217 transcripts  ##
 
 quant = merge(shr[,c("tracking_id","gene_id","locus","length","coverage","FPKM")],bnlx[,c("tracking_id","gene_id","locus","length","coverage","FPKM")],by=c("tracking_id","gene_id","locus","length"),suffixes=c(".shr",".bnlx"))
 
 ##  Keep Only Transcripts with Greater Than 50 Read Coverage ##
 keepers = quant[quant$coverage.shr>50 | quant$coverage.bnlx>50,]
-nrow(keepers) / nrow(quant) 
+#nrow(keepers) / nrow(quant) 
 
-## 34,737 (92%) transcripts with greater than 50 read coverage
+## 39,541 (79%) transcripts with greater than 50 read coverage
 
-gtf.old = read.table(file="quantitation/recon.Brain.total.v1.SHR/transcripts.gtf",header=FALSE,sep="\t")
-gtf.test = read.table(file="reconstruction/reconstruct.total.brain.22Jul14.v1.gtf",header=FALSE,sep="\t")
+gtf.old = gtfFormat(read.table(file="totalRNA/quantitation/recon.Heart.total.v1.SHR/transcripts.gtf",header=FALSE,sep="\t"))
 
-gtf.old = gtfFormat(gtf.old)
-gtf.test = gtfFormat(gtf.test,FPKM=FALSE)
-
-## rename transcripts based on TPM  ##
+## rename transcripts based on FPKM  ##
 keepers = keepers[order(keepers$gene_id,rowMeans(keepers[,grep("FPKM",colnames(keepers))]),decreasing=TRUE),]
 newID = data.frame(do.call(rbind,aggregate(keepers$tracking_id,by=list(gene_id=keepers$gene_id),function(a) cbind(a,paste(unlist(lapply(strsplit(a,split=".",fixed=TRUE),function(b) paste(b[-3],collapse="."))),1:length(a),sep=".")))$x))
 colnames(newID) = c("transcript_id","transcript_id.new")
@@ -449,7 +480,7 @@ new.gtf = merge(gtf.old,newID,by="transcript_id")
 new.gtf$V9 = paste('gene_id "',new.gtf$gene_id,'"; transcript_id "',new.gtf$transcript_id.new,'";',sep="")
 new.gtf = new.gtf[,paste("V",c(1:9),sep="")]
 
-if(printNow) write.table(new.gtf,file="reconstruction/reconstruct.total.brain.23Jul14.v2.gtf",row.names=FALSE,col.names=FALSE,quote=FALSE,sep="\t")
+if(printNow) write.table(new.gtf,file="totalRNA/reconstruction/reconstruct.total.heart.06Oct14.v2.gtf",row.names=FALSE,col.names=FALSE,quote=FALSE,sep="\t")
 ````
 
 In the first iteration, `r prettyNum(nrow(keepers),big.mark=",")` out of `r prettyNum(nrow(bnlx),big.mark=",")` transcripts were retained (`r prettyNum(length(unique(keepers$gene_id)),big.mark=",")` out of `r prettyNum(length(unique(bnlx$gene_id)),big.mark=",")` genes).
@@ -458,34 +489,32 @@ In the first iteration, `r prettyNum(nrow(keepers),big.mark=",")` out of `r pret
 7. Quantitate Combined Transcriptome (2nd Iteration)
 ---------------------------------
 ```
-qsub -q smp /home/data/saba/BNLx.SHR.Brain.totalRNA/programs/quant.Recon.23Jul14.v2.SHR.sh
-qsub -q smp /home/data/saba/BNLx.SHR.Brain.totalRNA/programs/quant.Recon.23Jul14.v2.BNLx.sh
+cufflinks -u --seed 6356 -p 5 --library-type fr-firststrand -b /data2/saba/index/BNLx_rn5_wSpikesAndM.fa -G /data2/saba/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/reconstruct.total.heart.06Oct14.v2.gtf -o /data2/saba/BNLx.SHR/RNA-Seq.Heart/totalRNA/quantitation/recon.Heart.total.v2.BNLx /hi-seq/BNLx.SHR.Heart.totalRNA.02Jun14/alignedReads/BNLx.heart.bam
+cufflinks -u --seed 6366 -p 5 --library-type fr-firststrand -b /data2/saba/index/SHR_rn5_wSpikesAndM.fa -G /data2/saba/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/reconstruct.total.heart.06Oct14.v2.gtf -o /data2/saba/BNLx.SHR/RNA-Seq.Heart/totalRNA/quantitation/recon.Heart.total.v2.SHR /hi-seq/BNLx.SHR.Heart.totalRNA.02Jun14/alignedReads/SHR.heart.bam
+
 ```
 
-```{r,echo=FALSE}
-#rm(list=ls())
+```{r,echo=FALSE,eval=FALSE}
+rm(list=ls())
 options(stringsAsFactors=FALSE)
-setwd("/Volumes/LauraS/BNLx.SHR/RNA-Seq.Brain.total/")
+setwd("/Volumes/saba/BNLx.SHR/RNA-Seq.Heart/")
 printNow=FALSE
 
-shr = read.table(file="quantitation/recon.Brain.total.v2.SHR/isoforms.fpkm_tracking",sep="\t",header=TRUE)
-bnlx = read.table(file="quantitation/recon.Brain.total.v2.BNLx/isoforms.fpkm_tracking",sep="\t",header=TRUE)
+shr = read.table(file="totalRNA/quantitation/recon.Heart.total.v2.SHR/isoforms.fpkm_tracking",sep="\t",header=TRUE)
+bnlx = read.table(file="totalRNa/quantitation/recon.Heart.total.v2.BNLx/isoforms.fpkm_tracking",sep="\t",header=TRUE)
 
-## started wtih 37,699 transcripts  ##
+## started wtih 39,541 transcripts  ##
 
 quant = merge(shr[,c("tracking_id","gene_id","locus","length","coverage","FPKM")],bnlx[,c("tracking_id","gene_id","locus","length","coverage","FPKM")],by=c("tracking_id","gene_id","locus","length"),suffixes=c(".shr",".bnlx"))
 
 ##  Keep Only Transcripts with Greater Than 50 Read Coverage ##
 keepers = quant[quant$coverage.shr>50 | quant$coverage.bnlx>50,]
-nrow(keepers) / nrow(quant) 
+#nrow(keepers) / nrow(quant) 
 
-## 34,737 (92%) transcripts with greater than 50 read coverage
+## 39,368 (99.6%) transcripts with greater than 50 read coverage
 
-gtf.old = read.table(file="quantitation/recon.Brain.total.v1.SHR/transcripts.gtf",header=FALSE,sep="\t")
-gtf.test = read.table(file="reconstruction/reconstruct.total.brain.22Jul14.v1.gtf",header=FALSE,sep="\t")
-
+gtf.old = read.table(file="totalRNA/quantitation/recon.Heart.total.v2.SHR/transcripts.gtf",header=FALSE,sep="\t")
 gtf.old = gtfFormat(gtf.old)
-gtf.test = gtfFormat(gtf.test,FPKM=FALSE)
 
 ## rename transcripts based on TPM  ##
 keepers = keepers[order(keepers$gene_id,rowMeans(keepers[,grep("FPKM",colnames(keepers))]),decreasing=TRUE),]
@@ -500,7 +529,16 @@ new.gtf = merge(gtf.old,newID,by="transcript_id")
 new.gtf$V9 = paste('gene_id "',new.gtf$gene_id,'"; transcript_id "',new.gtf$transcript_id.new,'";',sep="")
 new.gtf = new.gtf[,paste("V",c(1:9),sep="")]
 
-if(printNow) write.table(new.gtf,file="reconstruction/reconstruct.total.brain.23Jul14.v2.gtf",row.names=FALSE,col.names=FALSE,quote=FALSE,sep="\t")
+if(printNow) write.table(new.gtf,file="totalRNA/reconstruction/reconstruct.total.heart.07Oct14.FINAL.gtf",row.names=FALSE,col.names=FALSE,quote=FALSE,sep="\t")
 ````
 
-In the first iteration, `r prettyNum(nrow(keepers),big.mark=",")` out of `r prettyNum(nrow(bnlx),big.mark=",")` transcripts were retained (`r prettyNum(length(unique(keepers$gene_id)),big.mark=",")` out of `r prettyNum(length(unique(bnlx$gene_id)),big.mark=",")` genes).
+In the second (AND FINAL) iteration, `r prettyNum(nrow(keepers),big.mark=",")` out of `r prettyNum(nrow(bnlx),big.mark=",")` transcripts were retained (`r prettyNum(length(unique(keepers$gene_id)),big.mark=",")` out of `r prettyNum(length(unique(bnlx$gene_id)),big.mark=",")` genes).
+
+8. Quantitate Final Transcriptome For Annotation
+---------------------------------
+```
+cufflinks -u --seed 6556 -p 5 --library-type fr-firststrand -b /data2/saba/index/BNLx_rn5_wSpikesAndM.fa -G /data2/saba/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/reconstruct.total.heart.07Oct14.FINAL.gtf -o /data2/saba/BNLx.SHR/RNA-Seq.Heart/totalRNA/quantitation/recon.Heart.total.FINAL.BNLx /hi-seq/BNLx.SHR.Heart.totalRNA.02Jun14/alignedReads/BNLx.heart.bam
+cufflinks -u --seed 6555 -p 5 --library-type fr-firststrand -b /data2/saba/index/SHR_rn5_wSpikesAndM.fa -G /data2/saba/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/reconstruct.total.heart.07Oct14.FINAL.gtf -o /data2/saba/BNLx.SHR/RNA-Seq.Heart/totalRNA/quantitation/recon.Heart.total.FINAL.SHR /hi-seq/BNLx.SHR.Heart.totalRNA.02Jun14/alignedReads/SHR.heart.bam
+
+```
+

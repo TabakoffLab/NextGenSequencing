@@ -1,0 +1,22 @@
+RI Panel - Batch 1 (Brain) small RNA RNA-Seq
+========================================================
+
+* 2 samples per strain (SHR, BXH12, HXB13, HXB17, HXB2, HXB25, HXB27, HXB7)
+* tissues received from Dr. Michal Pravenec at Academy of Sciences of the Czech Republic, Prague, Czech Republic
+* small RNA (<200 bp)
+* 1X50 reads using the unstranded protocol
+* sequencing done by UCD Genomics Core - received ?
+
+1. Unzip Files - DONE
+---------------
+```
+qsub -q smp /storage/saba/Rat.RI.Brain.smallRNA.batch1/programs/unzip.yucca.sh
+```
+
+2. Determine number of reads sent for each sample - RUNNING
+-------------------------------------------------
+```
+qsub -q smp /storage/saba/Rat.RI.Brain.smallRNA.batch1/programs/countRawReads.brain.smRNA.batch1.sh
+```
+
+

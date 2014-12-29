@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<!-- saved from url=(0014)about:internet -->
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=9" >
+
+<title>Annotate New Transcriptome - Brain Ribosomal-RNA depleted Total RNA</title>
+
+<style type="text/css">
+body, td {
+   font-family: sans-serif;
+   background-color: white;
+   font-size: 12px;
+   margin: 8px;
+}
+
+tt, code, pre {
+   font-family: 'DejaVu Sans Mono', 'Droid Sans Mono', 'Lucida Console', Consolas, Monaco, monospace;
+}
+
+h1 { 
+   font-size:2.2em; 
+}
+
+h2 { 
+   font-size:1.8em; 
+}
+
+h3 { 
+   font-size:1.4em; 
+}
+
+h4 { 
+   font-size:1.0em; 
+}
+
+h5 { 
+   font-size:0.9em; 
+}
+
+h6 { 
+   font-size:0.8em; 
+}
+
+a:visited {
+   color: rgb(50%, 0%, 50%);
+}
+
+pre {	
+   margin-top: 0;
+   max-width: 95%;
+   border: 1px solid #ccc;
+   white-space: pre-wrap;
+}
+
+pre code {
+   display: block; padding: 0.5em;
+}
+
+code.r, code.cpp {
+   background-color: #F8F8F8;
+}
+
+table, td, th {
+  border: none;
+}
+
+blockquote {
+   color:#666666;
+   margin:0;
+   padding-left: 1em;
+   border-left: 0.5em #EEE solid;
+}
+
+hr {
+   height: 0px;
+   border-bottom: none;
+   border-top-width: thin;
+   border-top-style: dotted;
+   border-top-color: #999999;
+}
+
+@media print {
+   * { 
+      background: transparent !important; 
+      color: black !important; 
+      filter:none !important; 
+      -ms-filter: none !important; 
+   }
+
+   body { 
+      font-size:12pt; 
+      max-width:100%; 
+   }
+       
+   a, a:visited { 
+      text-decoration: underline; 
+   }
+
+   hr { 
+      visibility: hidden;
+      page-break-before: always;
+   }
+
+   pre, blockquote { 
+      padding-right: 1em; 
+      page-break-inside: avoid; 
+   }
+
+   tr, img { 
+      page-break-inside: avoid; 
+   }
+
+   img { 
+      max-width: 100% !important; 
+   }
+
+   @page :left { 
+      margin: 15mm 20mm 15mm 10mm; 
+   }
+     
+   @page :right { 
+      margin: 15mm 10mm 15mm 20mm; 
+   }
+
+   p, h2, h3 { 
+      orphans: 3; widows: 3; 
+   }
+
+   h2, h3 { 
+      page-break-after: avoid; 
+   }
+}
+
+</style>
+
+
+
+
+
+</head>
+
+<body>
+<h1>Annotate New Transcriptome - Brain Ribosomal-RNA depleted Total RNA</h1>
+
+<h2>1.  Create BED Files to Identify Overlap With Annotation</h2>
+
+<h2>2.  Identify overlap between transcripts from reconstruction and annotation databases</h2>
+
+<p>BEDtools Version = bedtools v2.19.1</p>
+
+<pre><code>export PATH=/usr/local/bedtools2/bin:$PATH
+cd /data2/saba/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/tmp
+intersectBed -a gtf.bed -b /data2/saba/gtfFiles/ensGene.RGSC5.0.rn5.cleaned.bed -wo &gt; overlap.heart.total.wEnsembl.txt
+intersectBed -a gtf.bed -b /data2/saba/gtfFiles/refSeqGene.RGSC5.0.rn5.cleaned.bed -wo &gt; overlap.heart.total.wRefSeq.txt
+intersectBed -a gtf.bed -b /data2/saba/gtfFiles/xenoRefGene.mouseOnly.RGSC5.0.rn5.bed -wo &gt; overlap.heart.total.wMouseRefSeq.txt
+</code></pre>
+
+<p>Number of Transcripts: 39,368
+Number of Genes: 34,773</p>
+
+<h3>Annotation for Entire Set of Transcripts</h3>
+
+<table><thead>
+<tr>
+<th align="center">Annotation</th>
+<th align="center">Number of Transcripts</th>
+<th align="center">Percent of Transcripts</th>
+</tr>
+</thead><tbody>
+<tr>
+<td align="center">ensembl transcript</td>
+<td align="center">7,299</td>
+<td align="center">18.5%</td>
+</tr>
+<tr>
+<td align="center">novel transcript of Ensembl Gene</td>
+<td align="center">6,735</td>
+<td align="center">17.1%</td>
+</tr>
+<tr>
+<td align="center">associated with Rat RefSeq Gene</td>
+<td align="center">130</td>
+<td align="center">0.3%</td>
+</tr>
+<tr>
+<td align="center">associated with Mouse RefSeq Gene</td>
+<td align="center">157</td>
+<td align="center">0.4%</td>
+</tr>
+<tr>
+<td align="center">unannotated</td>
+<td align="center">25,047</td>
+<td align="center">63.6%</td>
+</tr>
+</tbody></table>
+
+<h3>Annotation for 20% of Transcripts with Highest Expression</h3>
+
+<table><thead>
+<tr>
+<th align="center">Annotation</th>
+<th align="center">Number of Transcripts</th>
+<th align="center">Percent of Transcripts</th>
+</tr>
+</thead><tbody>
+<tr>
+<td align="center">ensembl transcript</td>
+<td align="center">3,797</td>
+<td align="center">48.2%</td>
+</tr>
+<tr>
+<td align="center">novel transcript of Ensembl Gene</td>
+<td align="center">2,494</td>
+<td align="center">31.7%</td>
+</tr>
+<tr>
+<td align="center">associated with Rat RefSeq Gene</td>
+<td align="center">57</td>
+<td align="center">0.7%</td>
+</tr>
+<tr>
+<td align="center">associated with Mouse RefSeq Gene</td>
+<td align="center">42</td>
+<td align="center">0.5%</td>
+</tr>
+<tr>
+<td align="center">unannotated</td>
+<td align="center">1,484</td>
+<td align="center">18.8%</td>
+</tr>
+</tbody></table>
+
+<h3>Top 10 Most Highly Expressed Transcripts</h3>
+
+<table><thead>
+<tr>
+<th align="center">transcript_id</th>
+<th align="center">chromosome</th>
+<th align="center">start (bp)</th>
+<th align="center">stop (bp)</th>
+<th align="center">annotation summary</th>
+<th align="center">Gene Identifier</th>
+<th align="center">Gene Symbol</th>
+<th align="center">Gene Description</th>
+<th align="center">Ensembl Gene Biotype</th>
+<th align="center">FPKM (BN-Lx)</th>
+<th align="center">FPKM (SHR)</th>
+</tr>
+</thead><tbody>
+<tr>
+<td align="center">ENSRNOT00000050368</td>
+<td align="center">chr12</td>
+<td align="center">41777254</td>
+<td align="center">41835824</td>
+<td align="center">ensembl transcript</td>
+<td align="center"></td>
+<td align="center">Myl2</td>
+<td align="center">myosin, light chain 2, regulatory, cardiac, slow</td>
+<td align="center">protein_coding</td>
+<td align="center">8531</td>
+<td align="center">9205</td>
+</tr>
+<tr>
+<td align="center">ENSRNOT00000041241</td>
+<td align="center">chrM</td>
+<td align="center">9451</td>
+<td align="center">9798</td>
+<td align="center">ensembl transcript</td>
+<td align="center"></td>
+<td align="center">ND3</td>
+<td align="center">NADH dehydrogenase subunit 3</td>
+<td align="center">protein_coding</td>
+<td align="center">4190</td>
+<td align="center">5968</td>
+</tr>
+<tr>
+<td align="center">matched.41405.1</td>
+<td align="center">chr15</td>
+<td align="center">31571329</td>
+<td align="center">31571699</td>
+<td align="center">associated with Rat RefSeq Gene</td>
+<td align="center">NR_002703</td>
+<td align="center">Rmrp</td>
+<td align="center">Rattus norvegicus RNA component of mitochondrial RNA processing endoribonuclease (Rmrp), RNase MRP RNA</td>
+<td align="center"></td>
+<td align="center">3792</td>
+<td align="center">3127</td>
+</tr>
+<tr>
+<td align="center">ENSRNOT00000047550</td>
+<td align="center">chrM</td>
+<td align="center">2740</td>
+<td align="center">3694</td>
+<td align="center">ensembl transcript</td>
+<td align="center"></td>
+<td align="center">ND1</td>
+<td align="center">NADH dehydrogenase subunit 1</td>
+<td align="center">protein_coding</td>
+<td align="center">1726</td>
+<td align="center">3030</td>
+</tr>
+<tr>
+<td align="center">matched.38795.1</td>
+<td align="center">chr16</td>
+<td align="center">48981559</td>
+<td align="center">48985393</td>
+<td align="center">novel transcript of Ensembl Gene</td>
+<td align="center"></td>
+<td align="center">Slc25a4</td>
+<td align="center">solute carrier family 25</td>
+<td align="center">protein_coding</td>
+<td align="center">1398</td>
+<td align="center">1330</td>
+</tr>
+<tr>
+<td align="center">ENSRNOT00000048044</td>
+<td align="center">chr8</td>
+<td align="center">77153110</td>
+<td align="center">77174392</td>
+<td align="center">ensembl transcript</td>
+<td align="center"></td>
+<td align="center">TPM1</td>
+<td align="center">tropomyosin 1, alpha</td>
+<td align="center">protein_coding</td>
+<td align="center">1372</td>
+<td align="center">1305</td>
+</tr>
+<tr>
+<td align="center">BNLx.14980.1</td>
+<td align="center">chr18</td>
+<td align="center">28068414</td>
+<td align="center">28068622</td>
+<td align="center">associated with Mouse RefSeq Gene</td>
+<td align="center">NR_002905</td>
+<td align="center">Snora74a</td>
+<td align="center">Mus musculus small nucleolar RNA, H/ACA box 74A (Snora74a), small nucleolar RNA</td>
+<td align="center"></td>
+<td align="center">1365</td>
+<td align="center">1247</td>
+</tr>
+<tr>
+<td align="center">matched.39304.1</td>
+<td align="center">chr5</td>
+<td align="center">63519277</td>
+<td align="center">63519609</td>
+<td align="center">associated with Mouse RefSeq Gene</td>
+<td align="center">NR_001460</td>
+<td align="center">Rmrp</td>
+<td align="center">Mus musculus RNA component of mitochondrial RNAase P (Rmrp), RNase MRP RNA</td>
+<td align="center"></td>
+<td align="center">1403</td>
+<td align="center">1129</td>
+</tr>
+<tr>
+<td align="center">ENSRNOT00000003965</td>
+<td align="center">chr7</td>
+<td align="center">2484095</td>
+<td align="center">2490338</td>
+<td align="center">ensembl transcript</td>
+<td align="center"></td>
+<td align="center">Atp5b</td>
+<td align="center">ATP synthase, H+ transporting, mitochondrial F1 complex, beta polypeptide</td>
+<td align="center">protein_coding</td>
+<td align="center">1339</td>
+<td align="center">1183</td>
+</tr>
+<tr>
+<td align="center">ENSRNOT00000017325</td>
+<td align="center">chr5</td>
+<td align="center">152246244</td>
+<td align="center">152253006</td>
+<td align="center">ensembl transcript</td>
+<td align="center"></td>
+<td align="center">Fabp3</td>
+<td align="center">fatty acid binding protein 3, muscle and heart</td>
+<td align="center">protein_coding</td>
+<td align="center">1175</td>
+<td align="center">1339</td>
+</tr>
+</tbody></table>
+
+<p>BigWig Tracks For UCSC Genome Browser</p>
+
+<pre><code>track type=bigWig name=&quot;BNLx.SHR.Heart.plus&quot; description=&quot;BNLx and SHR Heart - Plus Strand&quot; bigDataUrl=http://ucsc:JU7etr5t@phenogen.ucdenver.edu/ucsc/HXB.heart.plus.bw
+track type=bigWig name=&quot;BNLx.SHR.Heart.minus&quot; description=&quot;BNLx and SHR Heart - Minus Strand&quot; bigDataUrl=http://ucsc:JU7etr5t@phenogen.ucdenver.edu/ucsc/HXB.heart.minus.bw
+</code></pre>
+
+</body>
+
+</html>
+

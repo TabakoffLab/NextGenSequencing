@@ -5,7 +5,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 <meta http-equiv="x-ua-compatible" content="IE=9" >
 
-<title>RI Panel - Batch 1 (Brain) Total RNA RNA-Seq</title>
+<title>RI Panel - Batch 3 (Brain) Total RNA RNA-Seq</title>
 
 <style type="text/css">
 body, td {
@@ -142,18 +142,24 @@ hr {
 </head>
 
 <body>
-<h1>RI Panel - Batch 1 (Brain) Total RNA RNA-Seq</h1>
+<h1>RI Panel - Batch 3 (Brain) Total RNA RNA-Seq</h1>
 
 <ul>
-<li>2 samples per strain (SHR, BXH12, HXB13, HXB17, HXB2, HXB25, HXB27, HXB7)</li>
+<li>1 sample per strain (SHR, BXH13, BXH5, BXH8)</li>
+<li>2 samples per strain (BNLx, BXH10, BXH11, BXH3, BXH6, BXH9)</li>
 <li>tissues received from Dr. Michal Pravenec at Academy of Sciences of the Czech Republic, Prague, Czech Republic</li>
 <li>ribosomal RNA depleted total RNA</li>
 <li>2X100 reads using the stranded protocol</li>
-<li>sequencing done by Beckman Coulter Genomics - received September 5, 2014</li>
+<li>sequencing done by Beckman Coulter Genomics - received November 22, 2014
+
+<ul>
+<li>labeled UColorado Tabakoff Batch 5 by Beckman</li>
+</ul></li>
 <li>synthetic spike-in were added to each sample 
 
 <ul>
-<li>SHR_1, BXH12_1, HXB13_1, HXB17_1, HXB2_1, HXB25_1, HXB27_1, and HXB7_1 have mix 1; SHR_2, BXH12_2, HXB13_2, HXB17_2, HXB2_2, HXB25_2, HXB27_2, and HXB7_2 have mix 2</li>
+<li>BXH3_1, BXH3_2, BXH5_1, BXH8_1, BXH10_1, BXH11_2, BXH13_1, and SHR_1 have mix 1</li>
+<li>BXH6_1, BXH6_2, BXH9_1, BXH9_2, BXH10_2, BXH11_1, BNLx_1, and BNLx_2 have mix 2</li>
 <li>4 mL of 1:100 diluted spikes were added after RNA extraction but before rRNA-depletion</li>
 <li>Information regarding the spike-ins can be found here: <a href="http://products.invitrogen.com/ivgn/product/4456739">http://products.invitrogen.com/ivgn/product/4456739</a></li>
 </ul></li>
@@ -161,12 +167,12 @@ hr {
 
 <h2>1. Unzip Files - DONE</h2>
 
-<pre><code>qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/unzip.yucca.sh
+<pre><code>qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/unzip.yucca.sh
 </code></pre>
 
 <h2>2. Determine number of reads sent for each sample - DONE</h2>
 
-<pre><code>qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/countRawReads.brain.batch1.sh
+<pre><code>qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/countRawReads.brain.batch3.sh
 </code></pre>
 
 <h2>Raw Reads/Read Fragments</h2>
@@ -179,94 +185,94 @@ hr {
 </tr>
 </thead><tbody>
 <tr>
-<td align="center">BXH12_1</td>
-<td align="center">158,661,335</td>
-<td align="center">317,322,670</td>
+<td align="center">BNLX_1</td>
+<td align="center">149,664,346</td>
+<td align="center">299,328,692</td>
 </tr>
 <tr>
-<td align="center">BXH12_2</td>
-<td align="center">189,172,520</td>
-<td align="center">378,345,040</td>
+<td align="center">BNLX_2</td>
+<td align="center">147,573,455</td>
+<td align="center">295,146,910</td>
 </tr>
 <tr>
-<td align="center">HXB13_1</td>
-<td align="center">137,084,983</td>
-<td align="center">274,169,966</td>
+<td align="center">BXH10_1</td>
+<td align="center">136,119,802</td>
+<td align="center">272,239,604</td>
 </tr>
 <tr>
-<td align="center">HXB13_2</td>
-<td align="center">132,515,930</td>
-<td align="center">265,031,860</td>
+<td align="center">BXH10_2</td>
+<td align="center">143,559,349</td>
+<td align="center">287,118,698</td>
 </tr>
 <tr>
-<td align="center">HXB17_1</td>
-<td align="center">132,884,089</td>
-<td align="center">265,768,178</td>
+<td align="center">BXH11_1</td>
+<td align="center">143,165,227</td>
+<td align="center">286,330,454</td>
 </tr>
 <tr>
-<td align="center">HXB17_2</td>
-<td align="center">206,344,183</td>
-<td align="center">412,688,366</td>
+<td align="center">BXH11_2</td>
+<td align="center">142,142,287</td>
+<td align="center">284,284,574</td>
 </tr>
 <tr>
-<td align="center">HXB2_1</td>
-<td align="center">105,150,313</td>
-<td align="center">210,300,626</td>
+<td align="center">BXH13_1</td>
+<td align="center">136,469,855</td>
+<td align="center">272,939,710</td>
 </tr>
 <tr>
-<td align="center">HXB2_2</td>
-<td align="center">130,036,249</td>
-<td align="center">260,072,498</td>
+<td align="center">BXH3_1</td>
+<td align="center">148,297,982</td>
+<td align="center">296,595,964</td>
 </tr>
 <tr>
-<td align="center">HXB25_1</td>
-<td align="center">115,639,769</td>
-<td align="center">231,279,538</td>
+<td align="center">BXH3_2</td>
+<td align="center">138,276,728</td>
+<td align="center">276,553,456</td>
 </tr>
 <tr>
-<td align="center">HXB25_2</td>
-<td align="center">178,617,581</td>
-<td align="center">357,235,162</td>
+<td align="center">BXH5_1</td>
+<td align="center">141,525,963</td>
+<td align="center">283,051,926</td>
 </tr>
 <tr>
-<td align="center">HXB27_1</td>
-<td align="center">120,993,425</td>
-<td align="center">241,986,850</td>
+<td align="center">BXH6_1</td>
+<td align="center">140,776,240</td>
+<td align="center">281,552,480</td>
 </tr>
 <tr>
-<td align="center">HXB27_2</td>
-<td align="center">145,364,335</td>
-<td align="center">290,728,670</td>
+<td align="center">BXH6_2</td>
+<td align="center">146,263,134</td>
+<td align="center">292,526,268</td>
 </tr>
 <tr>
-<td align="center">HXB7_1</td>
-<td align="center">128,794,212</td>
-<td align="center">257,588,424</td>
+<td align="center">BXH8_1</td>
+<td align="center">130,847,183</td>
+<td align="center">261,694,366</td>
 </tr>
 <tr>
-<td align="center">HXB7_2</td>
-<td align="center">195,878,926</td>
-<td align="center">391,757,852</td>
+<td align="center">BXH9_1</td>
+<td align="center">132,797,003</td>
+<td align="center">265,594,006</td>
+</tr>
+<tr>
+<td align="center">BXH9_2</td>
+<td align="center">133,839,175</td>
+<td align="center">267,678,350</td>
 </tr>
 <tr>
 <td align="center">SHR_1</td>
-<td align="center">156,973,256</td>
-<td align="center">313,946,512</td>
-</tr>
-<tr>
-<td align="center">SHR_2</td>
-<td align="center">169,578,776</td>
-<td align="center">339,157,552</td>
+<td align="center">146,707,331</td>
+<td align="center">293,414,662</td>
 </tr>
 </tbody></table>
 
-<p>Total Number of Paired End Reads: 2,403,689,882<br/>
-Total Number of Read Fragments:  4,807,379,764<br/>
-Average Number of Paired End Reads Per Sample: 150,230,618  </p>
+<p>Total Number of Paired End Reads: 2,258,025,060<br/>
+Total Number of Read Fragments:  4,516,050,120<br/>
+Average Number of Paired End Reads Per Sample: 141,126,566  </p>
 
-<h2>3. Trim reads for adaptors and for quality - RUNNING</h2>
+<h2>3. Trim reads for adaptors and for quality - RUNNING (job number 44238)</h2>
 
-<pre><code>qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/trimReads.brain.batch1.sh
+<pre><code>qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/trimReads.brain.batch3.sh
 </code></pre>
 
 </body>

@@ -6,7 +6,7 @@ PolyA+ Reconstruction
 ```{r,echo=FALSE}
 rm(list=ls())
 options(stringsAsFactors=FALSE)
-setwd("/Volumes/LauraS/BNLx.SHR")
+setwd("/Volumes/saba/BNLx.SHR")
 
 #######################
 ##  local functions  ##
@@ -23,7 +23,7 @@ gtfFormat = function(data,FPKM=TRUE){
 
 ```{r,echo=FALSE}
 options(stringsAsFactors=FALSE)
-setwd("/Volumes/LauraS/BNLx.SHR")
+setwd("/Volumes/saba/BNLx.SHR")
 
 shr = read.table(file = "RNA-Seq.Brain.polyA/reconstruction/SHR.Brain.PolyA.ensemblGuided/transcripts.gtf",sep="\t",header=FALSE)
 shr = gtfFormat(shr)
@@ -41,25 +41,28 @@ shr.transcripts$transcript_id = gsub("CUFF","SHR",shr.transcripts$transcript_id)
 bnlx.transcripts$transcript_id = gsub("CUFF","BNLx",bnlx.transcripts$transcript_id)
 ```
 
-Complete SHR Transcriptome:  
-`r prettyNum(length(unique(shr.transcripts$gene_id)),big.mark=",")` genes
-`r prettyNum(nrow(shr.transcripts),big.mark=",")` transcripts
-`r prettyNum(sum(grepl("ENS",shr.transcripts$transcript_id)),big.mark=",")` Ensembl transcripts
-`r prettyNum(sum(!grepl("ENS",shr.transcripts$transcript_id)),big.mark=",")` novel transcripts
+**Complete SHR Transcriptome:**
 
-Complete BNLx Transcriptome:  
-`r prettyNum(length(unique(bnlx.transcripts$gene_id)),big.mark=",")` genes
-`r prettyNum(nrow(bnlx.transcripts),big.mark=",")` transcripts
-`r prettyNum(sum(grepl("ENS",bnlx.transcripts$transcript_id)),big.mark=",")` Ensembl transcripts
-`r prettyNum(sum(!grepl("ENS",bnlx.transcripts$transcript_id)),big.mark=",")` novel transcripts
 
-Limit to transcripts with greater than 50 coverage and a transcript length greater than 200 nt (not including introns)
+`r prettyNum(length(unique(shr.transcripts$gene_id)),big.mark=",")` genes  
+`r prettyNum(nrow(shr.transcripts),big.mark=",")` transcripts  
+`r prettyNum(sum(grepl("ENS",shr.transcripts$transcript_id)),big.mark=",")` Ensembl transcripts  
+`r prettyNum(sum(!grepl("ENS",shr.transcripts$transcript_id)),big.mark=",")` novel transcripts  
+
+**Complete BNLx Transcriptome:**  
+
+`r prettyNum(length(unique(bnlx.transcripts$gene_id)),big.mark=",")` genes  
+`r prettyNum(nrow(bnlx.transcripts),big.mark=",")` transcripts  
+`r prettyNum(sum(grepl("ENS",bnlx.transcripts$transcript_id)),big.mark=",")` Ensembl transcripts  
+`r prettyNum(sum(!grepl("ENS",bnlx.transcripts$transcript_id)),big.mark=",")` novel transcripts  
+
+1.  Limit to transcripts with greater than 50 coverage and a transcript length greater than 200 nt (not including introns)
 --------------
 
 ```{r,echo=FALSE}
 options(stringsAsFactors=FALSE)
-setwd("/Volumes/LauraS/BNLx.SHR")
-
+setwd("/Volumes/saba/BNLx.SHR")
+printNow=FALSE
 #########################################################
 ###  Look For Overlap of High Confidence Transcripts  ###
 #########################################################
@@ -85,23 +88,23 @@ high.bnlx = merge(high.bnlx,gene.bnlx,by="gene_id")
 ```
 
 High Confidence SHR Transcripts:  
-`r prettyNum(length(unique(high.shr$gene_id)),big.mark=",")` genes
-`r prettyNum(nrow(high.shr),big.mark=",")` transcripts
-`r prettyNum(sum(grepl("ENS",high.shr$transcript_id)),big.mark=",")` Ensembl transcripts
-`r prettyNum(sum(!grepl("ENS",high.shr$transcript_id) & high.shr$x>0),big.mark=",")` novel transcripts of Ensembl genes
-`r prettyNum(sum(!grepl("ENS",high.shr$transcript_id) & high.shr$x==0),big.mark=",")` novel transcripts/genes 
+`r prettyNum(length(unique(high.shr$gene_id)),big.mark=",")` genes  
+`r prettyNum(nrow(high.shr),big.mark=",")` transcripts  
+`r prettyNum(sum(grepl("ENS",high.shr$transcript_id)),big.mark=",")` Ensembl transcripts  
+`r prettyNum(sum(!grepl("ENS",high.shr$transcript_id) & high.shr$x>0),big.mark=",")` novel transcripts of Ensembl genes  
+`r prettyNum(sum(!grepl("ENS",high.shr$transcript_id) & high.shr$x==0),big.mark=",")` novel transcripts/genes   
 
 
 High Confidence BNLx Transcripts:  
-`r prettyNum(length(unique(high.bnlx$gene_id)),big.mark=",")` genes
-`r prettyNum(nrow(high.bnlx),big.mark=",")` transcripts
-`r prettyNum(sum(grepl("ENS",high.bnlx$transcript_id)),big.mark=",")` Ensembl transcripts
-`r prettyNum(sum(!grepl("ENS",high.bnlx$transcript_id) & high.bnlx$x>0),big.mark=",")` novel transcripts of Ensembl genes
-`r prettyNum(sum(!grepl("ENS",high.bnlx$transcript_id) & high.bnlx$x==0),big.mark=",")` novel transcripts/genes 
+`r prettyNum(length(unique(high.bnlx$gene_id)),big.mark=",")` genes  
+`r prettyNum(nrow(high.bnlx),big.mark=",")` transcripts  
+`r prettyNum(sum(grepl("ENS",high.bnlx$transcript_id)),big.mark=",")` Ensembl transcripts  
+`r prettyNum(sum(!grepl("ENS",high.bnlx$transcript_id) & high.bnlx$x>0),big.mark=",")` novel transcripts of Ensembl genes  
+`r prettyNum(sum(!grepl("ENS",high.bnlx$transcript_id) & high.bnlx$x==0),big.mark=",")` novel transcripts/genes  
 
 
 
-Identify overlap between novel transcripts in strain-specific reconstructions
+2. Identify overlap between novel transcripts in strain-specific reconstructions
 ---------------------------------
 ```{r,echo=FALSE}
 high.combined = merge(high.bnlx,high.shr,by=c("transcript_id","locus","length"),all=TRUE)
@@ -116,35 +119,32 @@ shr.bed$V6 = 1000
 bnlx.bed = bnlx.bed[,c("V1","V4","V5","V6","V7","transcript_id")]
 shr.bed = shr.bed[,c("V1","V4","V5","V6","V7","transcript_id")]
 
-write.table(shr.bed,file="RNA-Seq.Brain.polyA/reconstruction/tmp/shr.bed",sep="\t",row.names=FALSE,col.names=FALSE,quote=FALSE)
-write.table(bnlx.bed,file="RNA-Seq.Brain.polyA/reconstruction/tmp/bnlx.bed",sep="\t",row.names=FALSE,col.names=FALSE,quote=FALSE)
+if(printNow) write.table(shr.bed,file="RNA-Seq.Brain.polyA/reconstruction/tmp/shr.bed",sep="\t",row.names=FALSE,col.names=FALSE,quote=FALSE)
+if(printNow) write.table(bnlx.bed,file="RNA-Seq.Brain.polyA/reconstruction/tmp/bnlx.bed",sep="\t",row.names=FALSE,col.names=FALSE,quote=FALSE)
 
 ```
 
-3.  Look for overlap between transcripts within the combined BED file  
------------------------------------------
 BEDtools version = bedtools v2.19.1
-
 
 ```
 export PATH=/usr/local/bedtools2/bin:$PATH
- 
 cd /data/Tabastore3/LauraS/BNLx.SHR/RNA-Seq.Brain.polyA/reconstruction/tmp
-#intersectBed -a shr.bed -b shr.bed -wo > overlap.polyA.SHR.txt
-#intersectBed -a bnlx.bed -b bnlx.bed -wo > overlap.polyA.BNLx.txt
+intersectBed -a shr.bed -b shr.bed -wo > overlap.polyA.SHR.txt
+intersectBed -a bnlx.bed -b bnlx.bed -wo > overlap.polyA.BNLx.txt
 intersectBed -a shr.bed -b bnlx.bed -wo > overlap.polyA.byStrain.txt
 ```
 
-4.  Identify novel transcripts that were identified in both BN-Lx and SHR 
+3.  Identify novel transcripts that were identified in both BN-Lx and SHR 
 ------------------------------------------------------
 Two transcripts were "merged" into one transcripts if:  
 * they are both assigned to the same strand or one/both did not have a strand designation
 * they were identified as novel in opposite strains (one from SHR and one from BNLx)
 * if 1) all exon starts and exon stops matched OR 2) all exon junctions matched, transcription start and stop sites could differ OR 3) two one-exon transcripts with transcription start sites within 100 bp of each other and transcription stop sites within 100 bp of each other
 
-```{r,eval=FALSE,echo=FALSE}
+```{r,eval=TRUE,echo=FALSE}
 options(stringsAsFactors=FALSE)
-setwd("/Volumes/LauraS/BNLx.SHR")
+setwd("/Volumes/saba/BNLx.SHR")
+printNow=FALSE
 
 shr$transcript_id = gsub("CUFF","SHR",shr$transcript_id)
 shr.gtf <- shr[(shr$transcript_id %in% high.combined$transcript_id) & shr$V3=="exon",]
@@ -159,7 +159,6 @@ gtf = gtf[,!(colnames(gtf) %in% c("gene_id","fpkm","V9"))]
 gtf = gtf[!duplicated(gtf),]
 gtf <- gtf[order(gtf$transcript_id,gtf$V4,gtf$V5),]
 
-length(unique(gtf$transcript_id))
 
 ##  create one per transcript ##
 start <- aggregate(gtf$V4,by=list(gtf$transcript_id),function(a) paste(a,collapse=","))
@@ -231,12 +230,6 @@ oneExons = reduced[reduced$exonNum.SHR==1 & reduced$exonNum.BNLx==1,]
 
 ## close match one-exon transcripts - 332
 closeMatch.oneExon = oneExons[abs(oneExons$start.SHR - oneExons$start.BNLx)<100 & abs(oneExons$stop.SHR - oneExons$stop.BNLx)<100, ]
-sum(duplicated(closeMatch.oneExon$transcript_id.BNLx))
-
-closeMatch.oneExon[duplicated(closeMatch.oneExon$transcript_id.BNLx),]
-closeMatch.oneExon[closeMatch.oneExon$transcript_id.BNLx=="BNLx.25607.1",]
-
-#closeMatch.oneExon=closeMatch.oneExon[closeMatch.oneExon$transcript_id.BNLx!="ENSRNOT00000000660" & closeMatch.oneExon$transcript_id.SHR!="ENSRNOT00000000660",]
 
 ##  Check for overlap between renamed  ##
 matched = as.data.frame(rbind(perfect,exonJunctMatch,closeMatch.oneExon))
@@ -295,10 +288,10 @@ matched.toAdd = rbind(matched.undup[,colnames(onePerTrans)],matched.dups.toAdd[,
 new.transcripts = onePerTrans[!(onePerTrans$transcript_id %in% c(matched$transcript_id.SHR,matched$transcript_id.BNLx)),]
 new.transcripts = rbind(new.transcripts,matched.toAdd)
 
-write.table(new.transcripts[,c("V1","start","stop","transcript_id","V6","V7")],file="RNA-Seq.Brain.polyA/reconstruction/tmp/combined.brain.polyA.21Jul14.bed",sep="\t",quote=FALSE,row.names=FALSE,col.names=FALSE)
+if(printNow) write.table(new.transcripts[,c("V1","start","stop","transcript_id","V6","V7")],file="RNA-Seq.Brain.polyA/reconstruction/tmp/combined.brain.polyA.21Jul14.bed",sep="\t",quote=FALSE,row.names=FALSE,col.names=FALSE)
 ```
 
-Combined Transcriptome:  
+**Combined Transcriptome:**  
 * `r prettyNum(nrow(new.transcripts),big.mark=",")` transcripts
 * `r prettyNum(sum(grepl("matched",new.transcripts$transcript_id)),big.mark=",")` novel transcripts identified in both strains
 * `r prettyNum(sum(grepl("BNLx",new.transcripts$transcript_id)),big.mark=",")` novel transcripts only identified in BNLx
@@ -325,7 +318,10 @@ Two transcripts are from the same gene if:
 * Their transcription stop sites matched exactly OR
 * At least one exon-exon junction matched exactly
 
-```{r,eval=FALSE}
+```{r,eval=TRUE,echo=FALSE}
+options(stringsAsFactors=FALSE)
+setwd("/Volumes/saba/BNLx.SHR")
+printNow=FALSE
 
 findJunct <- function(starts,stops){
   start <- strsplit(starts,split=",",fixed=TRUE)[[1]]
@@ -370,9 +366,6 @@ geneNames[geneNames==""] = paste("GENE.",c(1:sum(geneNames=="")),sep="")
 geneNames = data.frame(geneNames)
 geneNames$order = c(1:nrow(geneNames))
 
-
-sum(grepl("//",geneNames$geneNames,fixed=TRUE))
-
 names(compList) <- paste("GENE",c(1:length(compList)),sep=".")
 
 multiTrans <- sapply(names(compList),function(a) cbind(gene_id.new=a,transcript_id.new=paste(a,c(1:length(compList[[a]])),sep="."),id=compList[[a]]))
@@ -406,21 +399,24 @@ gtf$V9 = paste('gene_id "',gtf$gene_id.new,'"; transcript_id "',gtf$alt.id,'"; o
 
 gtf = gtf[,paste("V",c(1:9),sep="")]
 
-write.table(gtf,file="RNA-Seq.Brain.polyA/reconstruction/reconstruct.polyA.brain.21Jul14.v1.gtf",row.names=FALSE,col.names=FALSE,quote=FALSE,sep="\t")
+if(printNow) write.table(gtf,file="RNA-Seq.Brain.polyA/reconstruction/reconstruct.polyA.brain.21Jul14.v1.gtf",row.names=FALSE,col.names=FALSE,quote=FALSE,sep="\t")
 ```
 
+7. Quantitate Combined Transcriptome (Version 1)
+------------------------------------
 ```
 qsub -q smp /home/data/saba/BNLx.SHR.Brain.polyARNA/programs/quant.Recon.21Jul14.v1.SHR.sh
 qsub -q smp /home/data/saba/BNLx.SHR.Brain.polyARNA/programs/quant.Recon.21Jul14.v1.BNLx.sh
 ```
 
-```{r}
-rm(list=ls())
+```{r,echo=FALSE}
+#rm(list=ls())
 options(stringsAsFactors=FALSE)
-setwd("/Volumes/LauraS/BNLx.SHR/RNA-Seq.Brain.polyA/")
+setwd("/Volumes/saba/BNLx.SHR/RNA-Seq.Brain.polyA/")
+printNow=FALSE
 
-shr = read.table(file="quantification/recon.Brain.PolyA.v2.SHR/isoforms.fpkm_tracking",sep="\t",header=TRUE)
-bnlx = read.table(file="quantification/recon.Brain.PolyA.v2.BNLx/isoforms.fpkm_tracking",sep="\t",header=TRUE)
+shr = read.table(file="quantification/recon.Brain.PolyA.v1.SHR/isoforms.fpkm_tracking",sep="\t",header=TRUE)
+bnlx = read.table(file="quantification/recon.Brain.PolyA.v1.BNLx/isoforms.fpkm_tracking",sep="\t",header=TRUE)
 
 quant = merge(shr[,c("tracking_id","gene_id","locus","length","coverage","FPKM")],bnlx[,c("tracking_id","gene_id","locus","length","coverage","FPKM")],by=c("tracking_id","gene_id","locus","length"),suffixes=c(".shr",".bnlx"))
 
@@ -428,16 +424,13 @@ quant = quant[order(rowSums(quant[,grep("coverage",colnames(quant))]),decreasing
 
 ##  Keep Only Transcripts with Greater Than 50 Read Coverage ##
 keepers = quant[quant$coverage.shr>50 | quant$coverage.bnlx>50,]
-nrow(keepers) / nrow(quant) 
+#nrow(keepers) / nrow(quant) 
 
 gtf.old = read.table(file="quantification/recon.Brain.PolyA.v1.SHR/transcripts.gtf",header=FALSE,sep="\t")
 gtf.test = read.table(file="reconstruction/reconstruct.polyA.brain.21Jul14.v1.gtf",header=FALSE,sep="\t")
 
 gtf.old = gtfFormat(gtf.old)
 gtf.test = gtfFormat(gtf.test,FPKM=FALSE)
-
-length(unique(gtf.old$transcript_id))
-length(unique(gtf.test$transcript_id))
 
 ## rename transcripts based on TPM  ##
 keepers = keepers[order(keepers$gene_id,rowMeans(keepers[,grep("FPKM",colnames(keepers))]),decreasing=TRUE),]
@@ -452,50 +445,62 @@ new.gtf = merge(gtf.old,newID,by="transcript_id")
 new.gtf$V9 = paste('gene_id "',new.gtf$gene_id,'"; transcript_id "',new.gtf$transcript_id.new,'";',sep="")
 new.gtf = new.gtf[,paste("V",c(1:9),sep="")]
 
-write.table(new.gtf,file="reconstruction/reconstruct.polyA.brain.22Jul14.v2.gtf",row.names=FALSE,col.names=FALSE,quote=FALSE,sep="\t")
+if(printNow) write.table(new.gtf,file="reconstruction/reconstruct.polyA.brain.22Jul14.v2.gtf",row.names=FALSE,col.names=FALSE,quote=FALSE,sep="\t")
 ````
+In the first iteration, `r prettyNum(nrow(keepers),big.mark=",")` out of `r prettyNum(nrow(bnlx),big.mark=",")` transcripts were retained (`r prettyNum(length(unique(keepers$gene_id)),big.mark=",")` out of `r prettyNum(length(unique(bnlx$gene_id)),big.mark=",")` genes).
+
+8. Quantitate Combined Transcriptome (Version 2)
+------------------------------------
 
 ```
 qsub -q smp /home/data/saba/BNLx.SHR.Brain.polyARNA/programs/quant.Recon.21Jul14.v2.SHR.sh
 qsub -q smp /home/data/saba/BNLx.SHR.Brain.polyARNA/programs/quant.Recon.21Jul14.v2.BNLx.sh
 ```
 
-```{r}
-rm(list=ls())
+```{r,echo=FALSE}
+#rm(list=ls())
 options(stringsAsFactors=FALSE)
-setwd("/Volumes/LauraS/BNLx.SHR/RNA-Seq.Brain.polyA/")
+setwd("/Volumes/saba/BNLx.SHR/RNA-Seq.Brain.polyA/")
 
-shr = read.table(file="quantification/recon.Brain.PolyA.v1.SHR/isoforms.fpkm_tracking",sep="\t",header=TRUE)
-bnlx = read.table(file="quantification/recon.Brain.PolyA.v1.BNLx/isoforms.fpkm_tracking",sep="\t",header=TRUE)
+shr = read.table(file="quantification/recon.Brain.PolyA.v2.SHR/isoforms.fpkm_tracking",sep="\t",header=TRUE)
+bnlx = read.table(file="quantification/recon.Brain.PolyA.v2.BNLx/isoforms.fpkm_tracking",sep="\t",header=TRUE)
 
 quant = merge(shr[,c("tracking_id","gene_id","locus","length","coverage","FPKM")],bnlx[,c("tracking_id","gene_id","locus","length","coverage","FPKM")],by=c("tracking_id","gene_id","locus","length"),suffixes=c(".shr",".bnlx"))
 
-quant = quant[order(quant$gene_id,rowSums(quant[,grep("coverage",colnames(quant))])),]
+## 17,293 transcripts to start with
 
 ##  Keep Only Transcripts with Greater Than 50 Read Coverage ##
 keepers = quant[quant$coverage.shr>50 | quant$coverage.bnlx>50,]
-nrow(keepers) / nrow(quant) 
+#nrow(keepers) / nrow(quant) 
 
-######  Less than 1% of transcripts have less than 50 read coverage in at least one strain  ######
+## 17,274 (99.9%) transcripts with greater than 50 read coverage
 
-quant[quant$coverage.shr<=50 & quant$coverage.bnlx<=50,]
+gtf.old = read.table(file="quantification/recon.Brain.PolyA.v2.BNLx/transcripts.gtf",header=FALSE,sep="\t")
+gtf.old = gtfFormat(gtf.old,FPKM=FALSE)
 
-quant = quant[order(rowSums(quant[,grep("coverage",colnames(quant))]),decreasing=TRUE),]
+## rename transcripts based on TPM  ##
+keepers = keepers[order(keepers$gene_id,rowMeans(keepers[,grep("FPKM",colnames(keepers))]),decreasing=TRUE),]
+newID = data.frame(do.call(rbind,aggregate(keepers$tracking_id,by=list(gene_id=keepers$gene_id),function(a) cbind(a,paste(unlist(lapply(strsplit(a,split=".",fixed=TRUE),function(b) paste(b[-3],collapse="."))),1:length(a),sep=".")))$x))
+colnames(newID) = c("transcript_id","transcript_id.new")
 
-numEns = aggregate(quant$tracking_id,by=list(gene_id = quant$gene_id),function(a) sum(grepl("ENSRN",a)))
-colnames(numEns)[2] = "numEnsemblID"
-quant = merge(quant,numEns,by="gene_id")
+## remove suffix on Ensembl transcripts
+newID$transcript_id.new[grep("ENSRN",newID$transcript_id.new)] = gsub("\\..*","",newID$transcript_id.new[grep("ENSRN",newID$transcript_id.new)])
+  
+##  reduce GTF file  ##
+new.gtf = merge(gtf.old,newID,by="transcript_id")
+new.gtf$V9 = paste('gene_id "',new.gtf$gene_id,'"; transcript_id "',new.gtf$transcript_id.new,'";',sep="")
+new.gtf = new.gtf[,paste("V",c(1:9),sep="")]
 
-
-quant$category = NA
-quant$category[grepl("ENSRN",quant$tracking_id)] = "ensembl transcript"
-quant$category[quant$numEnsemblID>0 & !grepl("ENSRN",quant$tracking_id)] = "novel transcript for ensembl gene"
-quant$category[quant$numEnsemblID==0 & grepl("match",quant$tracking_id)] = "novel transcript/gene found in both"
-quant$category[quant$numEnsemblID==0 & grepl("BNLx",quant$tracking_id)] = "novel transcript/gene found originally in BNLx"
-quant$category[quant$numEnsemblID==0 & grepl("SHR",quant$tracking_id)] = "novel transcript/gene found originally in SHR"
-quant$category[quant$numEnsemblID==0 & grepl("ensMatch",quant$tracking_id)] = "close match to Ensembl Transcript"
-
-table(quant$category,useNA="always")
-
-head(quant[quant$category=="novel transcript/gene found in both",])
+if(printNow) write.table(new.gtf,file="reconstruction/reconstruct.polyA.brain.FINAL.09Oct14.gtf",row.names=FALSE,col.names=FALSE,quote=FALSE,sep="\t")
 ````
+
+In the second iteration (AND FINAL), `r prettyNum(nrow(keepers),big.mark=",")` out of `r prettyNum(nrow(bnlx),big.mark=",")` transcripts were retained (`r prettyNum(length(unique(keepers$gene_id)),big.mark=",")` out of `r prettyNum(length(unique(bnlx$gene_id)),big.mark=",")` genes).
+
+
+9. Quantitate Final Combined Transcriptome (on PhenoGen)
+---------------------------------
+```
+cufflinks -u --seed 7556 -p 5 --library-type fr-unstranded -b /data2/saba/index/BNLx_rn5_wSpikesAndM.fa -G /data2/saba/BNLx.SHR/RNA-Seq.Brain.polyA/reconstruction/reconstruct.polyA.brain.FINAL.09Oct14.gtf -o /data2/saba/BNLx.SHR/RNA-Seq.Brain.polyA/quantification/recon.Brain.polyA.FINAL.BNLx /hi-seq/BNLx.SHR.Brain-polyARNA/alignedReads/BNLx.brain.polyA.bam
+cufflinks -u --seed 7555 -p 5 --library-type fr-unstranded -b /data2/saba/index/SHR_rn5_wSpikesAndM.fa -G /data2/saba/BNLx.SHR/RNA-Seq.Brain.polyA/reconstruction/reconstruct.polyA.brain.FINAL.09Oct14.gtf -o /data2/saba/BNLx.SHR/RNA-Seq.Brain.polyA/quantification/recon.Brain.polyA.FINAL.SHR /hi-seq/BNLx.SHR.Brain-polyARNA/alignedReads/SHR.brain.polyA.bam
+
+```

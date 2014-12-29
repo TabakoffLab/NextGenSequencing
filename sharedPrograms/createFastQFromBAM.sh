@@ -1,6 +1,7 @@
 #!/bin/bash
 export LC_ALL='C'
 module add bio/bedtools2
+module add bio/samtools
 samtools view -f 0x40 $1/unmapped.bam > $1/right.test.sam
 samtools view -f 0x80 $1/unmapped.bam > $1/left.test.sam
 #wc -l $1/*.sam > $1/numUnmappedSAM.txt

@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<!-- saved from url=(0014)about:internet -->
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=9" >
+
+<title>BNLx and SHR Brain Transcriptome Reconstruction</title>
+
+<style type="text/css">
+body, td {
+   font-family: sans-serif;
+   background-color: white;
+   font-size: 12px;
+   margin: 8px;
+}
+
+tt, code, pre {
+   font-family: 'DejaVu Sans Mono', 'Droid Sans Mono', 'Lucida Console', Consolas, Monaco, monospace;
+}
+
+h1 { 
+   font-size:2.2em; 
+}
+
+h2 { 
+   font-size:1.8em; 
+}
+
+h3 { 
+   font-size:1.4em; 
+}
+
+h4 { 
+   font-size:1.0em; 
+}
+
+h5 { 
+   font-size:0.9em; 
+}
+
+h6 { 
+   font-size:0.8em; 
+}
+
+a:visited {
+   color: rgb(50%, 0%, 50%);
+}
+
+pre {	
+   margin-top: 0;
+   max-width: 95%;
+   border: 1px solid #ccc;
+   white-space: pre-wrap;
+}
+
+pre code {
+   display: block; padding: 0.5em;
+}
+
+code.r, code.cpp {
+   background-color: #F8F8F8;
+}
+
+table, td, th {
+  border: none;
+}
+
+blockquote {
+   color:#666666;
+   margin:0;
+   padding-left: 1em;
+   border-left: 0.5em #EEE solid;
+}
+
+hr {
+   height: 0px;
+   border-bottom: none;
+   border-top-width: thin;
+   border-top-style: dotted;
+   border-top-color: #999999;
+}
+
+@media print {
+   * { 
+      background: transparent !important; 
+      color: black !important; 
+      filter:none !important; 
+      -ms-filter: none !important; 
+   }
+
+   body { 
+      font-size:12pt; 
+      max-width:100%; 
+   }
+       
+   a, a:visited { 
+      text-decoration: underline; 
+   }
+
+   hr { 
+      visibility: hidden;
+      page-break-before: always;
+   }
+
+   pre, blockquote { 
+      padding-right: 1em; 
+      page-break-inside: avoid; 
+   }
+
+   tr, img { 
+      page-break-inside: avoid; 
+   }
+
+   img { 
+      max-width: 100% !important; 
+   }
+
+   @page :left { 
+      margin: 15mm 20mm 15mm 10mm; 
+   }
+     
+   @page :right { 
+      margin: 15mm 10mm 15mm 20mm; 
+   }
+
+   p, h2, h3 { 
+      orphans: 3; widows: 3; 
+   }
+
+   h2, h3 { 
+      page-break-after: avoid; 
+   }
+}
+
+</style>
+
+
+
+
+
+</head>
+
+<body>
+<h1>BNLx and SHR Brain Transcriptome Reconstruction</h1>
+
+<h2>PolyA+ Reconstruction</h2>
+
+<p>Complete SHR Transcriptome:<br/>
+43,787 genes<br/>
+56,696 transcripts<br/>
+14,389 Ensembl transcripts<br/>
+42,307 novel transcripts  </p>
+
+<p>Complete BNLx Transcriptome:<br/>
+37,499 genes<br/>
+50,431 transcripts<br/>
+13,750 Ensembl transcripts<br/>
+36,681 novel transcripts  </p>
+
+<h2>1.  Limit to transcripts with greater than 50 coverage and a transcript length greater than 200 nt (not including introns)</h2>
+
+<p>High Confidence SHR Transcripts:<br/>
+11,174 genes<br/>
+15,505 transcripts<br/>
+7,924 Ensembl transcripts<br/>
+5,854 novel transcripts of Ensembl genes<br/>
+1,727 novel transcripts/genes   </p>
+
+<p>High Confidence BNLx Transcripts:<br/>
+9,479 genes<br/>
+12,717 transcripts<br/>
+6,665 Ensembl transcripts<br/>
+4,824 novel transcripts of Ensembl genes<br/>
+1,228 novel transcripts/genes  </p>
+
+<h2>2. Identify overlap between novel transcripts in strain-specific reconstructions</h2>
+
+<p>BEDtools version = bedtools v2.19.1</p>
+
+<pre><code>export PATH=/usr/local/bedtools2/bin:$PATH
+cd /data/Tabastore3/LauraS/BNLx.SHR/RNA-Seq.Brain.polyA/reconstruction/tmp
+intersectBed -a shr.bed -b shr.bed -wo &gt; overlap.polyA.SHR.txt
+intersectBed -a bnlx.bed -b bnlx.bed -wo &gt; overlap.polyA.BNLx.txt
+intersectBed -a shr.bed -b bnlx.bed -wo &gt; overlap.polyA.byStrain.txt
+</code></pre>
+
+<h2>3.  Identify novel transcripts that were identified in both BN-Lx and SHR </h2>
+
+<p>Two transcripts were &ldquo;merged&rdquo; into one transcripts if:  </p>
+
+<ul>
+<li>they are both assigned to the same strand or one/both did not have a strand designation</li>
+<li>they were identified as novel in opposite strains (one from SHR and one from BNLx)</li>
+<li>if 1) all exon starts and exon stops matched OR 2) all exon junctions matched, transcription start and stop sites could differ OR 3) two one-exon transcripts with transcription start sites within 100 bp of each other and transcription stop sites within 100 bp of each other</li>
+</ul>
+
+<p>Combined Transcriptome:  </p>
+
+<ul>
+<li>19,793 transcripts</li>
+<li>2,107 novel transcripts identified in both strains</li>
+<li>4,022 novel transcripts only identified in BNLx</li>
+<li>5,513 novel transcripts only identified in SHR</li>
+<li>8,105 Ensembl transcripts</li>
+<li>46 novel transcripts very similar to Ensembl</li>
+</ul>
+
+<h2>5.  Identify overlap between transcripts in order to identify transcripts from the same gene</h2>
+
+<p>BEDtools Version = bedtools v2.19.1</p>
+
+<pre><code>export PATH=/usr/local/bedtools2/bin:$PATH
+cd /data/Tabastore3/LauraS/BNLx.SHR/RNA-Seq.Brain.polyA/reconstruction/tmp
+intersectBed -a combined.brain.polyA.21Jul14.bed -b combined.brain.polyA.21Jul14.bed -wo &gt; overlap.brain.polyA.forGeneID.txt
+</code></pre>
+
+<h2>6.  Match transcripts to genes and create new GTF file  </h2>
+
+<p>Two transcripts are from the same gene if:  </p>
+
+<ul>
+<li>Their transcription start sites matched exactly OR</li>
+<li>Their transcription stop sites matched exactly OR</li>
+<li>At least one exon-exon junction matched exactly</li>
+</ul>
+
+<pre><code>## Error: argument is of length zero
+</code></pre>
+
+<pre><code>## Loading required package: graph
+## 
+## Attaching package: &#39;graph&#39;
+## 
+## The following objects are masked from &#39;package:igraph&#39;:
+## 
+##     degree, edges
+## 
+## Loading required package: RBGL
+## 
+## Attaching package: &#39;RBGL&#39;
+## 
+## The following object is masked from &#39;package:igraph&#39;:
+## 
+##     transitivity
+</code></pre>
+
+<pre><code>## Error: argument is of length zero
+</code></pre>
+
+<pre><code>## Error: object &#39;graph.polyA&#39; not found
+</code></pre>
+
+<pre><code>## Error: error in evaluating the argument &#39;object&#39; in selecting a method for function &#39;nodes&#39;: Error: object &#39;graph.polyA&#39; not found
+</code></pre>
+
+<pre><code>## Error: object &#39;compList&#39; not found
+</code></pre>
+
+<pre><code>## Error: object &#39;geneNames&#39; not found
+</code></pre>
+
+<pre><code>## Error: object &#39;geneNames&#39; not found
+</code></pre>
+
+<pre><code>## Error: object &#39;geneNames&#39; not found
+</code></pre>
+
+<pre><code>## Error: object &#39;compList&#39; not found
+</code></pre>
+
+<pre><code>## Error: object &#39;compList&#39; not found
+</code></pre>
+
+<pre><code>## Error: object &#39;multiTrans&#39; not found
+</code></pre>
+
+<pre><code>## Error: object &#39;multiTrans&#39; not found
+</code></pre>
+
+<pre><code>## Error: object &#39;compList&#39; not found
+</code></pre>
+
+<pre><code>## Error: object &#39;singleTrans&#39; not found
+</code></pre>
+
+<pre><code>## Error: object &#39;multiTrans&#39; not found
+</code></pre>
+
+<pre><code>## Error: object &#39;ids&#39; not found
+</code></pre>
+
+<pre><code>## Error: object &#39;ids&#39; not found
+</code></pre>
+
+<pre><code>## Error: object &#39;updated&#39; not found
+</code></pre>
+
+<pre><code>## Error: object &#39;updated&#39; not found
+</code></pre>
+
+<h2>7. Quantitate Combined Transcriptome (Version 1)</h2>
+
+<pre><code>qsub -q smp /home/data/saba/BNLx.SHR.Brain.polyARNA/programs/quant.Recon.21Jul14.v1.SHR.sh
+qsub -q smp /home/data/saba/BNLx.SHR.Brain.polyARNA/programs/quant.Recon.21Jul14.v1.BNLx.sh
+</code></pre>
+
+<p>In the first iteration, 17,293 out of 19,793 transcripts were retained (12,308 out of 12,960 genes).</p>
+
+<h2>8. Quantitate Combined Transcriptome (Version 2)</h2>
+
+<pre><code>qsub -q smp /home/data/saba/BNLx.SHR.Brain.polyARNA/programs/quant.Recon.21Jul14.v2.SHR.sh
+qsub -q smp /home/data/saba/BNLx.SHR.Brain.polyARNA/programs/quant.Recon.21Jul14.v2.BNLx.sh
+</code></pre>
+
+<p>In the second iteration (AND FINAL), 17,274 out of 17,293 transcripts were retained (12,307 out of 12,308 genes).</p>
+
+<h2>9. Quantitate Final Combined Transcriptome (on PhenoGen)</h2>
+
+<pre><code>cufflinks -u --seed 7556 -p 5 --library-type fr-unstranded -b /data2/saba/index/BNLx_rn5_wSpikesAndM.fa -G /data2/saba/BNLx.SHR/RNA-Seq.Brain.polyA/reconstruction/reconstruct.polyA.brain.FINAL.09Oct14.gtf -o /data2/saba/BNLx.SHR/RNA-Seq.Brain.polyA/quantification/recon.Brain.polyA.FINAL.BNLx /hi-seq/BNLx.SHR.Brain-polyARNA/alignedReads/BNLx.brain.polyA.bam
+cufflinks -u --seed 7555 -p 5 --library-type fr-unstranded -b /data2/saba/index/SHR_rn5_wSpikesAndM.fa -G /data2/saba/BNLx.SHR/RNA-Seq.Brain.polyA/reconstruction/reconstruct.polyA.brain.FINAL.09Oct14.gtf -o /data2/saba/BNLx.SHR/RNA-Seq.Brain.polyA/quantification/recon.Brain.polyA.FINAL.SHR /hi-seq/BNLx.SHR.Brain-polyARNA/alignedReads/SHR.brain.polyA.bam
+
+</code></pre>
+
+</body>
+
+</html>
+

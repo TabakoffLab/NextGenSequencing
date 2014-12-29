@@ -164,7 +164,7 @@ hr {
 </ul></li>
 </ul>
 
-<h2>1. Unzip Files</h2>
+<h2>1. Unzip Files - DONE</h2>
 
 <pre><code>qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch2/programs/unzip.yucca.sh
 </code></pre>
@@ -172,6 +172,106 @@ hr {
 <h2>2. Determine number of reads sent for each sample - DONE</h2>
 
 <pre><code>qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch2/programs/countRawReads.brain.batch2.sh
+</code></pre>
+
+<h2>Raw Reads/Read Fragments</h2>
+
+<table><thead>
+<tr>
+<th align="center">sample</th>
+<th align="center">Number of Paired-End Reads</th>
+<th align="center">Number of Read Fragments</th>
+</tr>
+</thead><tbody>
+<tr>
+<td align="center">BXH2_1</td>
+<td align="center">174,413,815</td>
+<td align="center">348,827,630</td>
+</tr>
+<tr>
+<td align="center">HXB1_1</td>
+<td align="center">159,129,032</td>
+<td align="center">318,258,064</td>
+</tr>
+<tr>
+<td align="center">HXB10_1</td>
+<td align="center">194,539,473</td>
+<td align="center">389,078,946</td>
+</tr>
+<tr>
+<td align="center">HXB15_1</td>
+<td align="center">177,057,675</td>
+<td align="center">354,115,350</td>
+</tr>
+<tr>
+<td align="center">HXB18_1</td>
+<td align="center">168,482,405</td>
+<td align="center">336,964,810</td>
+</tr>
+<tr>
+<td align="center">HXB20_1</td>
+<td align="center">147,520,151</td>
+<td align="center">295,040,302</td>
+</tr>
+<tr>
+<td align="center">HXB21_1</td>
+<td align="center">163,232,081</td>
+<td align="center">326,464,162</td>
+</tr>
+<tr>
+<td align="center">HXB22_1</td>
+<td align="center">134,629,467</td>
+<td align="center">269,258,934</td>
+</tr>
+<tr>
+<td align="center">HXB23_1</td>
+<td align="center">166,909,502</td>
+<td align="center">333,819,004</td>
+</tr>
+<tr>
+<td align="center">HXB24_1</td>
+<td align="center">114,577,224</td>
+<td align="center">229,154,448</td>
+</tr>
+<tr>
+<td align="center">HXB29_1</td>
+<td align="center">177,121,877</td>
+<td align="center">354,243,754</td>
+</tr>
+<tr>
+<td align="center">HXB3_1</td>
+<td align="center">204,742,542</td>
+<td align="center">409,485,084</td>
+</tr>
+<tr>
+<td align="center">HXB31_1</td>
+<td align="center">143,642,905</td>
+<td align="center">287,285,810</td>
+</tr>
+<tr>
+<td align="center">HXB4_1</td>
+<td align="center">192,423,216</td>
+<td align="center">384,846,432</td>
+</tr>
+<tr>
+<td align="center">HXB5_1</td>
+<td align="center">223,080,147</td>
+<td align="center">446,160,294</td>
+</tr>
+<tr>
+<td align="center">SHR_1</td>
+<td align="center">118,513,047</td>
+<td align="center">237,026,094</td>
+</tr>
+</tbody></table>
+
+<p>Total Number of Paired End Reads: 2,660,014,559<br/>
+Total Number of Read Fragments:  5,320,029,118<br/>
+Average Number of Paired End Reads Per Sample: 166,250,910  </p>
+
+<h2>3. Trim reads for adaptors and for quality - RUNNING</h2>
+
+<pre><code>qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch2/programs/trimReads.brain.batch2.sh
 </code></pre>
 
 </body>

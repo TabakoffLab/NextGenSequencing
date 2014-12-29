@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<!-- saved from url=(0014)about:internet -->
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=9" >
+
+<title>BNLx and SHR Heart Transcriptome Reconstruction</title>
+
+<style type="text/css">
+body, td {
+   font-family: sans-serif;
+   background-color: white;
+   font-size: 12px;
+   margin: 8px;
+}
+
+tt, code, pre {
+   font-family: 'DejaVu Sans Mono', 'Droid Sans Mono', 'Lucida Console', Consolas, Monaco, monospace;
+}
+
+h1 { 
+   font-size:2.2em; 
+}
+
+h2 { 
+   font-size:1.8em; 
+}
+
+h3 { 
+   font-size:1.4em; 
+}
+
+h4 { 
+   font-size:1.0em; 
+}
+
+h5 { 
+   font-size:0.9em; 
+}
+
+h6 { 
+   font-size:0.8em; 
+}
+
+a:visited {
+   color: rgb(50%, 0%, 50%);
+}
+
+pre {	
+   margin-top: 0;
+   max-width: 95%;
+   border: 1px solid #ccc;
+   white-space: pre-wrap;
+}
+
+pre code {
+   display: block; padding: 0.5em;
+}
+
+code.r, code.cpp {
+   background-color: #F8F8F8;
+}
+
+table, td, th {
+  border: none;
+}
+
+blockquote {
+   color:#666666;
+   margin:0;
+   padding-left: 1em;
+   border-left: 0.5em #EEE solid;
+}
+
+hr {
+   height: 0px;
+   border-bottom: none;
+   border-top-width: thin;
+   border-top-style: dotted;
+   border-top-color: #999999;
+}
+
+@media print {
+   * { 
+      background: transparent !important; 
+      color: black !important; 
+      filter:none !important; 
+      -ms-filter: none !important; 
+   }
+
+   body { 
+      font-size:12pt; 
+      max-width:100%; 
+   }
+       
+   a, a:visited { 
+      text-decoration: underline; 
+   }
+
+   hr { 
+      visibility: hidden;
+      page-break-before: always;
+   }
+
+   pre, blockquote { 
+      padding-right: 1em; 
+      page-break-inside: avoid; 
+   }
+
+   tr, img { 
+      page-break-inside: avoid; 
+   }
+
+   img { 
+      max-width: 100% !important; 
+   }
+
+   @page :left { 
+      margin: 15mm 20mm 15mm 10mm; 
+   }
+     
+   @page :right { 
+      margin: 15mm 10mm 15mm 20mm; 
+   }
+
+   p, h2, h3 { 
+      orphans: 3; widows: 3; 
+   }
+
+   h2, h3 { 
+      page-break-after: avoid; 
+   }
+}
+
+</style>
+
+
+
+
+
+</head>
+
+<body>
+<h1>BNLx and SHR Heart Transcriptome Reconstruction</h1>
+
+<h2>rRNA-Depleted Total RNA Reconstruction</h2>
+
+<p>Complete SHR Transcriptome:<br/>
+149,500 genes<br/>
+163,848 transcripts<br/>
+14,235 Ensembl transcripts<br/>
+149,613 novel transcripts  </p>
+
+<p>Complete BNLx Transcriptome:<br/>
+147,150 genes<br/>
+161,890 transcripts<br/>
+14,272 Ensembl transcripts<br/>
+147,618 novel transcripts  </p>
+
+<h2>1. Limit to transcripts with greater than 50 coverage and a transcript length greater than 200 nt (not including introns)</h2>
+
+<p>High Confidence SHR Transcripts:<br/>
+28,189 genes<br/>
+32,672 transcripts<br/>
+7,687 Ensembl transcripts<br/>
+5,682 novel transcripts of Ensembl genes<br/>
+19,303 novel transcripts/genes   </p>
+
+<p>High Confidence BNLx Transcripts:<br/>
+26,397 genes<br/>
+30,786 transcripts<br/>
+7,631 Ensembl transcripts<br/>
+5,534 novel transcripts of Ensembl genes<br/>
+17,621 novel transcripts/genes   </p>
+
+<h2>2. Identify overlap between novel transcripts in strain-specific reconstructions</h2>
+
+<p>BEDtools version = bedtools v2.19.1</p>
+
+<pre><code>export PATH=/usr/local/bedtools2/bin:$PATH
+bedtools -version 
+
+cd /data2/saba/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/tmp
+intersectBed -a shr.bed -b bnlx.bed -wo &gt; overlap.brain.total.byStrain.txt
+</code></pre>
+
+<h2>3.  Compare novel transcripts across strain-specific transcriptomes BN-Lx and SHR </h2>
+
+<p>Two transcripts were &ldquo;merged&rdquo; into one transcripts if:  </p>
+
+<ul>
+<li>they are both assigned to the same strand or one/both did not have a strand designation</li>
+<li>if 1) all exon starts and exon stops matched OR 2) all exon junctions matched, transcription start and stop sites could differ OR 3) two one-exon transcripts with transcription start sites within 100 bp of each other and transcription stop sites within 100 bp of each other</li>
+</ul>
+
+<p>Combined Transcriptome:  </p>
+
+<ul>
+<li>50,203 transcripts</li>
+<li>6,059 novel transcripts identified in both strains</li>
+<li>17,099 novel transcripts only identified in BNLx</li>
+<li>18,915 novel transcripts only identified in SHR</li>
+<li>7,951 Ensembl transcripts</li>
+<li>179 novel transcripts very similar to Ensembl</li>
+</ul>
+
+<h2>4.  Identify overlap between transcripts in order to identify transcripts from the same gene</h2>
+
+<p>BEDtools Version = bedtools v2.19.1</p>
+
+<pre><code>export PATH=/usr/local/bedtools2/bin:$PATH
+cd /data2/saba/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/tmp
+intersectBed -a combined.heart.total.01Oct14.bed -b combined.heart.total.01Oct14.bed -wo &gt; overlap.heart.total.forGeneID.txt
+</code></pre>
+
+<h2>5.  Match transcripts to genes and create new GTF file  </h2>
+
+<p>Two transcripts are from the same gene if:  </p>
+
+<ul>
+<li>Their transcription start sites matched exactly OR</li>
+<li>Their transcription stop sites matched exactly OR</li>
+<li>At least one exon-exon junction matched exactly</li>
+</ul>
+
+<h2>6. Quantitate Combined Transcriptome (1st Iteration)</h2>
+
+<pre><code>#on PhenoGen server
+cufflinks -u --seed 4356 -p 25 --library-type fr-firststrand -b /data2/saba/index/BNLx_rn5_wSpikesAndM.fa -G /data2/saba/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/reconstruct.total.heart.01Oct14.v1.gtf -o /data2/saba/BNLx.SHR/RNA-Seq.Heart/totalRNA/quantitation/recon.Heart.total.v1.BNLx /hi-seq/BNLx.SHR.Heart.totalRNA.02Jun14/alignedReads/BNLx.heart.bam
+cufflinks -u --seed 4366 -p 25 --library-type fr-firststrand -b /data2/saba/index/SHR_rn5_wSpikesAndM.fa -G /data2/saba/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/reconstruct.total.heart.01Oct14.v1.gtf -o /data2/saba/BNLx.SHR/RNA-Seq.Heart/totalRNA/quantitation/recon.Heart.total.v1.SHR /hi-seq/BNLx.SHR.Heart.totalRNA.02Jun14/alignedReads/SHR.heart.bam
+</code></pre>
+
+<p>In the first iteration, 40,091 out of 50,203 transcripts were retained (35,445 out of 43,046 genes).</p>
+
+<h2>7. Quantitate Combined Transcriptome (2nd Iteration)</h2>
+
+<pre><code>cufflinks -u --seed 6356 -p 25 --library-type fr-firststrand -b /data2/saba/index/BNLx_rn5_wSpikesAndM.fa -G /data2/saba/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/reconstruct.total.heart.03Oct14.v2.gtf -o /data2/saba/BNLx.SHR/RNA-Seq.Heart/totalRNA/quantitation/recon.Heart.total.v2.BNLx /hi-seq/BNLx.SHR.Heart.totalRNA.02Jun14/alignedReads/BNLx.heart.bam
+cufflinks -u --seed 6366 -p 25 --library-type fr-firststrand -b /data2/saba/index/SHR_rn5_wSpikesAndM.fa -G /data2/saba/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/reconstruct.total.heart.03Oct14.v2.gtf -o /data2/saba/BNLx.SHR/RNA-Seq.Heart/totalRNA/quantitation/recon.Heart.total.v2.SHR /hi-seq/BNLx.SHR.Heart.totalRNA.02Jun14/alignedReads/SHR.heart.bam
+
+</code></pre>
+
+<p>In the first iteration, 40,091 out of 50,203 transcripts were retained (35,445 out of 43,046 genes).</p>
+
+</body>
+
+</html>
+

@@ -35,8 +35,8 @@ malesPravenec$brain[malesPravenec$sample=="SHR_1"] = "total RNA sequenced (05Sep
 
 ##  Batch 3 RI Brains - 9/25
 batch3 = c("BXH3_1","BXH3_2","BXH5_1","BXH6_1","BXH6_2","BXH8_1","BXH9_1","BXH9_2","BXH10_1","BXH10_2","BXH11_1","BXH11_2","BXH13_1","BNLx_1","BNLx_2")
-malesPravenec$brain[malesPravenec$sample %in% batch3] = "libraries being prepped (25Sep14)"
-malesPravenec$brain[malesPravenec$sample=="SHR_1"] = paste(malesPravenec$brain[malesPravenec$sample=="SHR_1"],"; REPLICATE2 libraries being prepped (25Sep14)",sep="")
+malesPravenec$brain[malesPravenec$sample %in% batch3] = "total RNA sequenced (20Nov14)"
+malesPravenec$brain[malesPravenec$sample=="SHR_1"] = paste(malesPravenec$brain[malesPravenec$sample=="SHR_1"],"; REPLICATE2 total RNA sequenced (20Nov14)",sep="")
 ```
 
 
@@ -46,4 +46,29 @@ forPrint = malesPravenec[,c("strain","sample","brain","heart","liver","bat")]
 colnames(forPrint) = c("Strain","Sample ID","Brain","Left Ventricle","Liver","Brown Adipose Tissue")
 kable(forPrint,align=rep("c",ncol(forPrint)))
 ```
+
+### By Tissue Summary
+
+```{r,echo=FALSE}
+summary = c()
+for(tissue in c("brain","liver","heart","bat")){
+  numSamples = aggregate(malesPravenec[,tissue],by=list(malesPravenec$strain),function(a) sum(grepl("total RNA sequenced",a)))
+  numSamples.small = aggregate(malesPravenec[,tissue],by=list(malesPravenec$strain),function(a) sum(grepl("small RNA sequenced",a)))
+  summary = rbind(summary,data.frame(tissue=tissue,avg.long=mean(numSamples$x),atLeast1.long=sum(numSamples$x>0),all4.long = sum(numSamples$x==4),avg.small=mean(numSamples.small$x),atLeast1.small=sum(numSamples.small$x>0),all4.small = sum(numSamples.small$x==4)))
+}
+
+```
+
+```{r,results="asis",echo=FALSE}
+#make table pretty for printing
+forPrint2 = summary
+forPrint2$avg.long = sprintf("%0.2f",round(forPrint2$avg.long,2))
+forPrint2$avg.small = sprintf("%0.2f",round(forPrint2$avg.small,2))
+colnames(forPrint2) = c("Tissue","Average Number of Samples Per Strain (total RNA)","Number of Strains with At Least 1 Sample (total RNA)","Number of Strains with All 4 Samples Per Strain (total RNA)","Average Number of Samples Per Strain (small RNA)","Number of Strains with At Least 1 Sample (small RNA)","Number of Strains with All 4 Samples Per Strain (small RNA)")
+kable(forPrint2,align=rep("c",ncol(forPrint2)))
+```
+
+
+
+
 

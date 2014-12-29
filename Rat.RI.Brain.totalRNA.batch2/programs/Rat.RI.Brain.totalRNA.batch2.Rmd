@@ -13,7 +13,7 @@ RI Panel - Batch 2 (Brain) Total RNA RNA-Seq
   * 4 mL of 1:100 diluted spikes were added after RNA extraction but before rRNA-depletion
   * Information regarding the spike-ins can be found here: http://products.invitrogen.com/ivgn/product/4456739
 
-1. Unzip Files
+1. Unzip Files - DONE
 ---------------
 ```
 qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch2/programs/unzip.yucca.sh
@@ -23,4 +23,43 @@ qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch2/programs/unzip.yucca.sh
 -------------------------------------------------
 ```
 qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch2/programs/countRawReads.brain.batch2.sh
+```
+
+```{r,echo=FALSE}
+rm(list=ls())
+options(stringsAsFactors=FALSE)
+setwd("~/Documents/NextGenSeq/Rat.RI.Brain.totalRNA.batch2/")
+rawCounts = read.table(file="data/rawReadCounts.25Sep14.txt",sep=" ",header=FALSE,fill=TRUE)
+
+rawCounts$readFrag = as.numeric(rawCounts$V3)
+rawCounts$file = unlist(lapply(strsplit(rawCounts$V1,split="/",fixed=TRUE),function(a) a[length(a)]))
+rawCounts$strain = unlist(lapply(strsplit(rawCounts$file,split="_",fixed=TRUE),function(a) a[1]))
+rawCounts$sampleNum = unlist(lapply(strsplit(rawCounts$file,split="_",fixed=TRUE),function(a) gsub("brain","",a[2])))
+rawCounts$sample = paste(rawCounts$strain,rawCounts$sampleNum,sep="_")
+
+readFragments = aggregate(rawCounts$readFrag,by=list(sample=rawCounts$sample),sum)
+readFragments$numPairedReads = prettyNum(readFragments$x/2,big.mark=",",scientific=FALSE)
+readFragments$numReadFragments = prettyNum(readFragments$x,big.mark=",",scientific=FALSE)
+
+readFragments=readFragments[,colnames(readFragments)!="x"]
+forPrint = readFragments[,c("sample","numPairedReads","numReadFragments")]
+colnames(forPrint) = c("sample","Number of Paired-End Reads","Number of Read Fragments")
+```
+
+Raw Reads/Read Fragments
+---------------------------
+
+```{r, results='asis',echo=FALSE}
+kable(forPrint,align=rep("c",ncol(readFragments)))
+```
+
+Total Number of Paired End Reads: `r prettyNum(sum(rawCounts$readFrag)/2,big.mark=",",scientific=FALSE)`  
+Total Number of Read Fragments:  `r prettyNum(sum(rawCounts$readFrag),big.mark=",",scientific=FALSE)`  
+Average Number of Paired End Reads Per Sample: `r prettyNum(sum(rawCounts$readFrag/2)/length(unique(rawCounts$sample)),big.mark=",",scientific=FALSE)`  
+
+3. Trim reads for adaptors and for quality - RUNNING
+---------------
+
+```
+qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch2/programs/trimReads.brain.batch2.sh
 ```
