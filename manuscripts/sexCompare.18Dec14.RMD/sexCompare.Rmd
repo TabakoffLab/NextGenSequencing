@@ -1,22 +1,189 @@
 Gender Comparisons in Total RNA-Seq
 ========================================================
 
-BNLx and SHR Females from Pravenec
-
-1. Quantitate Ensembl Transcripts
+1. Quantitate Ensembl Transcripts - Females from Pravenec - DONE
 ```
 qsub -q smp /storage/saba/BNLx.SHR.Brain.Females.totalRNA/programs/sailFish.ensemblTranscripts.sh
 ```
 
+2. Quantitate Ensembl Transcripts - Males from Printz - DONE
+```
+qsub -q smp /storage/saba/BNLx.SHR.Brain.totalRNA/programs/sailFish.ensembl.sh
+```
 
+3. Quantitate Ensembl Transcripts - Males from Pravenec
+* SHR_1 (batch 1) is being converted from reads that did NOT align to rRNA to fastq files
+* BNLx_1, BNLx_2, and SHR_1rep (batch 3) are being aligned rRNA
+
+PRELIMINARY ANALYSIS
+--------------------
+* for abstract due 1/10/15
+
+## Expression Estimates from VOOM
+
+```{r,eval=TRUE,message=FALSE}
+rm(list=ls())
+options(stringsAsFactors=FALSE)
+
+maleDir = "/Volumes/saba/BNLx.SHR/RNA-Seq.Brain.total/quantitation"
+femaleDir = "/Volumes/saba/BNLx.SHR/RNA-Seq.Brain.total.Females/quantitation"
+
+males = paste(rep(c("SHR","BNLx"),each=3),c(1:3),sep="")
+
+for(i in males){
+  x = read.table(file=paste(maleDir,"/",i,".ensembl/quant_bias_corrected.sf",sep=""),sep="\t",header=FALSE)
+  colnames(x) = c("transcript","length",paste(i,"M.",c("TPM","RPKM","KPKM","EstimatedNumKmers","EstimatedNumReads"),sep=""))
+  if(i==males[1]) males.sailfish = x
+  if(i!=males[1]) males.sailfish = merge(males.sailfish,x,by=c("transcript","length"))
+  }
+
+females = paste(rep(c("SHR","BNLx"),each=4),c(1:4),sep="")
+
+for(i in females){
+  x = read.table(file=paste(femaleDir,"/",i,".ensembl/quant_bias_corrected.sf",sep=""),sep="\t",header=FALSE)
+  colnames(x) = c("transcript","length",paste(i,"F.",c("TPM","RPKM","KPKM","EstimatedNumKmers","EstimatedNumReads"),sep=""))
+  if(i==females[1]) females.sailfish = x
+  if(i!=females[1]) females.sailfish = merge(females.sailfish,x,by=c("transcript","length"))
+  }
+
+sailfish = merge(males.sailfish,females.sailfish,by=c("transcript","length"))
+
+sailfish[sailfish$transcript=="ENSRNOT00000056327",grep("TPM",colnames(sailfish))]
+
+## Differential Expression
+library(limma)
+library(DESeq) 
+
+#estCounts = sailfish[,grep("EstimatedNumReads",colnames(sailfish))]
+estCounts = sailfish[,grep("EstimatedNumKmers",colnames(sailfish))]
+
+rownames(estCounts) = sailfish$transcript
+estCounts = estCounts[-grep("ERCC",rownames(estCounts)),]
+estCounts = estCounts[rowSums(estCounts!=0)>0,]
+
+counts = round(estCounts,0)
+
+#samples = gsub(".EstimatedNumReads","",colnames(counts))
+samples = gsub(".EstimatedNumKmers","",colnames(counts))
+
+strain = as.factor(substr(samples,1,1))
+sex = as.factor(sapply(samples,function(a) substr(a,nchar(a),nchar(a))))
+groups = as.factor(paste(strain,sex,sep="."))
+design = model.matrix(~ strain + sex + strain*sex)
+
+##  DESeq Size Factors
+cds = newCountDataSet(counts, groups)
+cds = estimateSizeFactors(cds)
+
+##  Voom Expression Estimates
+voomed.librarySize = voom(estCounts,design=design,normalize.method="none",lib.size=sizeFactors(cds))
+
+voomed = voomed.librarySize$E
+#colnames(voomed) = gsub(".EstimatedNumReads","",colnames(voomed))
+colnames(voomed) = gsub(".EstimatedNumKmers","",colnames(voomed))
+
+
+##  Examine Principal Components 
+PCA = prcomp(voomed,scale=TRUE)
+PC1.results = summary(aov(as.numeric(PCA$rotation[,1]) ~ strain + sex + strain*sex))
+PC2.results = summary(aov(as.numeric(PCA$rotation[,2]) ~ strain + sex + strain*sex))
+```
+
+## Principal Component Analysis - Outliers
+```{r,echo=FALSE,fig.width=6,fig.height=5}
+plot(PCA$rotation[,1],PCA$rotation[,2],pch=19,xlab="PC 1",ylab="PC 2",main="First Two Principal Components")
+text(PCA$rotation[,1],PCA$rotation[,2],labels=samples,cex=0.7,pos=4)
+```
+
+The first principal component accounted for `r summary(PCA)[[1]][1]^2/sum(summary(PCA)[[1]]^2)` of the variance.  
+The second principal component accounted for `r summary(PCA)[[1]][2]^2/sum(summary(PCA)[[1]]^2)` of the variance.  
+
+### Linear Regression Results for PC 1
+```{r results='asis',echo=FALSE}
+kable(PC1.results[[1]][1:3,c(1,4,5)])
+```
+
+### Linear Regression Results for PC 2
+```{r results='asis',echo=FALSE}
+kable(PC2.results[[1]][1:3,c(1,4,5)])
+```
+
+## Hierarchical Clustering of Samples
+```{r, fig.height=6,fig.width=7,echo=FALSE}
+plot(hclust(as.dist(1-cor(voomed)),method="average"))
+```
+
+## 2-Way ANOVA
 
 ```{r}
-summary(cars)
+options(stringsAsFactors=FALSE)
+
+#interaction effect
+fit = lmFit(voomed.librarySize$E,design=design,weights=voomed.librarySize$weights)
+eBayes.results = eBayes(fit)
+
+results = data.frame(transcript=rownames(estCounts),interactionEffect=eBayes.results$p.value[,4])
+
+#main effect
+design2 = model.matrix(~ strain + sex)
+fit2 = lmFit(voomed.librarySize$E,design=design2,weights=voomed.librarySize$weights)
+eBayes.results2 = eBayes(fit2)
+
+mainEffects = data.frame(transcript=rownames(estCounts),strainEffect=eBayes.results2$p.value[,2],sexEffect=eBayes.results2$p.value[,3])
+
+results = merge(results,mainEffects,by="transcript")
+
+#group estimates
+design3 = model.matrix(~ -1 + groups)
+fit3 = lmFit(voomed.librarySize$E,design=design3,weights=voomed.librarySize$weights)
+estimates = fit3$coefficients
+colnames(estimates) = gsub("groups","",colnames(estimates))
+
+results = merge(results,estimates,by.x="transcript",by.y=0)
+results$interactionFDR = p.adjust(results$interactionEffect,method="BH")
+results$strainFDR = p.adjust(results$strainEffect,method="BH")
+results$sexFDR = p.adjust(results$sexEffect,method="BH")
+
+results[results$transcript=="ENSRNOT00000056327",]
+threshold=0.01
+sigResults = results[rowSums(results[,grep("Effect",colnames(results))]<threshold)>0,]
+sigResults$results = ""
+sigResults$results[sigResults$interactionEffect<threshold] = paste(sigResults$results[sigResults$interactionEffect<threshold],"interaction",sep="|")
+sigResults$results[sigResults$strainEffect<threshold] = paste(sigResults$results[sigResults$strainEffect<threshold],"strain",sep="|")
+sigResults$results[sigResults$sexEffect<threshold] = paste(sigResults$results[sigResults$sexEffect<threshold],"sex",sep="|")
+
+sigResults$transcript = gsub("mm10_ensGene_","",sigResults$transcript)
+anno = read.table(file="/Volumes/LauraS/Kechris/source/ensembl.GRCm38.mm10.miRNA.snoRNA.txt",sep="\t",header=TRUE)
+sigResults = merge(sigResults,anno,by.x="transcript",by.y="EnsemblTranscriptID")
+
+sigResults$minPvalue = apply(sigResults[,grep("Effect",colnames(sigResults))],1,min)
+sigResults = sigResults[order(sigResults$results,sigResults$minPvalue),]
+#write.table(sigResults,file="documents/twoWayANOVA.smRNA.Radcliffe.01Jun14.txt",sep="\t",col.names=TRUE,row.names=FALSE)
+
+# comparison of significance thresholds
+results$transcript = gsub("mm10_ensGene_","",results$transcript)
+results = merge(results,anno,by.x="transcript",by.y="EnsemblTranscriptID")
+results = results[!duplicated(results$transcript),]
+
+at05 = aggregate(results[,grep("Effect",colnames(results))],by=list(results$GeneBiotype),function(a) sum(a<0.05))
+at01 = aggregate(results[,grep("Effect",colnames(results))],by=list(results$GeneBiotype),function(a) sum(a<0.01))
+at001 = aggregate(results[,grep("Effect",colnames(results))],by=list(results$GeneBiotype),function(a) sum(a<0.001))
+at0001 = aggregate(results[,grep("Effect",colnames(results))],by=list(results$GeneBiotype),function(a) sum(a<0.0001))
+
+atFDR05 = aggregate(results[,grep("FDR",colnames(results))],by=list(results$GeneBiotype),function(a) sum(a<0.05))
+atFDR10 = aggregate(results[,grep("FDR",colnames(results))],by=list(results$GeneBiotype),function(a) sum(a<0.10))
+atFDR20 = aggregate(results[,grep("FDR",colnames(results))],by=list(results$GeneBiotype),function(a) sum(a<0.20))
+
+miRNA = data.frame(t(at05[1,-1]),t(at01[1,-1]),t(at001[1,-1]),t(at0001[1,-1]),t(atFDR20[1,-1]),t(atFDR10[1,-1]),t(atFDR05[1,-1]))
+snoRNA = data.frame(t(at05[2,-1]),t(at01[2,-1]),t(at001[2,-1]),t(at0001[2,-1]),t(atFDR20[2,-1]),t(atFDR10[2,-1]),t(atFDR05[2,-1]))
+
+colnames(miRNA) = colnames(snoRNA) = c("Number with p-value less than 0.05","Number with p-value less than 0.01","Number with p-value less than 0.001","Number with p-value less than 0.0001","Number with FDR less than 0.20","Number with FDR less than 0.10","Number with FDR less than 0.05")
+rownames(miRNA) = rownames(snoRNA) = gsub("Effect","",rownames(miRNA))
 ```
 
-You can also embed plots, for example:
+### microRNA
+`r prettyNum(sum(anno$GeneBiotype[!duplicated(anno$EnsemblTranscriptID)]=="miRNA"),big.mark=",")` microRNAs are annotated in the GRCm38(mm10) Ensembl Database
 
-```{r fig.width=7, fig.height=6}
-plot(cars)
-```
+`r sum(results$GeneBiotype=="miRNA")` microRNAs were estimated to have reads aligned in at least one samples (estimated reads > 0)  
+
 

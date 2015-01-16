@@ -1,0 +1,8 @@
+Compress Raw and Trimmed Files
+========================================================
+
+```{r}
+qsub -q smp /storage/saba/BNLx.SHR.Brain.totalRNA/programs/compressRawReads.sh
+qsub -q compute /storage/saba/BNLx.SHR.Brain.totalRNA/programs/compressTrimmedReads.sh
+```
+

@@ -62,6 +62,13 @@ Average Number of Paired End Reads Per Sample: `r prettyNum(sum(rawCounts$readFr
 qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/trimReads.brain.batch1.sh
 ```
 
+Compress raw reads after trimmed reads become available
+```
+qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/compressRawReads.sh
+```
+
+
+
 4. Characterize Trimmed Reads - DONE
 ---------------
 ```

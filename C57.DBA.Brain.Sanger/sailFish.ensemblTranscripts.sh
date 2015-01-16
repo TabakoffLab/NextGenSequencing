@@ -1,0 +1,6 @@
+#!/bin/bash
+module add bio/sailfish
+sailfish quant -i /storage/saba/index/ensemblGenes.GRCm38.mm10.wSpikes -l "T=PE:O=><:S=U" -1 /storage/saba/C57.DBA.Brain.Sanger/trimmedReads/ERR033006_1_val_1.fq -2 /storage/saba/C57.DBA.Brain.Sanger/trimmedReads/ERR033006_2_val_2.fq -p 5 -o /storage/saba/C57.DBA.Brain.Sanger/quantification/ERR033006.ensembl
+sailfish quant -i /storage/saba/index/ensemblGenes.GRCm38.mm10.wSpikes -l "T=PE:O=><:S=U" -1 /storage/saba/C57.DBA.Brain.Sanger/trimmedReads/ERR033007_1_val_1.fq -2 /storage/saba/C57.DBA.Brain.Sanger/trimmedReads/ERR033007_2_val_2.fq -p 5 -o /storage/saba/C57.DBA.Brain.Sanger/quantification/ERR033007.ensembl
+sailfish quant -i /storage/saba/index/ensemblGenes.GRCm38.mm10.wSpikes -l "T=PE:O=><:S=U" -1 /storage/saba/C57.DBA.Brain.Sanger/trimmedReads/ERR033015_1_val_1.fq -2 /storage/saba/C57.DBA.Brain.Sanger/trimmedReads/ERR033015_2_val_2.fq -p 5 -o /storage/saba/C57.DBA.Brain.Sanger/quantification/ERR033015.ensembl
+sailfish quant -i /storage/saba/index/ensemblGenes.GRCm38.mm10.wSpikes -l "T=PE:O=><:S=U" -1 /storage/saba/C57.DBA.Brain.Sanger/trimmedReads/ERR033016_1_val_1.fq -2 /storage/saba/C57.DBA.Brain.Sanger/trimmedReads/ERR033016_2_val_2.fq -p 5 -o /storage/saba/C57.DBA.Brain.Sanger/quantification/ERR033016.ensembl

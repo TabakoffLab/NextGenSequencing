@@ -1,0 +1,31 @@
+Create Sequence File for SailFish that Contains Ensembl Transcripts
+========================================================
+
+Downloaded sequence file from USCS Genome Browser - 1/6/15
+
+Remove extra crap from transcript headers and add spike in controls
+```{r}
+awk '{if($1~">") print $1; else print $0}' ensemblGenes.GRCm38.mm10.fa | cat - ERCC92.fa > ensemblGenes.GRCm38.mm10.wSpikes.fa
+```
+
+Create Sailfish Index
+
+```
+qsub -q smp /storage/saba/sharedPrograms/createSailFishIndex.ensembl.sh
+```
+
+
+Contents of createSailFishIndex.ensembl.sh
+```
+#!/bin/bash
+module add bio/sailfish
+sailfish index -k 20 -t /storage/saba/index/ensemblGenes.GRCm38.mm10.wSpikes.fa -o /storage/saba/index/ensemblGenes.GRCm38.mm10.wSpikes
+```
+
+Quantify Ensembl transcripts using sailfish
+```
+qsub -q smp /storage/saba/ILS.ISS.Brain.totalRNA/programs/sailFish.ensemblTranscripts.sh
+qsub -q smp /storage/saba/C57.DBA.Brain.Sanger/programs/sailFish.ensemblTranscripts.sh
+
+```
+

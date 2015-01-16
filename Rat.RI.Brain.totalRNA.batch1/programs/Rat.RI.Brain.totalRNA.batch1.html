@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<!-- saved from url=(0014)about:internet -->
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=9" >
+
+<title>RI Panel - Batch 1 (Brain) Total RNA RNA-Seq</title>
+
+<style type="text/css">
+body, td {
+   font-family: sans-serif;
+   background-color: white;
+   font-size: 12px;
+   margin: 8px;
+}
+
+tt, code, pre {
+   font-family: 'DejaVu Sans Mono', 'Droid Sans Mono', 'Lucida Console', Consolas, Monaco, monospace;
+}
+
+h1 { 
+   font-size:2.2em; 
+}
+
+h2 { 
+   font-size:1.8em; 
+}
+
+h3 { 
+   font-size:1.4em; 
+}
+
+h4 { 
+   font-size:1.0em; 
+}
+
+h5 { 
+   font-size:0.9em; 
+}
+
+h6 { 
+   font-size:0.8em; 
+}
+
+a:visited {
+   color: rgb(50%, 0%, 50%);
+}
+
+pre {	
+   margin-top: 0;
+   max-width: 95%;
+   border: 1px solid #ccc;
+   white-space: pre-wrap;
+}
+
+pre code {
+   display: block; padding: 0.5em;
+}
+
+code.r, code.cpp {
+   background-color: #F8F8F8;
+}
+
+table, td, th {
+  border: none;
+}
+
+blockquote {
+   color:#666666;
+   margin:0;
+   padding-left: 1em;
+   border-left: 0.5em #EEE solid;
+}
+
+hr {
+   height: 0px;
+   border-bottom: none;
+   border-top-width: thin;
+   border-top-style: dotted;
+   border-top-color: #999999;
+}
+
+@media print {
+   * { 
+      background: transparent !important; 
+      color: black !important; 
+      filter:none !important; 
+      -ms-filter: none !important; 
+   }
+
+   body { 
+      font-size:12pt; 
+      max-width:100%; 
+   }
+       
+   a, a:visited { 
+      text-decoration: underline; 
+   }
+
+   hr { 
+      visibility: hidden;
+      page-break-before: always;
+   }
+
+   pre, blockquote { 
+      padding-right: 1em; 
+      page-break-inside: avoid; 
+   }
+
+   tr, img { 
+      page-break-inside: avoid; 
+   }
+
+   img { 
+      max-width: 100% !important; 
+   }
+
+   @page :left { 
+      margin: 15mm 20mm 15mm 10mm; 
+   }
+     
+   @page :right { 
+      margin: 15mm 10mm 15mm 20mm; 
+   }
+
+   p, h2, h3 { 
+      orphans: 3; widows: 3; 
+   }
+
+   h2, h3 { 
+      page-break-after: avoid; 
+   }
+}
+
+</style>
+
+
+
+
+
+</head>
+
+<body>
+<h1>RI Panel - Batch 1 (Brain) Total RNA RNA-Seq</h1>
+
+<ul>
+<li>2 samples per strain (SHR, BXH12, HXB13, HXB17, HXB2, HXB25, HXB27, HXB7)</li>
+<li>tissues received from Dr. Michal Pravenec at Academy of Sciences of the Czech Republic, Prague, Czech Republic</li>
+<li>ribosomal RNA depleted total RNA</li>
+<li>2X100 reads using the stranded protocol</li>
+<li>sequencing done by Beckman Coulter Genomics - received September 5, 2014</li>
+<li>synthetic spike-in were added to each sample 
+
+<ul>
+<li>SHR_1, BXH12_1, HXB13_1, HXB17_1, HXB2_1, HXB25_1, HXB27_1, and HXB7_1 have mix 1; SHR_2, BXH12_2, HXB13_2, HXB17_2, HXB2_2, HXB25_2, HXB27_2, and HXB7_2 have mix 2</li>
+<li>4 mL of 1:100 diluted spikes were added after RNA extraction but before rRNA-depletion</li>
+<li>Information regarding the spike-ins can be found here: <a href="http://products.invitrogen.com/ivgn/product/4456739">http://products.invitrogen.com/ivgn/product/4456739</a></li>
+</ul></li>
+</ul>
+
+<h2>1. Unzip Files - DONE</h2>
+
+<pre><code>qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/unzip.yucca.sh
+</code></pre>
+
+<h2>2. Determine number of reads sent for each sample - DONE</h2>
+
+<pre><code>qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/countRawReads.brain.batch1.sh
+</code></pre>
+
+<h2>Raw Reads/Read Fragments</h2>
+
+<table><thead>
+<tr>
+<th align="center">sample</th>
+<th align="center">Number of Paired-End Reads</th>
+<th align="center">Number of Read Fragments</th>
+</tr>
+</thead><tbody>
+<tr>
+<td align="center">BXH12_1</td>
+<td align="center">158,661,335</td>
+<td align="center">317,322,670</td>
+</tr>
+<tr>
+<td align="center">BXH12_2</td>
+<td align="center">189,172,520</td>
+<td align="center">378,345,040</td>
+</tr>
+<tr>
+<td align="center">HXB13_1</td>
+<td align="center">137,084,983</td>
+<td align="center">274,169,966</td>
+</tr>
+<tr>
+<td align="center">HXB13_2</td>
+<td align="center">132,515,930</td>
+<td align="center">265,031,860</td>
+</tr>
+<tr>
+<td align="center">HXB17_1</td>
+<td align="center">132,884,089</td>
+<td align="center">265,768,178</td>
+</tr>
+<tr>
+<td align="center">HXB17_2</td>
+<td align="center">206,344,183</td>
+<td align="center">412,688,366</td>
+</tr>
+<tr>
+<td align="center">HXB2_1</td>
+<td align="center">105,150,313</td>
+<td align="center">210,300,626</td>
+</tr>
+<tr>
+<td align="center">HXB2_2</td>
+<td align="center">130,036,249</td>
+<td align="center">260,072,498</td>
+</tr>
+<tr>
+<td align="center">HXB25_1</td>
+<td align="center">115,639,769</td>
+<td align="center">231,279,538</td>
+</tr>
+<tr>
+<td align="center">HXB25_2</td>
+<td align="center">178,617,581</td>
+<td align="center">357,235,162</td>
+</tr>
+<tr>
+<td align="center">HXB27_1</td>
+<td align="center">120,993,425</td>
+<td align="center">241,986,850</td>
+</tr>
+<tr>
+<td align="center">HXB27_2</td>
+<td align="center">145,364,335</td>
+<td align="center">290,728,670</td>
+</tr>
+<tr>
+<td align="center">HXB7_1</td>
+<td align="center">128,794,212</td>
+<td align="center">257,588,424</td>
+</tr>
+<tr>
+<td align="center">HXB7_2</td>
+<td align="center">195,878,926</td>
+<td align="center">391,757,852</td>
+</tr>
+<tr>
+<td align="center">SHR_1</td>
+<td align="center">156,973,256</td>
+<td align="center">313,946,512</td>
+</tr>
+<tr>
+<td align="center">SHR_2</td>
+<td align="center">169,578,776</td>
+<td align="center">339,157,552</td>
+</tr>
+</tbody></table>
+
+<p>Total Number of Paired End Reads: 2,403,689,882<br/>
+Total Number of Read Fragments:  4,807,379,764<br/>
+Average Number of Paired End Reads Per Sample: 150,230,618  </p>
+
+<h2>3. Trim reads for adaptors and for quality - DONE</h2>
+
+<pre><code>qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/trimReads.brain.batch1.sh
+</code></pre>
+
+<h2>4. Characterize Trimmed Reads - DONE</h2>
+
+<pre><code>qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/countTrimmedReads.sh
+</code></pre>
+
+<h2>Trimmed Reads/Read Fragments</h2>
+
+<table><thead>
+<tr>
+<th align="center">sample</th>
+<th align="center">lane</th>
+<th align="center">Number of Paired-End Reads</th>
+<th align="center">Number of Read Fragments</th>
+<th align="center">Average Read Fragment Length After Trimming (first read fragment)</th>
+<th align="center">Average Read Fragment Length After Trimming (second read fragment)</th>
+<th align="center">Number of Read Fragments After Trimming</th>
+<th align="center">Percent of Read Fragments That Remained After Trimming</th>
+</tr>
+</thead><tbody>
+<tr>
+<td align="center">BXH12_1</td>
+<td align="center">L001</td>
+<td align="center">79,425,993</td>
+<td align="center">158,851,986</td>
+<td align="center">97.0</td>
+<td align="center">95.3</td>
+<td align="center">154,512,608</td>
+<td align="center">97.3%</td>
+</tr>
+<tr>
+<td align="center">BXH12_1</td>
+<td align="center">L002</td>
+<td align="center">79,235,342</td>
+<td align="center">158,470,684</td>
+<td align="center">97.1</td>
+<td align="center">95.4</td>
+<td align="center">154,199,202</td>
+<td align="center">97.3%</td>
+</tr>
+<tr>
+<td align="center">BXH12_2</td>
+<td align="center">L001</td>
+<td align="center">95,934,792</td>
+<td align="center">191,869,584</td>
+<td align="center">92.1</td>
+<td align="center">90.5</td>
+<td align="center">187,446,530</td>
+<td align="center">97.7%</td>
+</tr>
+<tr>
+<td align="center">BXH12_2</td>
+<td align="center">L002</td>
+<td align="center">93,237,728</td>
+<td align="center">186,475,456</td>
+<td align="center">91.9</td>
+<td align="center">90.3</td>
+<td align="center">182,296,210</td>
+<td align="center">97.8%</td>
+</tr>
+<tr>
+<td align="center">HXB13_1</td>
+<td align="center">L001</td>
+<td align="center">68,614,312</td>
+<td align="center">137,228,624</td>
+<td align="center">94.2</td>
+<td align="center">92.2</td>
+<td align="center">133,569,138</td>
+<td align="center">97.3%</td>
+</tr>
+<tr>
+<td align="center">HXB13_1</td>
+<td align="center">L002</td>
+<td align="center">68,470,671</td>
+<td align="center">136,941,342</td>
+<td align="center">94.2</td>
+<td align="center">92.2</td>
+<td align="center">133,197,198</td>
+<td align="center">97.3%</td>
+</tr>
+<tr>
+<td align="center">HXB13_2</td>
+<td align="center">L001</td>
+<td align="center">66,448,581</td>
+<td align="center">132,897,162</td>
+<td align="center">95.3</td>
+<td align="center">93.7</td>
+<td align="center">130,991,988</td>
+<td align="center">98.6%</td>
+</tr>
+<tr>
+<td align="center">HXB13_2</td>
+<td align="center">L002</td>
+<td align="center">66,067,349</td>
+<td align="center">132,134,698</td>
+<td align="center">95.3</td>
+<td align="center">93.7</td>
+<td align="center">130,254,270</td>
+<td align="center">98.6%</td>
+</tr>
+<tr>
+<td align="center">HXB17_1</td>
+<td align="center">L001</td>
+<td align="center">66,025,749</td>
+<td align="center">132,051,498</td>
+<td align="center">92.9</td>
+<td align="center">90.7</td>
+<td align="center">129,042,418</td>
+<td align="center">97.7%</td>
+</tr>
+<tr>
+<td align="center">HXB17_1</td>
+<td align="center">L002</td>
+<td align="center">66,858,340</td>
+<td align="center">133,716,680</td>
+<td align="center">93.0</td>
+<td align="center">90.8</td>
+<td align="center">130,604,420</td>
+<td align="center">97.7%</td>
+</tr>
+<tr>
+<td align="center">HXB17_2</td>
+<td align="center">L001</td>
+<td align="center">102,517,288</td>
+<td align="center">205,034,576</td>
+<td align="center">96.9</td>
+<td align="center">95.2</td>
+<td align="center">201,473,076</td>
+<td align="center">98.3%</td>
+</tr>
+<tr>
+<td align="center">HXB17_2</td>
+<td align="center">L002</td>
+<td align="center">103,826,895</td>
+<td align="center">207,653,790</td>
+<td align="center">96.9</td>
+<td align="center">95.2</td>
+<td align="center">203,829,380</td>
+<td align="center">98.2%</td>
+</tr>
+<tr>
+<td align="center">HXB2_1</td>
+<td align="center">L001</td>
+<td align="center">49,921,299</td>
+<td align="center">99,842,598</td>
+<td align="center">95.6</td>
+<td align="center">92.0</td>
+<td align="center">95,806,194</td>
+<td align="center">96.0%</td>
+</tr>
+<tr>
+<td align="center">HXB2_1</td>
+<td align="center">L002</td>
+<td align="center">55,229,014</td>
+<td align="center">110,458,028</td>
+<td align="center">95.7</td>
+<td align="center">92.8</td>
+<td align="center">106,517,394</td>
+<td align="center">96.4%</td>
+</tr>
+<tr>
+<td align="center">HXB2_2</td>
+<td align="center">L001</td>
+<td align="center">64,546,195</td>
+<td align="center">129,092,390</td>
+<td align="center">94.7</td>
+<td align="center">92.1</td>
+<td align="center">122,491,250</td>
+<td align="center">94.9%</td>
+</tr>
+<tr>
+<td align="center">HXB2_2</td>
+<td align="center">L002</td>
+<td align="center">65,490,054</td>
+<td align="center">130,980,108</td>
+<td align="center">94.7</td>
+<td align="center">92.1</td>
+<td align="center">124,273,424</td>
+<td align="center">94.9%</td>
+</tr>
+<tr>
+<td align="center">HXB25_1</td>
+<td align="center">L001</td>
+<td align="center">57,270,703</td>
+<td align="center">114,541,406</td>
+<td align="center">94.8</td>
+<td align="center">93.5</td>
+<td align="center">112,283,812</td>
+<td align="center">98.0%</td>
+</tr>
+<tr>
+<td align="center">HXB25_1</td>
+<td align="center">L002</td>
+<td align="center">58,369,066</td>
+<td align="center">116,738,132</td>
+<td align="center">94.9</td>
+<td align="center">93.5</td>
+<td align="center">114,338,636</td>
+<td align="center">97.9%</td>
+</tr>
+<tr>
+<td align="center">HXB25_2</td>
+<td align="center">L001</td>
+<td align="center">89,391,911</td>
+<td align="center">178,783,822</td>
+<td align="center">97.1</td>
+<td align="center">95.1</td>
+<td align="center">175,132,790</td>
+<td align="center">98.0%</td>
+</tr>
+<tr>
+<td align="center">HXB25_2</td>
+<td align="center">L002</td>
+<td align="center">89,225,670</td>
+<td align="center">178,451,340</td>
+<td align="center">97.1</td>
+<td align="center">95.2</td>
+<td align="center">174,874,506</td>
+<td align="center">98.0%</td>
+</tr>
+<tr>
+<td align="center">HXB27_1</td>
+<td align="center">L001</td>
+<td align="center">61,440,747</td>
+<td align="center">122,881,494</td>
+<td align="center">94.2</td>
+<td align="center">91.2</td>
+<td align="center">120,272,758</td>
+<td align="center">97.9%</td>
+</tr>
+<tr>
+<td align="center">HXB27_1</td>
+<td align="center">L002</td>
+<td align="center">59,552,678</td>
+<td align="center">119,105,356</td>
+<td align="center">94.0</td>
+<td align="center">91.0</td>
+<td align="center">116,650,202</td>
+<td align="center">97.9%</td>
+</tr>
+<tr>
+<td align="center">HXB27_2</td>
+<td align="center">L001</td>
+<td align="center">69,017,734</td>
+<td align="center">138,035,468</td>
+<td align="center">92.7</td>
+<td align="center">88.2</td>
+<td align="center">132,305,516</td>
+<td align="center">95.8%</td>
+</tr>
+<tr>
+<td align="center">HXB27_2</td>
+<td align="center">L002</td>
+<td align="center">76,346,601</td>
+<td align="center">152,693,202</td>
+<td align="center">92.9</td>
+<td align="center">89.2</td>
+<td align="center">147,371,758</td>
+<td align="center">96.5%</td>
+</tr>
+<tr>
+<td align="center">HXB7_1</td>
+<td align="center">L001</td>
+<td align="center">64,586,450</td>
+<td align="center">129,172,900</td>
+<td align="center">96.6</td>
+<td align="center">94.9</td>
+<td align="center">127,268,692</td>
+<td align="center">98.5%</td>
+</tr>
+<tr>
+<td align="center">HXB7_1</td>
+<td align="center">L002</td>
+<td align="center">64,207,762</td>
+<td align="center">128,415,524</td>
+<td align="center">96.6</td>
+<td align="center">94.9</td>
+<td align="center">126,537,628</td>
+<td align="center">98.5%</td>
+</tr>
+<tr>
+<td align="center">HXB7_2</td>
+<td align="center">L001</td>
+<td align="center">98,150,006</td>
+<td align="center">196,300,012</td>
+<td align="center">97.3</td>
+<td align="center">95.9</td>
+<td align="center">193,055,396</td>
+<td align="center">98.3%</td>
+</tr>
+<tr>
+<td align="center">HXB7_2</td>
+<td align="center">L002</td>
+<td align="center">97,728,920</td>
+<td align="center">195,457,840</td>
+<td align="center">97.3</td>
+<td align="center">95.9</td>
+<td align="center">192,119,260</td>
+<td align="center">98.3%</td>
+</tr>
+<tr>
+<td align="center">SHR_1</td>
+<td align="center">L001</td>
+<td align="center">78,020,870</td>
+<td align="center">156,041,740</td>
+<td align="center">94.8</td>
+<td align="center">92.2</td>
+<td align="center">151,866,538</td>
+<td align="center">97.3%</td>
+</tr>
+<tr>
+<td align="center">SHR_1</td>
+<td align="center">L002</td>
+<td align="center">78,952,386</td>
+<td align="center">157,904,772</td>
+<td align="center">94.8</td>
+<td align="center">92.2</td>
+<td align="center">153,615,466</td>
+<td align="center">97.3%</td>
+</tr>
+<tr>
+<td align="center">SHR_2</td>
+<td align="center">L001</td>
+<td align="center">84,086,289</td>
+<td align="center">168,172,578</td>
+<td align="center">98.0</td>
+<td align="center">96.8</td>
+<td align="center">166,001,874</td>
+<td align="center">98.7%</td>
+</tr>
+<tr>
+<td align="center">SHR_2</td>
+<td align="center">L002</td>
+<td align="center">85,492,487</td>
+<td align="center">170,984,974</td>
+<td align="center">98.0</td>
+<td align="center">96.8</td>
+<td align="center">168,745,982</td>
+<td align="center">98.7%</td>
+</tr>
+</tbody></table>
+
+<p>Total Number of Paired End Reads After Trimming: 2,346,472,757<br/>
+Total Number of Read Fragments After Trimming:  4,692,945,514<br/>
+Average Number of Paired End Reads Per Sample After Trimming: 146,654,547  </p>
+
+<h2>5. Align to ribosomal RNA - DONE</h2>
+
+<pre><code>qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/alignTo.rRNA.batch1.10Oct14.sh
+qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/alignTo.rRNA.batch1.10Oct14.HXB27.sh
+qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/alignTo.rRNA.heart.30Sep14.BXH12_2.sh
+qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/alignTo.rRNA.batch1.13Oct14.HXB7_2.sh
+
+
+</code></pre>
+
+<p><strong>move files</strong></p>
+
+<h2>Proportion of Reads Aligned to rRNA</h2>
+
+<p>This batch was only subjected to 1 wash with riboZero.  The next batch received two washes.  </p>
+
+<table><thead>
+<tr>
+<th align="center">Sample</th>
+<th align="center">Number of Paired-End Reads After Trimming</th>
+<th align="center">Number of Paired-End Reads with at Least One Fragment Aligned to rRNA</th>
+<th align="center">Percent of Paired-End Reads Aligned to rRNA</th>
+<th align="center">Number of Paired-End Reads NOT Aligned to rRNA</th>
+</tr>
+</thead><tbody>
+<tr>
+<td align="center">SHR_1</td>
+<td align="center">152,741,002</td>
+<td align="center">13,460,593</td>
+<td align="center">8.8%</td>
+<td align="center">139,280,409</td>
+</tr>
+<tr>
+<td align="center">SHR_2</td>
+<td align="center">167,373,928</td>
+<td align="center">4,291,567</td>
+<td align="center">2.6%</td>
+<td align="center">163,082,361</td>
+</tr>
+<tr>
+<td align="center">BXH12_1</td>
+<td align="center">154,355,905</td>
+<td align="center">6,016,371</td>
+<td align="center">3.9%</td>
+<td align="center">148,339,534</td>
+</tr>
+<tr>
+<td align="center">BXH12_2</td>
+<td align="center">184,871,370</td>
+<td align="center">125,338,475</td>
+<td align="center">67.8%</td>
+<td align="center">59,532,895</td>
+</tr>
+<tr>
+<td align="center">HXB13_1</td>
+<td align="center">133,383,168</td>
+<td align="center">16,425,528</td>
+<td align="center">12.3%</td>
+<td align="center">116,957,640</td>
+</tr>
+<tr>
+<td align="center">HXB13_2</td>
+<td align="center">130,623,129</td>
+<td align="center">79,249,908</td>
+<td align="center">60.7%</td>
+<td align="center">51,373,221</td>
+</tr>
+<tr>
+<td align="center">HXB17_1</td>
+<td align="center">129,823,419</td>
+<td align="center">40,737,282</td>
+<td align="center">31.4%</td>
+<td align="center">89,086,137</td>
+</tr>
+<tr>
+<td align="center">HXB17_2</td>
+<td align="center">202,651,228</td>
+<td align="center">33,635,267</td>
+<td align="center">16.6%</td>
+<td align="center">169,015,961</td>
+</tr>
+<tr>
+<td align="center">HXB2_1</td>
+<td align="center">101,161,794</td>
+<td align="center">2,008,352</td>
+<td align="center">2.0%</td>
+<td align="center">99,153,442</td>
+</tr>
+<tr>
+<td align="center">HXB2_2</td>
+<td align="center">123,382,337</td>
+<td align="center">9,008,501</td>
+<td align="center">7.3%</td>
+<td align="center">114,373,836</td>
+</tr>
+<tr>
+<td align="center">HXB25_1</td>
+<td align="center">113,311,224</td>
+<td align="center">13,964,653</td>
+<td align="center">12.3%</td>
+<td align="center">99,346,571</td>
+</tr>
+<tr>
+<td align="center">HXB25_2</td>
+<td align="center">175,003,648</td>
+<td align="center">8,798,242</td>
+<td align="center">5.0%</td>
+<td align="center">166,205,406</td>
+</tr>
+<tr>
+<td align="center">HXB27_1</td>
+<td align="center">118,461,480</td>
+<td align="center">12,460,389</td>
+<td align="center">10.5%</td>
+<td align="center">106,001,091</td>
+</tr>
+<tr>
+<td align="center">HXB27_2</td>
+<td align="center">139,838,637</td>
+<td align="center">15,049,365</td>
+<td align="center">10.8%</td>
+<td align="center">124,789,272</td>
+</tr>
+<tr>
+<td align="center">HXB7_1</td>
+<td align="center">126,903,160</td>
+<td align="center">11,180,339</td>
+<td align="center">8.8%</td>
+<td align="center">115,722,821</td>
+</tr>
+<tr>
+<td align="center">HXB7_2</td>
+<td align="center">192,587,328</td>
+<td align="center">30,127,919</td>
+<td align="center">15.6%</td>
+<td align="center">162,459,409</td>
+</tr>
+</tbody></table>
+
+<h2>6.  Convert unmapped.bam file into fastq files - RUNNING</h2>
+
+<pre><code>qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/convertToFastQ.batch1.sh
+</code></pre>
+
+</body>
+
+</html>
+
