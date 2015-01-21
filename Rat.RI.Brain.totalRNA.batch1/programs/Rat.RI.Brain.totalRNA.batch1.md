@@ -60,6 +60,13 @@ Average Number of Paired End Reads Per Sample: 150,230,618
 qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/trimReads.brain.batch1.sh
 ```
 
+Compress raw reads after trimmed reads become available
+```
+qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/compressRawReads.sh
+```
+
+
+
 4. Characterize Trimmed Reads - DONE
 ---------------
 ```
@@ -152,9 +159,34 @@ This batch was only subjected to 1 wash with riboZero.  The next batch received 
 | HXB7_2  |                192,587,328                |                               30,127,919                              |                    15.6%                    |                  162,459,409                   |
 
 
-6.  Convert unmapped.bam file into fastq files - RUNNING
+6.  Convert unmapped.bam file into fastq files - DONE
 -----------------------------------------------
 ```
 qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/convertToFastQ.batch1.sh
 ```
+
+
+
+
+
+
+
+16 out of 16 of the fastq files were created correctly.
+
+
+
+
+Compress intermediate files
+```
+qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/compress.rRNAalign.batch1.sh
+```
+
+
+
+7.  Quantitate using SailFish and Ensembl Transcripts - RUNNING
+------------------------------------------------------
+```
+qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/sailFish.Ensembl.batch1.sh
+```
+
 

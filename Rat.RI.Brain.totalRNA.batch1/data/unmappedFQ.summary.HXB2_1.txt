@@ -1,0 +1,3 @@
+  396613768 /storage/saba/Rat.RI.Brain.totalRNA.batch1/alignedReads/HXB2_1.rRNA/unmapped.end1.fq
+  396613768 /storage/saba/Rat.RI.Brain.totalRNA.batch1/alignedReads/HXB2_1.rRNA/unmapped.end2.fq
+  793227536 total

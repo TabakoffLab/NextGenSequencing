@@ -68,6 +68,8 @@ qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch2/programs/trimReads.brain.
 ---------------
 ```
 qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch2/programs/countTrimmedReads.sh
+qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch2/programs/compressRawReads.batch2.sh
+
 ```
 
 ```{r,echo=FALSE}

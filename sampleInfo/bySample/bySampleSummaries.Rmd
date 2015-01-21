@@ -68,6 +68,144 @@ colnames(forPrint2) = c("Tissue","Average Number of Samples Per Strain (total RN
 kable(forPrint2,align=rep("c",ncol(forPrint2)))
 ```
 
+### Batch Projections
+
+```{r}
+inbred = c("LE","F344","SR","LEW","WKY","BUF","SS","DA")
+proj = malesPravenec[malesPravenec$sample!="HXB29_4",c("strain","sample")]
+proj = rbind(proj,data.frame(strain=rep(inbred,each=4),sample=paste(rep(inbred,each=4),"_",c(1:4),sep="")))
+proj = rbind(data.frame(proj,tissue="brain"),data.frame(proj,tissue="liver"))
+
+########################
+## Completed Batches  ##
+########################
+
+proj$batch1 = ((proj$sample %in% batch1) & proj$tissue=="brain")
+proj$batch2 = ((proj$sample %in% c(batch2,"SHR_1")) & proj$tissue=="brain")
+proj$batch3 = ((proj$sample %in% c(batch3,"SHR_1")) & proj$tissue=="brain")
+
+#########################
+##  In Progress Batch  ##
+#########################
+
+batch4 = c("BXH12_1","BXH12_2","HXB13_1","HXB13_2","HXB17_1","HXB17_2","HXB2_1","HXB2_2","HXB25_1","HXB25_2","HXB27_1","HXB27_2","HXB7_1","HXB7_2","SHR_1","SHR_2")
+
+proj$batch4 = ((proj$sample %in% batch4) & proj$tissue=="liver")
+
+#########################
+##  Projected Batches  ##
+#########################
+
+#projected
+priority = unique(c(batch2,batch3[!(batch3 %in% c("BXH3_2","BXH6_2","BXH9_2"))],"SHR_1","SHR_3","SHR_4","BNLx_3","BNLx_4"))
+proj$batch5 = ((proj$sample %in% priority) & proj$tissue=="liver")
+
+## Samples sequenced more than once (should only be SHR_1)
+proj[rowSums(proj[,paste("batch",1:5,sep="")])>1,]
+
+## Number of strains with at least one sample sequenced by tissue
+byStrain = aggregate(rowSums(proj[,paste("batch",1:5,sep="")])>0,by=list(strain=proj$strain,tissue=proj$tissue),sum)
+table(byStrain$tissue[byStrain$x>0])
+
+
+#projected - batch6
+notSeq = proj[rowSums(proj[,paste("batch",1:5,sep="")])==0,]
+notSeq.brain = notSeq$sample[notSeq$tissue=="brain" & grepl("X",notSeq$strain)]
+
+batch6 = c("SHR_1","SHR_3","SHR_4","BNLx_3","BNLx_4",notSeq.brain[grep("_2",notSeq.brain,fixed=TRUE)])
+notSeq.brain = notSeq.brain[!(notSeq.brain %in% batch6)]
+set.seed(28937)
+batch6 = c(batch6,sample(notSeq.brain[grep("_3",notSeq.brain,fixed=TRUE)],size=(32-length(batch6))))
+
+#projected - batch7
+notSeq.liver = notSeq$sample[notSeq$tissue=="liver" & grepl("X",notSeq$strain)]
+batch7 = c("SHR_1","BXH3_2","BXH6_2","BXH9_2",batch6[batch6 %in% notSeq.liver])
+notSeq.liver = notSeq.liver[!(notSeq.liver %in% batch7)]
+set.seed(59782)
+batch7 = c(batch7,sample(notSeq.liver[grep("_3",notSeq.liver,fixed=TRUE)],size=(32-length(batch7))))
+
+## update master matrix
+proj$batch6 = ((proj$sample %in% batch6) & proj$tissue=="brain")
+proj$batch7 = ((proj$sample %in% batch7) & proj$tissue=="liver")
+
+## Samples sequenced more than once (should only be SHR_1)
+proj[rowSums(proj[,paste("batch",1:7,sep="")])>1,]
+
+## Number of strains with at least one sample sequenced by tissue
+byStrain = aggregate(rowSums(proj[,paste("batch",1:7,sep="")])>0,by=list(strain=proj$strain,tissue=proj$tissue),sum)
+table(byStrain$tissue[byStrain$x>1])
+table(byStrain$tissue[byStrain$x>2])
+
+
+#projected - batch8
+notSeq = proj[rowSums(proj[,paste("batch",1:7,sep="")])==0,]
+notSeq.brain = notSeq$sample[notSeq$tissue=="brain" & grepl("X",notSeq$strain)]
+
+batch8 = c("SHR_1",notSeq.brain[grep("_3",notSeq.brain,fixed=TRUE)])
+set.seed(289546)
+batch8 = c(batch8,sample(notSeq.brain[grep("_4",notSeq.brain,fixed=TRUE)],size=(32-length(batch8))))
+
+#projected - batch9 - liver
+notSeq.liver = notSeq$sample[notSeq$tissue=="liver" & grepl("X",notSeq$strain)]
+batch9 = c("SHR_1",batch8[batch8 %in% notSeq.liver])
+notSeq.liver = notSeq.liver[!(notSeq.liver %in% batch9)]
+set.seed(649897)
+batch9 = c(batch9,sample(notSeq.liver,size=(32-length(batch9))))
+
+## update master matrix
+proj$batch8 = ((proj$sample %in% batch8) & proj$tissue=="brain")
+proj$batch9 = ((proj$sample %in% batch9) & proj$tissue=="liver")
+
+## Samples sequenced more than once (should only be SHR_1)
+proj[rowSums(proj[,paste("batch",1:9,sep="")])>1,]
+
+## Number of strains with at least one sample sequenced by tissue
+byStrain = aggregate(rowSums(proj[,paste("batch",1:9,sep="")])>0,by=list(strain=proj$strain,tissue=proj$tissue),sum)
+table(byStrain$tissue[byStrain$x>2])
+table(byStrain$tissue[byStrain$x>3])
+
+
+
+#projected - batch10
+notSeq = proj[rowSums(proj[,paste("batch",1:9,sep="")])==0,]
+notSeq.brain = notSeq$sample[notSeq$tissue=="brain" & grepl("X",notSeq$strain)]
+notSeq.inbred = notSeq$sample[notSeq$tissue=="brain" & !grepl("X",notSeq$strain)]
+
+batch10 = c("SHR_1",notSeq.brain,notSeq.inbred[grep("_1",notSeq.inbred,fixed=TRUE)])
+set.seed(1785)
+batch10 = c(batch10,sample(notSeq.inbred[grep("_2",notSeq.inbred,fixed=TRUE)],size=(32-length(batch10))))
+
+#projected - batch9 - liver
+notSeq.liver = notSeq$sample[notSeq$tissue=="liver"]
+batch11 = c("SHR_1",batch10[batch10 %in% notSeq.liver])
+notSeq.liver = notSeq.liver[!(notSeq.liver %in% batch11)]
+batch11 = c(batch11,sample(notSeq.liver[grep("_2",notSeq.liver,fixed=TRUE)],size=(32-length(batch11))))
+
+
+
+## update master matrix
+proj$batch10 = ((proj$sample %in% batch10) & proj$tissue=="brain")
+proj$batch11 = ((proj$sample %in% batch11) & proj$tissue=="liver")
+
+## Samples sequenced more than once (should only be SHR_1)
+proj[rowSums(proj[,paste("batch",1:11,sep="")])>1,]
+
+## Number of strains with at least one sample sequenced by tissue
+byStrain = aggregate(rowSums(proj[,paste("batch",1:11,sep="")])>0,by=list(strain=proj$strain,tissue=proj$tissue),sum)
+table(byStrain$tissue[byStrain$x>0])
+table(byStrain$tissue[byStrain$x>1])
+table(byStrain$tissue[byStrain$x>3])
+
+
+#projected - batch12
+notSeq = proj[rowSums(proj[,paste("batch",1:11,sep="")])==0,]
+
+
+notSeq.brain = notSeq$sample[notSeq$tissue=="brain" & grepl("X",notSeq$strain)]
+
+
+
+
 
 
 
