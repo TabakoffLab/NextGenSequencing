@@ -122,3 +122,11 @@ Average Number of Paired End Reads Per Sample After Trimming: `r prettyNum(2*mea
 ```
 qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch2/programs/alignTo.rRNA.brain.totalRNA.batch2.sh
 ```
+
+
+6.  Convert unmapped.bam file into fastq files - DONE
+-----------------------------------------------
+```
+qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch2/programs/convertToFastQ.batch2.sh
+```
+
