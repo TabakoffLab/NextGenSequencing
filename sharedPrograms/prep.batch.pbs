@@ -1,0 +1,14 @@
+#!/bin/sh
+#PBS -l nodes=1:ppn=12
+#PBS -l walltime=1:30:00
+#PBS -o prep.batch
+#PBS -j oe
+#PBS -m bea
+#PBS -M spencer.mahaffey@ucdenver.edu
+#PBS -V
+
+
+cd /storage/mahaffey/RI.Brain.total.b1
+
+/home/mahaffey/prepBatch.sh /storage/mahaffey/RI.Brain.total.b1/rawReads/ /storage/saba/index/rmsk.rRNA.RGSC5.0.rn5 AGATCGGAAGAGCACACGTCTGAACTCCAGTCACCCGTCCCGATCTCGTATGCCGTCTTCTGCTTG AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT spencer.mahaffey@ucdenver.edu
+
