@@ -116,10 +116,21 @@ Total Number of Paired End Reads After Trimming: `r prettyNum(sum(as.numeric(byS
 Total Number of Read Fragments After Trimming:  `r prettyNum(sum(bySample$numReadFrag),big.mark=",",scientific=FALSE)`  
 Average Number of Paired End Reads Per Sample After Trimming: `r prettyNum(2*mean(bySample$numReads),big.mark=",",scientific=FALSE)`  
 
-5. Align to ribosomal RNA - DONE
+5. Align to ribosomal RNA - RUNNING
 ---------------------------
 ```
 qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/alignTo.rRNA.brain.totalRNA.batch3.sh
+qsub -q compute /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/restart.rRNAalign.batch3.sh
+
+qsub -q compute -N BXH3_1 -l nodes=1:ppn=12 -V -- /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/tophat.rRNA.batch3.sh /storage/saba/Rat.RI.Brain.totalRNA.batch3/rawReads/ BXH3_1brain_CGATGT_L001 /storage/saba/index/rmsk.rRNA.RGSC5.0.rn5 AGATCGGAAGAGCACACGTCTGAACTCCAGTCACCCGTCCCGATCTCGTATGCCGTCTTCTGCTTG AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT
+qsub -q compute -N BXH5_1 -l nodes=1:ppn=12 -V -- /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/tophat.rRNA.batch3.sh /storage/saba/Rat.RI.Brain.totalRNA.batch3/rawReads/ BXH5_1brain_ACAGTG_L003 /storage/saba/index/rmsk.rRNA.RGSC5.0.rn5 AGATCGGAAGAGCACACGTCTGAACTCCAGTCACCCGTCCCGATCTCGTATGCCGTCTTCTGCTTG AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT
+qsub -q compute -N BXH6_1 -l nodes=1:ppn=12 -V -- /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/tophat.rRNA.batch3.sh /storage/saba/Rat.RI.Brain.totalRNA.batch3/rawReads/ BXH6_1brain_TGACCA_L004 /storage/saba/index/rmsk.rRNA.RGSC5.0.rn5 AGATCGGAAGAGCACACGTCTGAACTCCAGTCACCCGTCCCGATCTCGTATGCCGTCTTCTGCTTG AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT
+qsub -q compute -N BXH6_2 -l nodes=1:ppn=12 -V -- /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/tophat.rRNA.batch3.sh /storage/saba/Rat.RI.Brain.totalRNA.batch3/rawReads/ BXH6_2brain_GTGAAA_L003 /storage/saba/index/rmsk.rRNA.RGSC5.0.rn5 AGATCGGAAGAGCACACGTCTGAACTCCAGTCACCCGTCCCGATCTCGTATGCCGTCTTCTGCTTG AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT
+qsub -q compute -N BXH8_1 -l nodes=1:ppn=12 -V -- /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/tophat.rRNA.batch3.sh /storage/saba/Rat.RI.Brain.totalRNA.batch3/rawReads/ BXH8_1brain_AGTTCC_L006 /storage/saba/index/rmsk.rRNA.RGSC5.0.rn5 AGATCGGAAGAGCACACGTCTGAACTCCAGTCACCCGTCCCGATCTCGTATGCCGTCTTCTGCTTG AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT
+qsub -q compute -N BXH9_1 -l nodes=1:ppn=12 -V -- /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/tophat.rRNA.batch3.sh /storage/saba/Rat.RI.Brain.totalRNA.batch3/rawReads/ BXH9_1brain_AGTCAA_L007 /storage/saba/index/rmsk.rRNA.RGSC5.0.rn5 AGATCGGAAGAGCACACGTCTGAACTCCAGTCACCCGTCCCGATCTCGTATGCCGTCTTCTGCTTG AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT
+qsub -q compute -N BXH9_2 -l nodes=1:ppn=12 -V -- /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/tophat.rRNA.batch3.sh /storage/saba/Rat.RI.Brain.totalRNA.batch3/rawReads/ BXH9_2brain_CAGATC_L001 /storage/saba/index/rmsk.rRNA.RGSC5.0.rn5 AGATCGGAAGAGCACACGTCTGAACTCCAGTCACCCGTCCCGATCTCGTATGCCGTCTTCTGCTTG AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT
+qsub -q compute -N SHR_1.b3 -l nodes=1:ppn=12 -V -- /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/tophat.rRNA.batch3.sh /storage/saba/Rat.RI.Brain.totalRNA.batch3/rawReads/ SHR_1brain_ATGTCA_L007 /storage/saba/index/rmsk.rRNA.RGSC5.0.rn5 AGATCGGAAGAGCACACGTCTGAACTCCAGTCACCCGTCCCGATCTCGTATGCCGTCTTCTGCTTG AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT
+
 ```
 
 **move files**

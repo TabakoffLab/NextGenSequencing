@@ -1,0 +1,96 @@
+RI Brain Panel for Network Analysis
+========================================================
+
+```{r}
+rm(list=ls())
+options(stringsAsFactors=FALSE)
+setwd("/Volumes/saba/BxH.HxB.Rats/RNA-Seq")
+
+sampleInfo = read.table(file="data/fileListing.brain.26Jan15.txt",sep="\t",header=TRUE)
+batch1 = sampleInfo$sampleName[sampleInfo$batch==1]
+
+batch1 = batch1[!(batch1 %in% c("BXH12_2"))]
+
+## read in sailfish quantitation
+for(sample in batch1){
+  x = read.table(file=paste("quantitation/sailFish.Ensembl/",sample,"/quant_bias_corrected.sf",sep=""),sep="\t",header=FALSE)
+  colnames(x) = c("EnsemblID","length",paste(sample,c("TPM","RPKM","KPKM","EstNumKmers","EstNumReads"),sep="."))
+  if(sample==batch1[1]) allData = x
+  if(sample!=batch1[1]) allData = merge(allData,x,by=c("EnsemblID","length"))
+  }
+  
+tpm = allData[,grep("Reads",colnames(allData))]
+rownames(tpm) = allData$EnsemblID
+tpm = tpm[rowSums(tpm>0)>7,]
+spikes = tpm[grep("ERCC",rownames(tpm)),]
+
+tpm = tpm[grep("ENS",rownames(tpm)),]
+plot(hclust(as.dist(1-cor(tpm,method="spearman")),method="complete"))
+plot(hclust(as.dist(1-cor(spikes,method="spearman")),method="complete"))
+
+## Differential Expression
+library(limma)
+library(DESeq) 
+
+estCounts = tpm
+counts = round(estCounts,0)
+
+samples = gsub(".EstNumReads","",colnames(estCounts))
+strain = as.factor(unlist(lapply(strsplit(samples,split="_",fixed=TRUE),function(a) a[1])))
+design = model.matrix(~ strain)
+
+##  DESeq Size Factors
+cds = newCountDataSet(round(estCounts,0), strain)
+cds = estimateSizeFactors(cds)
+
+ens = sizeFactors(cds)
+##  Voom Expression Estimates
+voomed.librarySize = voom(estCounts,design=design,normalize.method="none",lib.size=sizeFactors(cds))
+
+voomed = voomed.librarySize$E
+colnames(voomed) = gsub(".EstNumReads","",colnames(voomed))
+
+plot(hclust(as.dist(1-cor(voomed,method="spearman")),method="complete"))
+
+
+##  Examine Principal Components 
+PCA = prcomp(voomed,scale=TRUE)
+PC1.results = summary(aov(as.numeric(PCA$rotation[,1]) ~ strain + treatment + strain*treatment))
+PC2.results = summary(aov(as.numeric(PCA$rotation[,2]) ~ strain + treatment + strain*treatment))
+
+
+```
+
+Using CuffLinks to Align to Transcriptome
+----------------------------------------
+
+*** create gtf file
+```{r}
+rm(list=ls())
+options(stringsAsFactors=FALSE)
+setwd("/Volumes/saba")
+
+header = read.table(file="gtfFiles/EnsemblHeader.txt",header=FALSE,sep="\t")
+colnames(header) = c("SQ","SN","LN")
+
+header$EnsemblTransID = gsub("SN:","",header$SN)
+
+annotate = read.table(file="annotation/ensemblGenes.Rnor_5.0.08Jul14.txt",sep="\t",header=TRUE)
+
+gtf = merge(header,annotate,by.x="EnsemblTransID",by.y="EnsemblTranscriptID",all.x=TRUE)
+gtf$V1 = gtf$EnsemblTransID
+gtf$V2 = "rn5_ensembl"
+gtf$V3 = "exon"
+gtf$V4 = 1
+gtf$V5 = as.numeric(gsub("LN:","",gtf$LN))
+gtf$V6 = 0 
+gtf$V7 = "+"
+gtf$V8 = "."
+gtf$V9 = paste('gene_id "',gtf$EnsemblGeneID,'"; transcript_id "',gtf$EnsemblTransID,'";',sep="")
+
+```
+
+chr1  rn5_refGene	exon	13500060	13500215	0.000000	-	.	gene_id "NR_046238"; transcript_id "NR_046238"; 
+chr1	rn5_refGene	exon	13559374	13559529	0.000000	+	.	gene_id "NR_046238"; transcript_id "NR_046238_dup1"; 
+chr5	rn5_refGene	exon	95176235	95176390	0.000000	+	.	gene_id "NR_046238"; transcript_id "NR_046238"; 
+chr5	rn5_refGene	exon	95174217	95174372	0.000000	+	.	gene_id "NR_046238"; transcript_id "NR_046238_dup1"; 

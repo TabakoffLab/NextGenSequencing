@@ -1,6 +1,6 @@
 #!/bin/bash
 #PBS -l nodes=1:ppn=12
-/storage/saba/sharedPrograms/bamToFastq.v2.sh /storage/saba/Rat.RI.Brain.totalRNA.batch2/alignedReads/BXH2_1.rRNA  
+/storage/saba/sharedPrograms/createFastQFromBAM.sh /storage/saba/Rat.RI.Brain.totalRNA.batch2/alignedReads/BXH2_1.rRNA  
 #/storage/saba/sharedPrograms/bamToFastq.v2.sh /storage/saba/Rat.RI.Brain.totalRNA.batch2/HXB10_1.rRNA 
 #/storage/saba/sharedPrograms/bamToFastq.v2.sh /storage/saba/Rat.RI.Brain.totalRNA.batch2/HXB1_1.rRNA  
 #/storage/saba/sharedPrograms/bamToFastq.sh /storage/saba/Rat.RI.Brain.totalRNA.batch2/HXB15_1.rRNA 

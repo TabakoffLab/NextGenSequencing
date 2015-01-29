@@ -121,12 +121,36 @@ Average Number of Paired End Reads Per Sample After Trimming: `r prettyNum(2*mea
 ---------------------------
 ```
 qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch2/programs/alignTo.rRNA.brain.totalRNA.batch2.sh
+qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch2/programs/restart.rRNAalign.batch2.sh
+
+qsub -q compute -N HXB5_1 -l nodes=1:ppn=12 -V -- /storage/saba/Rat.RI.Brain.totalRNA.batch2/programs/tophat.rRNA.sh /storage/saba/Rat.RI.Brain.totalRNA.batch2/rawReads/ HXB5_1brain_TGACCA /storage/saba/index/rmsk.rRNA.RGSC5.0.rn5 AGATCGGAAGAGCACACGTCTGAACTCCAGTCACCCGTCCCGATCTCGTATGCCGTCTTCTGCTTG AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT
+qsub -q compute -N HXB21_1 -l nodes=1:ppn=12 -V -- /storage/saba/Rat.RI.Brain.totalRNA.batch2/programs/tophat.rRNA.sh /storage/saba/Rat.RI.Brain.totalRNA.batch2/rawReads/ HXB21_1brain_CTTGTA /storage/saba/index/rmsk.rRNA.RGSC5.0.rn5 AGATCGGAAGAGCACACGTCTGAACTCCAGTCACCCGTCCCGATCTCGTATGCCGTCTTCTGCTTG AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT
+qsub -q compute -N HXB22_1 -l nodes=1:ppn=12 -V -- /storage/saba/Rat.RI.Brain.totalRNA.batch2/programs/tophat.rRNA.sh /storage/saba/Rat.RI.Brain.totalRNA.batch2/rawReads/ HXB22_1brain_GTGAAA /storage/saba/index/rmsk.rRNA.RGSC5.0.rn5 AGATCGGAAGAGCACACGTCTGAACTCCAGTCACCCGTCCCGATCTCGTATGCCGTCTTCTGCTTG AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT
+qsub -q compute -N HXB23_1 -l nodes=1:ppn=12 -V -- /storage/saba/Rat.RI.Brain.totalRNA.batch2/programs/tophat.rRNA.sh /storage/saba/Rat.RI.Brain.totalRNA.batch2/rawReads/ HXB23_1brain_GTCCGC /storage/saba/index/rmsk.rRNA.RGSC5.0.rn5 AGATCGGAAGAGCACACGTCTGAACTCCAGTCACCCGTCCCGATCTCGTATGCCGTCTTCTGCTTG AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT
+qsub -q compute -N HXB24_1 -l nodes=1:ppn=12 -V -- /storage/saba/Rat.RI.Brain.totalRNA.batch2/programs/tophat.rRNA.sh /storage/saba/Rat.RI.Brain.totalRNA.batch2/rawReads/ HXB24_1brain_GTCCGC /storage/saba/index/rmsk.rRNA.RGSC5.0.rn5 AGATCGGAAGAGCACACGTCTGAACTCCAGTCACCCGTCCCGATCTCGTATGCCGTCTTCTGCTTG AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT
+qsub -q compute -N HXB29_1 -l nodes=1:ppn=12 -V -- /storage/saba/Rat.RI.Brain.totalRNA.batch2/programs/tophat.rRNA.sh /storage/saba/Rat.RI.Brain.totalRNA.batch2/rawReads/ HXB29_1brain_CAGATC /storage/saba/index/rmsk.rRNA.RGSC5.0.rn5 AGATCGGAAGAGCACACGTCTGAACTCCAGTCACCCGTCCCGATCTCGTATGCCGTCTTCTGCTTG AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT
+qsub -q compute -N HXB31_1 -l nodes=1:ppn=12 -V -- /storage/saba/Rat.RI.Brain.totalRNA.batch2/programs/tophat.rRNA.sh /storage/saba/Rat.RI.Brain.totalRNA.batch2/rawReads/ HXB31_1brain_ATGTCA /storage/saba/index/rmsk.rRNA.RGSC5.0.rn5 AGATCGGAAGAGCACACGTCTGAACTCCAGTCACCCGTCCCGATCTCGTATGCCGTCTTCTGCTTG AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT
+qsub -q compute -N HXB3_1 -l nodes=1:ppn=12 -V -- /storage/saba/Rat.RI.Brain.totalRNA.batch2/programs/tophat.rRNA.sh /storage/saba/Rat.RI.Brain.totalRNA.batch2/rawReads/ HXB3_1brain_GCCAAT /storage/saba/index/rmsk.rRNA.RGSC5.0.rn5 AGATCGGAAGAGCACACGTCTGAACTCCAGTCACCCGTCCCGATCTCGTATGCCGTCTTCTGCTTG AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT
+qsub -q compute -N HXB4_1 -l nodes=1:ppn=12 -V -- /storage/saba/Rat.RI.Brain.totalRNA.batch2/programs/tophat.rRNA.sh /storage/saba/Rat.RI.Brain.totalRNA.batch2/rawReads/ HXB4_1brain_ACAGTG /storage/saba/index/rmsk.rRNA.RGSC5.0.rn5 AGATCGGAAGAGCACACGTCTGAACTCCAGTCACCCGTCCCGATCTCGTATGCCGTCTTCTGCTTG AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT
+qsub -q compute -N SHR_1 -l nodes=1:ppn=12 -V -- /storage/saba/Rat.RI.Brain.totalRNA.batch2/programs/tophat.rRNA.sh /storage/saba/Rat.RI.Brain.totalRNA.batch2/rawReads/ SHR_1brain_CCGTCC /storage/saba/index/rmsk.rRNA.RGSC5.0.rn5 AGATCGGAAGAGCACACGTCTGAACTCCAGTCACCCGTCCCGATCTCGTATGCCGTCTTCTGCTTG AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT
+
+qsub -q compute -N HXB15_1 -l nodes=1:ppn=12 -V -- /storage/saba/Rat.RI.Brain.totalRNA.batch2/programs/tophat.rRNA.sh /storage/saba/Rat.RI.Brain.totalRNA.batch2/rawReads/ HXB15_1brain_AGTTCC /storage/saba/index/rmsk.rRNA.RGSC5.0.rn5 AGATCGGAAGAGCACACGTCTGAACTCCAGTCACCCGTCCCGATCTCGTATGCCGTCTTCTGCTTG AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT
+
+
+qsub -q compute -N HXB18_1 -l nodes=1:ppn=12 -V -- /storage/saba/Rat.RI.Brain.totalRNA.batch2/programs/tophat.rRNA.sh /storage/saba/Rat.RI.Brain.totalRNA.batch2/rawReads/ HXB18_1brain_AGTCAA /storage/saba/index/rmsk.rRNA.RGSC5.0.rn5 AGATCGGAAGAGCACACGTCTGAACTCCAGTCACCCGTCCCGATCTCGTATGCCGTCTTCTGCTTG AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT
+qsub -q compute -N HXB20_1 -l nodes=1:ppn=12 -V -- /storage/saba/Rat.RI.Brain.totalRNA.batch2/programs/tophat.rRNA.sh /storage/saba/Rat.RI.Brain.totalRNA.batch2/rawReads/ HXB20_1brain_AGTTCC /storage/saba/index/rmsk.rRNA.RGSC5.0.rn5 AGATCGGAAGAGCACACGTCTGAACTCCAGTCACCCGTCCCGATCTCGTATGCCGTCTTCTGCTTG AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT
+
+
+
+
+
+
 ```
 
 
 6.  Convert unmapped.bam file into fastq files - DONE
 -----------------------------------------------
 ```
-qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch2/programs/convertToFastQ.batch2.sh
+qsub -q compute /storage/saba/Rat.RI.Brain.totalRNA.batch2/programs/convertToFastQ.batch2.sh
 ```
 
