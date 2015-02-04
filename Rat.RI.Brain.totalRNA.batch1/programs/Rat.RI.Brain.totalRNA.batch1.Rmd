@@ -127,9 +127,8 @@ qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/alignTo.rRNA.bat
 qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/alignTo.rRNA.batch1.10Oct14.HXB27.sh
 qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/alignTo.rRNA.heart.30Sep14.BXH12_2.sh
 qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/alignTo.rRNA.batch1.13Oct14.HXB7_2.sh
-
-
 ```
+
 **move files**
 ```{r,echo=FALSE,eval=FALSE}
 ## NOT R code, but don't want in Md file

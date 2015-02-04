@@ -64,29 +64,28 @@ Average Number of Paired End Reads Per Sample: `r prettyNum(sum(rawCounts$readFr
 qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch2/programs/trimReads.brain.batch2.sh
 ```
 
-4. Characterize Trimmed Reads - RUNNING
+4. Characterize Trimmed Reads - DONE
 ---------------
 ```
 qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch2/programs/countTrimmedReads.sh
 qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch2/programs/compressRawReads.batch2.sh
-
 ```
 
 ```{r,echo=FALSE}
 options(stringsAsFactors=FALSE)
-setwd("~/Documents/NextGenSeq/Rat.RI.Brain.totalRNA.batch1/")
+setwd("~/Documents/NextGenSeq/Rat.RI.Brain.totalRNA.batch2/")
 
-trimmed = read.table(file="data/trimmedReadCounts.18Sep14.txt",sep="",header=FALSE)
+trimmed = read.table(file="data/trimmedReadCounts.10Jan15.txt",sep="",header=FALSE)
 trimmed$file = unlist(lapply(strsplit(trimmed$V1,split="/",fixed=TRUE),function(a) a[6]))
-trimmed$sample = unlist(lapply(strsplit(trimmed$file,split="_",fixed=TRUE),function(a) paste(a[1],a[2],sep="_")))
-trimmed$read = unlist(lapply(strsplit(trimmed$file,split="_",fixed=TRUE),function(a) a[9]))
-trimmed$lane = unlist(lapply(strsplit(trimmed$file,split="_",fixed=TRUE),function(a) a[8]))
+trimmed$sample = unlist(lapply(strsplit(trimmed$file,split="_",fixed=TRUE),function(a) gsub("brain","",paste(a[1],a[2],sep="_"))))
+trimmed$read = unlist(lapply(strsplit(trimmed$file,split="_",fixed=TRUE),function(a) a[5]))
+trimmed$lane = unlist(lapply(strsplit(trimmed$file,split="_",fixed=TRUE),function(a) a[4]))
 
 bySample = merge(trimmed[trimmed$read=="R1",c("sample","lane","V2","V3")],trimmed[trimmed$read=="R2",c("sample","lane","V2")],by=c("sample","lane"))
 bySample$numReadFrag = bySample$V3*2
 colnames(bySample) = c("sample","lane","avgFragLength.R1","numReads","avgFragLength.R2","numReadFrag")
 
-rawCounts$lane = unlist(lapply(strsplit(rawCounts$file,split="_",fixed=TRUE),function(a) a[8])) 
+rawCounts$lane = unlist(lapply(strsplit(rawCounts$file,split="_",fixed=TRUE),function(a) a[4]))
 rawCounts = rawCounts[grep("_R1",rawCounts$file),]
 
 bySample = merge(rawCounts,bySample,by=c("sample","lane"))
@@ -101,7 +100,6 @@ forPrint2$avgFragLength.R2 = sprintf("%.1f",round(forPrint2$avgFragLength.R2,1))
 forPrint2$numReadFrag = prettyNum(forPrint2$numReadFrag,big.mark=",",scientific=FALSE)
 forPrint2$numPairedReads = prettyNum(forPrint2$numPairedReads,big.mark=",",scientific=FALSE)
 forPrint2$numReadFragments = prettyNum(forPrint2$numReadFragments,big.mark=",",scientific=FALSE)
-
 
 colnames(forPrint2) = c("sample","lane","Number of Paired-End Reads","Number of Read Fragments","Average Read Fragment Length After Trimming (first read fragment)","Average Read Fragment Length After Trimming (second read fragment)","Number of Read Fragments After Trimming","Percent of Read Fragments That Remained After Trimming")
 ```
@@ -133,24 +131,92 @@ qsub -q compute -N HXB31_1 -l nodes=1:ppn=12 -V -- /storage/saba/Rat.RI.Brain.to
 qsub -q compute -N HXB3_1 -l nodes=1:ppn=12 -V -- /storage/saba/Rat.RI.Brain.totalRNA.batch2/programs/tophat.rRNA.sh /storage/saba/Rat.RI.Brain.totalRNA.batch2/rawReads/ HXB3_1brain_GCCAAT /storage/saba/index/rmsk.rRNA.RGSC5.0.rn5 AGATCGGAAGAGCACACGTCTGAACTCCAGTCACCCGTCCCGATCTCGTATGCCGTCTTCTGCTTG AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT
 qsub -q compute -N HXB4_1 -l nodes=1:ppn=12 -V -- /storage/saba/Rat.RI.Brain.totalRNA.batch2/programs/tophat.rRNA.sh /storage/saba/Rat.RI.Brain.totalRNA.batch2/rawReads/ HXB4_1brain_ACAGTG /storage/saba/index/rmsk.rRNA.RGSC5.0.rn5 AGATCGGAAGAGCACACGTCTGAACTCCAGTCACCCGTCCCGATCTCGTATGCCGTCTTCTGCTTG AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT
 qsub -q compute -N SHR_1 -l nodes=1:ppn=12 -V -- /storage/saba/Rat.RI.Brain.totalRNA.batch2/programs/tophat.rRNA.sh /storage/saba/Rat.RI.Brain.totalRNA.batch2/rawReads/ SHR_1brain_CCGTCC /storage/saba/index/rmsk.rRNA.RGSC5.0.rn5 AGATCGGAAGAGCACACGTCTGAACTCCAGTCACCCGTCCCGATCTCGTATGCCGTCTTCTGCTTG AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT
-
 qsub -q compute -N HXB15_1 -l nodes=1:ppn=12 -V -- /storage/saba/Rat.RI.Brain.totalRNA.batch2/programs/tophat.rRNA.sh /storage/saba/Rat.RI.Brain.totalRNA.batch2/rawReads/ HXB15_1brain_AGTTCC /storage/saba/index/rmsk.rRNA.RGSC5.0.rn5 AGATCGGAAGAGCACACGTCTGAACTCCAGTCACCCGTCCCGATCTCGTATGCCGTCTTCTGCTTG AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT
-
-
 qsub -q compute -N HXB18_1 -l nodes=1:ppn=12 -V -- /storage/saba/Rat.RI.Brain.totalRNA.batch2/programs/tophat.rRNA.sh /storage/saba/Rat.RI.Brain.totalRNA.batch2/rawReads/ HXB18_1brain_AGTCAA /storage/saba/index/rmsk.rRNA.RGSC5.0.rn5 AGATCGGAAGAGCACACGTCTGAACTCCAGTCACCCGTCCCGATCTCGTATGCCGTCTTCTGCTTG AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT
 qsub -q compute -N HXB20_1 -l nodes=1:ppn=12 -V -- /storage/saba/Rat.RI.Brain.totalRNA.batch2/programs/tophat.rRNA.sh /storage/saba/Rat.RI.Brain.totalRNA.batch2/rawReads/ HXB20_1brain_AGTTCC /storage/saba/index/rmsk.rRNA.RGSC5.0.rn5 AGATCGGAAGAGCACACGTCTGAACTCCAGTCACCCGTCCCGATCTCGTATGCCGTCTTCTGCTTG AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT
 
+```
 
+**move files**
+```{r,echo=FALSE,eval=FALSE}
+## NOT R code, but don't want in Md file
+get BXH2_1.rRNA/align_summary.txt rRNA.summary.BXH2_1.txt 
+get HXB15_1.rRNA/align_summary.txt rRNA.summary.HXB15_1.txt  
+get HXB21_1.rRNA/align_summary.txt rRNA.summary.HXB21_1.txt 
+get HXB24_1.rRNA/align_summary.txt rRNA.summary.HXB24_1.txt  
+get HXB3_1.rRNA/align_summary.txt rRNA.summary.HXB3_1.txt  
+get SHR_1.rRNA/align_summary.txt rRNA.summary.SHR_1.txt
+get HXB10_1.rRNA/align_summary.txt rRNA.summary.HXB10_1.txt 
+get HXB18_1.rRNA/align_summary.txt rRNA.summary.HXB18_1.txt  
+get HXB22_1.rRNA/align_summary.txt rRNA.summary.HXB22_1.txt  
+get HXB29_1.rRNA/align_summary.txt rRNA.summary.HXB29_1.txt  
+get HXB4_1.rRNA/align_summary.txt rRNA.summary.HXB4_1.txt
+get HXB1_1.rRNA/align_summary.txt rRNA.summary.HXB1_1.txt   
+get HXB20_1.rRNA/align_summary.txt rRNA.summary.HXB20_1.txt 
+get HXB23_1.rRNA/align_summary.txt rRNA.summary.HXB23_1.txt 
+get HXB5_1.rRNA/align_summary.txt rRNA.summary.HXB5_1.txt
 
-
+get HXB31_1.rRNA/align_summary.txt rRNA.summary.HXB31_1.txt 
 
 
 ```
 
+Proportion of Reads Aligned to rRNA
+-----------------------------------
+This batch was only subjected to 1 wash with riboZero.  The next batch received two washes.  
+```{r,echo=FALSE,eval=TRUE}
+#rm(list=ls())
+setwd("~/Documents/NextGenSeq/Rat.RI.Brain.totalRNA.batch2/data")
+options(stringsAsFactors=FALSE)
 
-6.  Convert unmapped.bam file into fastq files - DONE
+sampleList = unique(forPrint2$sample)
+sampleList = sampleList[sampleList!="HXB31_1"]
+
+rStats = c()
+for(i in sampleList){
+  x = read.table(file=paste("rRNA.summary.",i,".txt",sep=""),sep="\t",header=FALSE)
+  sample = i
+  numReads = as.numeric(gsub(":","",gsub("Input","",x[2,1])))       
+  mappedLeft = as.numeric(gsub(":","",gsub("Mapped","",unlist(lapply(strsplit(x[3,1],split="(",fixed=TRUE),function(a) a[1])))))
+  mappedRight = as.numeric(gsub(":","",gsub("Mapped ","",unlist(lapply(strsplit(x[7,1],split="(",fixed=TRUE),function(a) a[1])))))
+  mappedPairs = as.numeric(gsub("Aligned pairs: ","",x[10,1]))  
+  rStats = rbind(rStats,data.frame(sample,numReads,mappedLeft,mappedRight,mappedPairs))
+}
+
+rStats$numReadFrag = (rStats$mappedLeft + rStats$mappedRight)
+rStats$numDeletedPairedReads = (rStats$mappedLeft + rStats$mappedRight - rStats$mappedPairs)
+
+rStats = rStats[,c("sample","numReads","numReadFrag","mappedPairs","numDeletedPairedReads")]
+
+rTable = data.frame(sample=rStats$sample,numTrimmedReads=prettyNum(rStats$numReads,big.mark=",",scientific=FALSE),numDeleted=prettyNum(rStats$numDeletedPairedReads,big.mark=",",scientific=FALSE),pctRiboReads=as.numeric(rStats$numDeletedPairedReads)/as.numeric(rStats$numReads),numRemaining=prettyNum(rStats$numReads-rStats$numDeletedPairedReads,big.mark=",",scientific=FALSE))
+
+rTable$pctRiboReads = paste(sprintf("%.1f",round(100*rTable$pctRiboReads,1)),"%",sep="")
+colnames(rTable) = c("Sample","Number of Paired-End Reads After Trimming","Number of Paired-End Reads with at Least One Fragment Aligned to rRNA","Percent of Paired-End Reads Aligned to rRNA","Number of Paired-End Reads NOT Aligned to rRNA")
+```
+
+```{r, results='asis',echo=FALSE}
+kable(rTable,align=rep("c",ncol(rTable)))
+```
+
+6.  Convert unmapped.bam file into fastq files - 
 -----------------------------------------------
 ```
-qsub -q compute /storage/saba/Rat.RI.Brain.totalRNA.batch2/programs/convertToFastQ.batch2.sh
+/data2/saba/sharedPrograms/bamToFastQ.buildup.phenogen.sh /hi-seq/RI.Brain.totalRNA.24Sep14/alignedReads/BXH2_1.rRNA
+/data2/saba/sharedPrograms/bamToFastQ.buildup.phenogen.sh /hi-seq/RI.Brain.totalRNA.24Sep14/alignedReads/HXB10_1.rRNA
+/data2/saba/sharedPrograms/bamToFastQ.buildup.phenogen.sh /hi-seq/RI.Brain.totalRNA.24Sep14/alignedReads/HXB1_1.rRNA
+/data2/saba/sharedPrograms/bamToFastQ.buildup.phenogen.sh /hi-seq/RI.Brain.totalRNA.24Sep14/alignedReads/HXB15_1.rRNA
+/data2/saba/sharedPrograms/bamToFastQ.buildup.phenogen.sh /hi-seq/RI.Brain.totalRNA.24Sep14/alignedReads/HXB18_1.rRNA
+/data2/saba/sharedPrograms/bamToFastQ.buildup.phenogen.sh /hi-seq/RI.Brain.totalRNA.24Sep14/alignedReads/HXB20_1.rRNA
+/data2/saba/sharedPrograms/bamToFastQ.buildup.phenogen.sh /hi-seq/RI.Brain.totalRNA.24Sep14/alignedReads/HXB21_1.rRNA
+/data2/saba/sharedPrograms/bamToFastQ.buildup.phenogen.sh /hi-seq/RI.Brain.totalRNA.24Sep14/alignedReads/HXB22_1.rRNA
+/data2/saba/sharedPrograms/bamToFastQ.buildup.phenogen.sh /hi-seq/RI.Brain.totalRNA.24Sep14/alignedReads/HXB23_1.rRNA
+/data2/saba/sharedPrograms/bamToFastQ.buildup.phenogen.sh /hi-seq/RI.Brain.totalRNA.24Sep14/alignedReads/HXB24_1.rRNA
+/data2/saba/sharedPrograms/bamToFastQ.buildup.phenogen.sh /hi-seq/RI.Brain.totalRNA.24Sep14/alignedReads/HXB29_1.rRNA
+/data2/saba/sharedPrograms/bamToFastQ.buildup.phenogen.sh /hi-seq/RI.Brain.totalRNA.24Sep14/alignedReads/HXB31_1.rRNA
+/data2/saba/sharedPrograms/bamToFastQ.buildup.phenogen.sh /hi-seq/RI.Brain.totalRNA.24Sep14/alignedReads/HXB3_1.rRNA
+/data2/saba/sharedPrograms/bamToFastQ.buildup.phenogen.sh /hi-seq/RI.Brain.totalRNA.24Sep14/alignedReads/HXB4_1.rRNA
+/data2/saba/sharedPrograms/bamToFastQ.buildup.phenogen.sh /hi-seq/RI.Brain.totalRNA.24Sep14/alignedReads/HXB5_1.rRNA
+/data2/saba/sharedPrograms/bamToFastQ.buildup.phenogen.sh /hi-seq/RI.Brain.totalRNA.24Sep14/alignedReads/SHR_1.rRNA
+
 ```
 

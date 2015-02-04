@@ -26,7 +26,7 @@ echo "R1 $TL1R1F,$TL2R1F"
 echo "R2 $TL1R2F,$TL2R2F"
 
 st=`date +%s`
-tophat2 -g 2 --library-type fr-firststrand -o $PATH4 -p 20 $index $TL1R1F $TL1R2F
+tophat2 -g 2 --library-type fr-firststrand -o $PATH4 -p 5 $index $TL1R1F $TL1R2F
 end=`date +%s`
 runtime=$((end-st))
 echo "end node tophat $f"
