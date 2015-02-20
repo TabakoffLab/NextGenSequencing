@@ -88,6 +88,8 @@ gtf$V7 = "+"
 gtf$V8 = "."
 gtf$V9 = paste('gene_id "',gtf$EnsemblGeneID,'"; transcript_id "',gtf$EnsemblTransID,'";',sep="")
 
+write.table(gtf[,paste("V",1:9,sep="")],file="gtfFiles/rn5.ensembl.toTranscriptome.gtf",sep="\t",row.names=FALSE,col.names=FALSE,quote=FALSE)
+
 ```
 
 chr1  rn5_refGene	exon	13500060	13500215	0.000000	-	.	gene_id "NR_046238"; transcript_id "NR_046238"; 

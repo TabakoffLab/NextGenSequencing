@@ -1,0 +1,332 @@
+BNLx and SHR Brain Transcriptome Reconstruction - Combining PolyA and Total
+========================================================
+
+```{r,echo=FALSE}
+rm(list=ls())
+options(stringsAsFactors=FALSE)
+setwd("/Volumes/saba/BNLx.SHR")
+printNow=FALSE
+
+#######################
+##  local functions  ##
+#######################
+
+# format GTF files to include transcript ids, gene ids, and fpkm values
+gtfFormat = function(data,FPKM=TRUE){
+  data$transcript_id = unlist(lapply(strsplit(data$V9,split=";",fixed=TRUE),function(a) gsub(" transcript_id ","",a[grep("transcript",a)]))) 
+  data$gene_id = unlist(lapply(strsplit(data$V9,split=";",fixed=TRUE),function(a) gsub("gene_id ","",a[grep("gene",a)]))) 
+  if(FPKM) data$fpkm = as.numeric(unlist(lapply(strsplit(data$V9,split=";",fixed=TRUE),function(a) gsub(" FPKM ","",a[grep("FPKM",a)]))))
+  return(data)
+}
+
+checkSame = function(x){
+  sameGene = FALSE
+  if(x["start.x"]==x["start.y"] | x["stop.x"]==x["stop.y"]) sameGene = TRUE
+  if(!is.na(x["exonJunct.x"]) & !is.na(x["exonJunct.y"]) & sum(duplicated(c(unlist(strsplit(x["exonJunct.x"],split=",")),unlist(strsplit(x["exonJunct.y"],split=",")))))>0) sameGene = TRUE
+  return(sameGene)
+}
+```
+
+```{r,echo=FALSE}
+options(stringsAsFactors=FALSE)
+setwd("/Volumes/saba/BNLx.SHR")
+
+polyA = read.table(file = "RNA-Seq.Brain.polyA/reconstruction/reconstruct.brain.polyA.14Oct14.FINAL.gtf",sep="\t",header=FALSE)
+polyA = gtfFormat(polyA,FPKM=FALSE)
+
+total = read.table(file = "RNA-Seq.Brain.total/reconstruction/reconstruct.total.brain.FINAL.26Aug14.gtf",sep="\t",header=FALSE)
+total = gtfFormat(total,FPKM=FALSE)
+
+x=data.frame(aggregate(polyA$V4,by=list(transcript_id=polyA$transcript_id),min),V5=aggregate(polyA$V5,by=list(transcript_id=polyA$transcript_id),max)$x)
+colnames(x)[2]="V4"
+polyA.transcripts = merge(polyA[!duplicated(polyA$transcript_id),c("V1","V7","V9","transcript_id","gene_id")],x,by="transcript_id")
+
+
+y=data.frame(aggregate(total$V4,by=list(transcript_id=total$transcript_id),min),V5=aggregate(total$V5,by=list(transcript_id=total$transcript_id),max)$x)
+colnames(y)[2]="V4"
+total.transcripts = merge(total[!duplicated(total$transcript_id),c("V1","V7","V9","transcript_id","gene_id")],y,by="transcript_id")
+
+polyA.transcripts$transcript_id[-grep("ENS",polyA.transcripts$transcript_id)] = paste("polya.",polyA.transcripts$transcript_id[-grep("ENS",polyA.transcripts$transcript_id)],sep="")
+total.transcripts$transcript_id[-grep("ENS",total.transcripts$transcript_id)] = paste("total.",total.transcripts$transcript_id[-grep("ENS",total.transcripts$transcript_id)],sep="")
+```
+
+Cleaned PolyA+ RNA Transcriptome:  
+`r prettyNum(length(unique(polyA.transcripts$gene_id)),big.mark=",")` genes  
+`r prettyNum(nrow(polyA.transcripts),big.mark=",")` transcripts  
+`r prettyNum(sum(grepl("ENS",polyA.transcripts$transcript_id)),big.mark=",")` Ensembl transcripts  
+`r prettyNum(sum(!grepl("ENS",polyA.transcripts$transcript_id)),big.mark=",")` novel transcripts  
+
+Cleaned Ribosomal RNA-depleted Total RNA Transcriptome:  
+`r prettyNum(length(unique(total.transcripts$gene_id)),big.mark=",")` genes  
+`r prettyNum(nrow(total.transcripts),big.mark=",")` transcripts  
+`r prettyNum(sum(grepl("ENS",total.transcripts$transcript_id)),big.mark=",")` Ensembl transcripts  
+`r prettyNum(sum(!grepl("ENS",total.transcripts$transcript_id)),big.mark=",")` novel transcripts  
+
+
+1. Identify overlap between novel transcripts in reconstructions
+---------------------------------
+```{r,echo=FALSE}
+total.bed = total.transcripts
+total.bed$V6 = 1000
+
+polyA.bed = polyA.transcripts
+polyA.bed$V6 = 1000
+
+total.bed = total.bed[,c("V1","V4","V5","V6","V7","transcript_id")]
+polyA.bed = polyA.bed[,c("V1","V4","V5","V6","V7","transcript_id")]
+
+if(printNow) write.table(polyA.bed,file="RNA-Seq.Brain/reconstruction/tmp/polyA.bed",sep="\t",row.names=FALSE,col.names=FALSE,quote=FALSE)
+if(printNow) write.table(total.bed,file="RNA-Seq.Brain/reconstruction/tmp/total.bed",sep="\t",row.names=FALSE,col.names=FALSE,quote=FALSE)
+
+```
+
+BEDtools version = bedtools v2.19.1
+```
+export PATH=/usr/local/bedtools2/bin:$PATH
+bedtools -version 
+
+cd /data2/saba/BNLx.SHR/RNA-Seq.Brain/reconstruction/tmp
+intersectBed -a polyA.bed -b total.bed -wo > overlap.brain.txt
+```
+
+3.  Compare novel transcripts across transcriptomes (polyA and total)
+------------------------------------------------------
+Two transcripts were "merged" into one transcripts if:  
+* they are both assigned to the same strand or one/both did not have a strand designation
+* if 1) all exon starts and exon stops matched OR 2) all exon junctions matched, transcription start and stop sites could differ OR 3) two one-exon transcripts with transcription start sites within 100 bp of each other and transcription stop sites within 100 bp of each other
+
+```{r,eval=TRUE,echo=FALSE}
+options(stringsAsFactors=FALSE)
+setwd("/Volumes/saba/BNLx.SHR")
+printNow=FALSE
+
+polyA$transcript_id[-grep("ENS",polyA$transcript_id)] = paste("polya.",polyA$transcript_id[-grep("ENS",polyA$transcript_id)],sep="")
+total$transcript_id[-grep("ENS",total$transcript_id)] = paste("total.",total$transcript_id[-grep("ENS",total$transcript_id)],sep="")
+
+
+polyA.gtf <- polyA[polyA$V3=="exon",]
+polyA.gtf <- polyA.gtf[order(polyA.gtf$transcript_id,polyA.gtf$V4,polyA.gtf$V5),]
+
+total.gtf <- total[total$V3=="exon",]
+total.gtf <- total.gtf[order(total.gtf$transcript_id,total.gtf$V4,total.gtf$V5),]
+
+
+gtf = rbind(polyA.gtf,total.gtf)
+gtf = gtf[,!(colnames(gtf) %in% c("gene_id","V9","V2"))]
+gtf = gtf[!duplicated(gtf),]
+gtf <- gtf[order(gtf$transcript_id,gtf$V4,gtf$V5),]
+
+##  create one per transcript ##
+start <- aggregate(gtf$V4,by=list(gtf$transcript_id),function(a) paste(a,collapse=","))
+stop <- aggregate(gtf$V5,by=list(gtf$transcript_id),function(a) paste(a,collapse=","))
+transcripts <- gtf[!duplicated(gtf[,c("transcript_id","V1")]),c("transcript_id","V1","V6","V7")]
+onePerTrans <- merge(start,stop,by=1)
+onePerTrans <- merge(transcripts,onePerTrans,by=1)
+
+onePerTrans$exonNum = unlist(lapply(strsplit(onePerTrans$x.x,split=",",fixed=TRUE),length))
+onePerTrans$start <- as.integer(unlist(lapply(strsplit(onePerTrans$x.x,split=",",fixed=TRUE),function(a) min(as.numeric(a)))))
+onePerTrans$stop <- as.integer(unlist(lapply(strsplit(onePerTrans$x.y,split=",",fixed=TRUE),function(a) max(as.numeric(a)))))
+
+#####################
+overlap <- read.table(file="RNA-Seq.Brain/reconstruction/tmp/overlap.brain.txt",sep="\t",header=FALSE)
+colnames(overlap) <- c(paste(c("chr","start","stop","V5","strand","transcript_id"),rep(c("polya","total"),each=6),sep="."),"overlap")
+
+## remove records that are overlap of the same Ensembl transcript
+overlap = overlap[overlap$transcript_id.polya!=overlap$transcript_id.total,]
+
+## add exon information to overlaps
+setPolya = setTotal = onePerTrans[,c("transcript_id","x.x","x.y","exonNum")]
+colnames(setPolya) = c("transcript_id.polya","exonStarts.polya","exonStops.polya","exonNum.polya")
+colnames(setTotal) = c("transcript_id.total","exonStarts.total","exonStops.total","exonNum.total")
+
+overlap = merge(overlap,setPolya,by="transcript_id.polya")
+overlap = merge(overlap,setTotal,by="transcript_id.total")
+
+overlap$ID = c(1:nrow(overlap))
+
+##  identify exon junction
+
+findJunct <- function(starts,stops){
+  start <- strsplit(starts,split=",",fixed=TRUE)[[1]]
+  stop <- strsplit(stops,split=",",fixed=TRUE)[[1]]
+  junct <- NA
+  if(length(start)>1) junct <- paste(paste(stop[-length(stop)],start[-1],sep="//"),collapse=",")
+  return(junct)
+  }
+  
+overlap$exonJunct.polya = apply(overlap[,c("exonStarts.polya","exonStops.polya")],1,function(a) findJunct(a[1],a[2]))
+overlap$exonJunct.total = apply(overlap[,c("exonStarts.total","exonStops.total")],1,function(a) findJunct(a[1],a[2]))
+
+## remove overlap that is on the opposite strand
+overlap <- overlap[overlap$strand.polya=="." | overlap$strand.total=="." | overlap$strand.polya==overlap$strand.total,]
+
+## remove overlap where coding regions don't overlap  ##
+intronCheck =c()
+for(i in 1:nrow(overlap)){
+  input = overlap[i,]
+  out = sum(sum(unlist(lapply(strsplit(strsplit(input[1,"exonJunct.polya"],split=",")[[1]],split="//"),function(a) input[1,"start.total"]>a[1] & input[1,"stop.total"]<a[2]))),sum(unlist(lapply(strsplit(strsplit(input[1,"exonJunct.total"],split=",")[[1]],split="//"),function(a) input[1,"start.polya"]>a[1] & input[1,"stop.polya"]<a[2]))),na.rm=TRUE)
+  intronCheck = c(intronCheck,out)
+  }
+  
+overlap = overlap[intronCheck==0,]
+
+## transcripts without any overlap - 25,653 transcripts
+noOverlap = onePerTrans[!(onePerTrans$transcript_id %in% unique(c(overlap$transcript_id.polya,overlap$transcript_id.total))),]
+
+##  perfect overlap - 51 transcripts
+perfect = overlap[overlap$exonStarts.polya==overlap$exonStarts.total & overlap$exonStops.polya==overlap$exonStops.total,]
+
+##  identify exon junction matches - 1,888 transcripts
+reduced = overlap[!(overlap$ID %in% perfect$ID),]
+exonJunctMatch <- reduced[!is.na(reduced$exonJunct.polya) & !is.na(reduced$exonJunct.total) & reduced$exonJunct.polya==reduced$exonJunct.total,]
+
+##  examine one-exon transcripts - 990 overlaps between one-exon transcripts
+reduced = overlap[!(overlap$ID %in% c(perfect$ID,exonJunctMatch$ID)),]
+oneExons = reduced[reduced$exonNum.polya==1 & reduced$exonNum.total==1,]
+
+## close match one-exon transcripts - 300 transcripts
+closeMatch.oneExon = oneExons[abs(oneExons$start.polya - oneExons$start.total)<100 & abs(oneExons$stop.polya - oneExons$stop.total)<100, ]
+
+##  Check for overlap between renamed  ##
+matched = as.data.frame(rbind(perfect,exonJunctMatch,closeMatch.oneExon))
+
+matched.dups = matched[(matched$transcript_id.total %in% matched$transcript_id.polya) | (matched$transcript_id.polya %in% matched$transcript_id.total),]
+
+sum(duplicated(matched.dups$transcript_id.total))
+sum(duplicated(matched.dups$transcript_id.polya))
+
+transcriptsToEnsembl = c(matched$transcript_id.polya[grep("ENS",matched$transcript_id.total)],matched$transcript_id.total[grep("ENS",matched$transcript_id.polya)])
+
+matched.undup = matched[!grepl("ENS",matched$transcript_id.total) & !grepl("ENS",matched$transcript_id.polya),]
+matched.undup = matched.undup[!(matched.undup$transcript_id.total %in% transcriptsToEnsembl) & !(matched.undup$transcript_id.polya %in% transcriptsToEnsembl), ]
+
+##  create new transcript for matched transcripts - 1,516 matches
+matched.undup$transcript_id = paste("both",c(1:nrow(matched.undup)),sep=".")
+matched.undup$gene_id = NA
+matched.undup$V1 = matched.undup$chr.polya
+matched.undup$V6 = 1000
+matched.undup$V7 = matched.undup$strand.polya
+matched.undup$start = apply(matched.undup[,c("start.polya","start.total")],1,min)
+matched.undup$stop = apply(matched.undup[,c("stop.polya","stop.total")],1,max)
+matched.undup$exonNum = matched.undup$exonNum.polya
+
+matched.undup$x.x = NA
+matched.undup$x.x[matched.undup$start==matched.undup$start.polya] = matched.undup$exonStarts.polya[matched.undup$start==matched.undup$start.polya]
+matched.undup$x.x[matched.undup$start==matched.undup$start.total] = matched.undup$exonStarts.total[matched.undup$start==matched.undup$start.total]
+
+matched.undup$x.y = NA
+matched.undup$x.y[matched.undup$stop==matched.undup$stop.polya] = matched.undup$exonStops.polya[matched.undup$stop==matched.undup$stop.polya]
+matched.undup$x.y[matched.undup$stop==matched.undup$stop.total] = matched.undup$exonStops.total[matched.undup$stop==matched.undup$stop.total]
+
+matched.toAdd = matched.undup[,colnames(onePerTrans)]
+
+new.transcripts = onePerTrans[!(onePerTrans$transcript_id %in% c(matched.undup$transcript_id.polya,matched.undup$transcript_id.total,transcriptsToEnsembl)),]
+new.transcripts = rbind(new.transcripts,matched.toAdd)
+
+if(printNow) write.table(new.transcripts[,c("V1","start","stop","transcript_id","V6","V7")],file="RNA-Seq.Brain/reconstruction/tmp/combined.brain.19Feb15.bed",sep="\t",quote=FALSE,row.names=FALSE,col.names=FALSE)
+```
+
+Combined Transcriptome:  
+* `r prettyNum(nrow(new.transcripts),big.mark=",")` transcripts
+* `r prettyNum(sum(grepl("both",new.transcripts$transcript_id)),big.mark=",")` novel transcripts identified in both RNA preparations
+* `r prettyNum(sum(grepl("total",new.transcripts$transcript_id)),big.mark=",")` novel transcripts only identified in ribosomal RNA-depleted total RNA preparation
+* `r prettyNum(sum(grepl("polya",new.transcripts$transcript_id)),big.mark=",")` novel transcripts only identified in polyA+-selected RNA preparation
+* `r prettyNum(sum(grepl("ENS",new.transcripts$transcript_id)),big.mark=",")` Ensembl transcripts
+* `r prettyNum(sum(grepl("ens",new.transcripts$transcript_id)),big.mark=",")` novel transcripts very similar to Ensembl
+
+
+4.  Identify overlap between transcripts in order to identify transcripts from the same gene
+------------------------------------------------------
+
+BEDtools Version = bedtools v2.19.1
+```
+export PATH=/usr/local/bedtools2/bin:$PATH
+cd /data2/saba/BNLx.SHR/RNA-Seq.Brain/reconstruction/tmp
+intersectBed -a combined.brain.19Feb15.bed -b combined.brain.19Feb15.bed -wo > overlap.brain.forGeneID.txt
+```
+
+5.  Match transcripts to genes and create new GTF file  
+------------------------------------------------------
+
+Two transcripts are from the same gene if:  
+* Their transcription start sites matched exactly OR
+* Their transcription stop sites matched exactly OR
+* At least one exon-exon junction matched exactly
+
+```{r,eval=FALSE,echo=FALSE}
+findJunct <- function(starts,stops){
+  start <- strsplit(starts,split=",",fixed=TRUE)[[1]]
+  stop <- strsplit(stops,split=",",fixed=TRUE)[[1]]
+  junct <- NA
+  if(length(start)>1) junct <- paste(paste(stop[-length(stop)],start[-1],sep="//"),collapse=",")
+  return(junct)
+  }
+
+new.transcripts$exonJunct = apply(new.transcripts[,c("x.x","x.y")],1,function(a) findJunct(a[1],a[2]))
+
+overlap = read.table(file="RNA-Seq.Brain/reconstruction/tmp/overlap.brain.forGeneID.txt",sep="\t",header=FALSE)
+overlap = overlap[overlap$V4!=overlap$V10,]
+overlap = overlap[overlap$V6=="." | overlap$V12=="." | overlap$V6==overlap$V12,]
+
+overlap$pair = apply(overlap,1,function(a) paste(sort(a[c("V4","V10")]),collapse="//"))
+overlap = overlap[!duplicated(overlap$pair),]
+
+overlap2 = merge(overlap[,c("V4","V10")],new.transcripts[,c("transcript_id","start","stop","exonJunct")],by.x="V4",by.y="transcript_id")
+overlap2 = merge(overlap2,new.transcripts[,c("transcript_id","start","stop","exonJunct")],by.x="V10",by.y="transcript_id")
+
+match = apply(overlap2,1,checkSame)
+pairs = overlap2[match,c("V4","V10")]
+
+##  identify genes with multiple transcripts and create gene identifier  ##
+library("igraph")
+library("ggm")
+library("RBGL")
+
+edges <- pairs
+graph.polyA <- graph.data.frame(edges)
+graph.polyA <- igraph.to.graphNEL(graph.polyA)
+
+compList <- connectedComp(graph.polyA)
+
+geneNames = unlist(lapply(compList,function(a) paste(a[grep("ENS",a)],collapse="//")))
+geneNames[geneNames==""] = paste("GENE.",c(1:sum(geneNames=="")),sep="")
+geneNames = data.frame(geneNames)
+geneNames$order = c(1:nrow(geneNames))
+
+names(compList) <- paste("GENE",c(1:length(compList)),sep=".")
+
+multiTrans <- sapply(names(compList),function(a) cbind(gene_id.new=a,transcript_id.new=paste(a,c(1:length(compList[[a]])),sep="."),id=compList[[a]]))
+multiTrans <- data.frame(do.call(rbind,multiTrans))
+
+singleTrans <- data.frame(id=new.transcripts$transcript_id[!(new.transcripts$transcript_id %in% multiTrans$id)])
+singleTrans$gene_id.new = paste("GENE",c((length(compList)+1):(length(compList)+nrow(singleTrans))),sep=".")
+singleTrans$transcript_id.new = paste(singleTrans$gene_id.new,1,sep=".")
+
+ids = rbind(multiTrans,singleTrans[,colnames(multiTrans)])
+
+convertID = function(x,y){
+if(!grepl("ENS",x)) y = gsub("GENE",unlist(lapply(strsplit(x,split=".",fixed=TRUE),function(a) a[1])),y)
+if(grepl("ENS",x)) y = x
+return(y)
+}
+
+ids$alt.id = apply(ids,1,function(a) convertID(a["id"],a["transcript_id.new"]))
+
+updated <- merge(new.transcripts,ids,by.x="transcript_id",by.y="id")
+
+##  Create New GTF File  ##
+
+byExon = data.frame(do.call(rbind,apply(updated,1,function(tmp) data.frame(alt.id = as.character(tmp["alt.id"]),V4=unlist(strsplit(as.character(tmp[5]),split=",")),V5=unlist(strsplit(as.character(tmp[6]),split=","))))))
+
+gtf = merge(updated,byExon,by="alt.id")
+gtf$V2 = "CuffLinks"
+gtf$V3 = "exon"
+gtf$V8 = "."
+gtf$V9 = paste('gene_id "',gtf$gene_id.new,'"; transcript_id "',gtf$alt.id,'"; original "',gtf$transcript_id,'";',sep="")
+
+gtf = gtf[,paste("V",c(1:9),sep="")]
+gtf = gtf[!duplicated(gtf),]
+
+if(printNow) write.table(gtf,file="RNA-Seq.Brain/reconstruction/reconstruct.brain.COMBINED.19Feb15.gtf",row.names=FALSE,col.names=FALSE,quote=FALSE,sep="\t")
+```
+
