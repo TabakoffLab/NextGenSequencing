@@ -1,0 +1,46 @@
+Create Files for RSEM
+========================================================
+
+1. Add gene IDs to GTF
+2. Remove some chromosomes
+3. Remove pseudogenes
+4. Add spikes
+```{r}
+rm(list=ls())
+options(stringsAsFactors=FALSE)
+source.path = "/Volumes/saba/NextGenSeq/source/"
+
+orig.gtf = read.table(file=paste(source.path,"ensemblGenes.RGSC5.0.rn5.gtf",sep=""),sep="\t",header=FALSE)
+anno = read.table(file=paste(source.path,"ensemblGenes.Rnor5.0.09Feb15.txt",sep=""),sep="\t",header=TRUE)
+
+orig.gtf$transcript_id = unlist(lapply(strsplit(orig.gtf$V9,split=";",fixed=TRUE),function(a) gsub(" transcript_id ","",a[grep("transcript_id",a)])))
+
+gtf = merge(orig.gtf,anno,by.x="transcript_id",by.y="Ensembl.Transcript.ID")
+length(unique(gtf$transcript_id))
+## 30,404 transcripts
+
+gtf = gtf[gtf$V1 %in% paste("chr",c(1:20,"X"),sep=""),]
+length(unique(gtf$transcript_id))
+## 30,272 transcripts
+
+gtf = gtf[gtf$Gene.type!="pseudogene",]
+length(unique(gtf$transcript_id))
+## 28,789 transcripts
+
+gtf$V9 = paste('gene_id "',gtf$Ensembl.Gene.ID,'"; transcript_id "',gtf$transcript_id,'";',sep="")
+
+spikes.gtf = read.table(file="/Volumes/saba/BxH.HxB.Rats/RNA-Seq/spikeSource/ERCC92.gtf",sep="\t",header=FALSE)
+spikes.gtf$V9 =  paste('gene_id "',spikes.gtf$V1,'"; transcript_id "',spikes.gtf$V1,'";',sep="")
+
+clean.gtf = rbind(gtf[,paste("V",1:9,sep="")],spikes.gtf)
+
+write.table(clean.gtf,file=paste(source.path,"ensemblGenes.RGSC5.0.rn5.CLEANED.gtf",sep=""),sep="\t",row.names=FALSE,col.names=FALSE,quote=FALSE)
+
+```
+
+You can also embed plots, for example:
+
+```{r fig.width=7, fig.height=6}
+plot(cars)
+```
+

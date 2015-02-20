@@ -270,9 +270,388 @@ hr {
 Total Number of Read Fragments:  4,516,050,120<br/>
 Average Number of Paired End Reads Per Sample: 141,126,566  </p>
 
-<h2>3. Trim reads for adaptors and for quality - RUNNING (job number 44238)</h2>
+<h2>3. Trim reads for adaptors and for quality - DONE</h2>
 
-<pre><code>qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/trimReads.brain.batch3.sh
+<pre><code>qsub -q compute /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/trimReads.brain.batch3.sh
+</code></pre>
+
+<h2>4. Characterize Trimmed Reads</h2>
+
+<pre><code>qsub -q compute /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/countTrimmedReads.batch3.sh
+qsub -q compute /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/countTrimmedReads.batch3.v2.sh
+
+qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/compressRawReads.batch3.sh
+
+</code></pre>
+
+<h2>Trimmed Reads/Read Fragments</h2>
+
+<table><thead>
+<tr>
+<th align="center">sample</th>
+<th align="center">lane</th>
+<th align="center">Number of Paired-End Reads</th>
+<th align="center">Number of Read Fragments</th>
+<th align="center">Average Read Fragment Length After Trimming (first read fragment)</th>
+<th align="center">Average Read Fragment Length After Trimming (second read fragment)</th>
+<th align="center">Number of Read Fragments After Trimming</th>
+<th align="center">Percent of Read Fragments That Remained After Trimming</th>
+</tr>
+</thead><tbody>
+<tr>
+<td align="center">BNLX_1</td>
+<td align="center">L008</td>
+<td align="center">149,664,346</td>
+<td align="center">299,328,692</td>
+<td align="center">99.0</td>
+<td align="center">98.8</td>
+<td align="center">298,727,508</td>
+<td align="center">99.8%</td>
+</tr>
+<tr>
+<td align="center">BNLX_2</td>
+<td align="center">L006</td>
+<td align="center">147,573,455</td>
+<td align="center">295,146,910</td>
+<td align="center">98.6</td>
+<td align="center">98.2</td>
+<td align="center">293,935,996</td>
+<td align="center">99.6%</td>
+</tr>
+<tr>
+<td align="center">BXH10_1</td>
+<td align="center">L002</td>
+<td align="center">136,119,802</td>
+<td align="center">272,239,604</td>
+<td align="center">98.4</td>
+<td align="center">98.1</td>
+<td align="center">271,674,998</td>
+<td align="center">99.8%</td>
+</tr>
+<tr>
+<td align="center">BXH10_2</td>
+<td align="center">L005</td>
+<td align="center">143,559,349</td>
+<td align="center">287,118,698</td>
+<td align="center">98.9</td>
+<td align="center">98.6</td>
+<td align="center">286,239,662</td>
+<td align="center">99.7%</td>
+</tr>
+<tr>
+<td align="center">BXH11_1</td>
+<td align="center">L005</td>
+<td align="center">143,165,227</td>
+<td align="center">286,330,454</td>
+<td align="center">98.7</td>
+<td align="center">98.5</td>
+<td align="center">285,653,232</td>
+<td align="center">99.8%</td>
+</tr>
+<tr>
+<td align="center">BXH11_2</td>
+<td align="center">L002</td>
+<td align="center">142,142,287</td>
+<td align="center">284,284,574</td>
+<td align="center">98.3</td>
+<td align="center">97.9</td>
+<td align="center">283,596,826</td>
+<td align="center">99.8%</td>
+</tr>
+<tr>
+<td align="center">BXH13_1</td>
+<td align="center">L008</td>
+<td align="center">136,469,855</td>
+<td align="center">272,939,710</td>
+<td align="center">98.2</td>
+<td align="center">97.8</td>
+<td align="center">271,713,284</td>
+<td align="center">99.6%</td>
+</tr>
+<tr>
+<td align="center">BXH3_1</td>
+<td align="center">L001</td>
+<td align="center">148,297,982</td>
+<td align="center">296,595,964</td>
+<td align="center">98.3</td>
+<td align="center">98.1</td>
+<td align="center">295,623,226</td>
+<td align="center">99.7%</td>
+</tr>
+<tr>
+<td align="center">BXH3_2</td>
+<td align="center">L004</td>
+<td align="center">138,276,728</td>
+<td align="center">276,553,456</td>
+<td align="center">97.4</td>
+<td align="center">97.1</td>
+<td align="center">275,457,470</td>
+<td align="center">99.6%</td>
+</tr>
+<tr>
+<td align="center">BXH5_1</td>
+<td align="center">L003</td>
+<td align="center">141,525,963</td>
+<td align="center">283,051,926</td>
+<td align="center">98.9</td>
+<td align="center">98.6</td>
+<td align="center">282,020,926</td>
+<td align="center">99.6%</td>
+</tr>
+<tr>
+<td align="center">BXH6_1</td>
+<td align="center">L004</td>
+<td align="center">140,776,240</td>
+<td align="center">281,552,480</td>
+<td align="center">99.0</td>
+<td align="center">98.8</td>
+<td align="center">280,987,326</td>
+<td align="center">99.8%</td>
+</tr>
+<tr>
+<td align="center">BXH6_2</td>
+<td align="center">L003</td>
+<td align="center">146,263,134</td>
+<td align="center">292,526,268</td>
+<td align="center">98.9</td>
+<td align="center">98.6</td>
+<td align="center">291,702,468</td>
+<td align="center">99.7%</td>
+</tr>
+<tr>
+<td align="center">BXH8_1</td>
+<td align="center">L006</td>
+<td align="center">130,847,183</td>
+<td align="center">261,694,366</td>
+<td align="center">98.7</td>
+<td align="center">98.5</td>
+<td align="center">260,969,364</td>
+<td align="center">99.7%</td>
+</tr>
+<tr>
+<td align="center">BXH9_1</td>
+<td align="center">L007</td>
+<td align="center">132,797,003</td>
+<td align="center">265,594,006</td>
+<td align="center">98.8</td>
+<td align="center">98.5</td>
+<td align="center">265,022,346</td>
+<td align="center">99.8%</td>
+</tr>
+<tr>
+<td align="center">BXH9_2</td>
+<td align="center">L001</td>
+<td align="center">133,839,175</td>
+<td align="center">267,678,350</td>
+<td align="center">99.0</td>
+<td align="center">98.7</td>
+<td align="center">266,499,626</td>
+<td align="center">99.6%</td>
+</tr>
+<tr>
+<td align="center">SHR_1</td>
+<td align="center">L007</td>
+<td align="center">146,707,331</td>
+<td align="center">293,414,662</td>
+<td align="center">98.5</td>
+<td align="center">98.1</td>
+<td align="center">292,141,722</td>
+<td align="center">99.6%</td>
+</tr>
+</tbody></table>
+
+<p>Total Number of Paired End Reads After Trimming: 2,250,982,990<br/>
+Total Number of Read Fragments After Trimming:  4,501,965,980<br/>
+Average Number of Paired End Reads Per Sample After Trimming: 281,372,874  </p>
+
+<h2>5. Align to ribosomal RNA - DONE</h2>
+
+<pre><code>qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/alignTo.rRNA.brain.totalRNA.batch3.sh
+qsub -q compute /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/restart.rRNAalign.batch3.sh
+
+qsub -q compute -N BXH3_1 -l nodes=1:ppn=12 -V -- /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/tophat.rRNA.batch3.sh /storage/saba/Rat.RI.Brain.totalRNA.batch3/rawReads/ BXH3_1brain_CGATGT_L001 /storage/saba/index/rmsk.rRNA.RGSC5.0.rn5 AGATCGGAAGAGCACACGTCTGAACTCCAGTCACCCGTCCCGATCTCGTATGCCGTCTTCTGCTTG AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT
+qsub -q compute -N BXH6_1 -l nodes=1:ppn=12 -V -- /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/tophat.rRNA.batch3.sh /storage/saba/Rat.RI.Brain.totalRNA.batch3/rawReads/ BXH6_1brain_TGACCA_L004 /storage/saba/index/rmsk.rRNA.RGSC5.0.rn5 AGATCGGAAGAGCACACGTCTGAACTCCAGTCACCCGTCCCGATCTCGTATGCCGTCTTCTGCTTG AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT
+qsub -q compute -N BXH6_2 -l nodes=1:ppn=12 -V -- /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/tophat.rRNA.batch3.sh /storage/saba/Rat.RI.Brain.totalRNA.batch3/rawReads/ BXH6_2brain_GTGAAA_L003 /storage/saba/index/rmsk.rRNA.RGSC5.0.rn5 AGATCGGAAGAGCACACGTCTGAACTCCAGTCACCCGTCCCGATCTCGTATGCCGTCTTCTGCTTG AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT
+qsub -q compute -N BXH8_1 -l nodes=1:ppn=12 -V -- /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/tophat.rRNA.batch3.sh /storage/saba/Rat.RI.Brain.totalRNA.batch3/rawReads/ BXH8_1brain_AGTTCC_L006 /storage/saba/index/rmsk.rRNA.RGSC5.0.rn5 AGATCGGAAGAGCACACGTCTGAACTCCAGTCACCCGTCCCGATCTCGTATGCCGTCTTCTGCTTG AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT
+qsub -q compute -N BXH9_2 -l nodes=1:ppn=12 -V -- /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/tophat.rRNA.batch3.sh /storage/saba/Rat.RI.Brain.totalRNA.batch3/rawReads/ BXH9_2brain_CAGATC_L001 /storage/saba/index/rmsk.rRNA.RGSC5.0.rn5 AGATCGGAAGAGCACACGTCTGAACTCCAGTCACCCGTCCCGATCTCGTATGCCGTCTTCTGCTTG AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT
+qsub -q compute -N SHR_1.b3 -l nodes=1:ppn=12 -V -- /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/tophat.rRNA.batch3.sh /storage/saba/Rat.RI.Brain.totalRNA.batch3/rawReads/ SHR_1brain_ATGTCA_L007 /storage/saba/index/rmsk.rRNA.RGSC5.0.rn5 AGATCGGAAGAGCACACGTCTGAACTCCAGTCACCCGTCCCGATCTCGTATGCCGTCTTCTGCTTG AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT
+qsub -q compute -N BXH9_1 -l nodes=1:ppn=12 -V -- /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/tophat.rRNA.batch3.sh /storage/saba/Rat.RI.Brain.totalRNA.batch3/rawReads/ BXH9_1brain_AGTCAA_L007 /storage/saba/index/rmsk.rRNA.RGSC5.0.rn5 AGATCGGAAGAGCACACGTCTGAACTCCAGTCACCCGTCCCGATCTCGTATGCCGTCTTCTGCTTG AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT
+qsub -q compute -N BXH11_2 -l nodes=1:ppn=12 -V -- /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/tophat.rRNA.batch3.sh /storage/saba/Rat.RI.Brain.totalRNA.batch3/rawReads/ BXH11_2brain_CTTGTA_L002 /storage/saba/index/rmsk.rRNA.RGSC5.0.rn5 AGATCGGAAGAGCACACGTCTGAACTCCAGTCACCCGTCCCGATCTCGTATGCCGTCTTCTGCTTG AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT
+qsub -q compute -N BXH3_2 -l nodes=1:ppn=12 -V -- /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/tophat.rRNA.batch3.sh /storage/saba/Rat.RI.Brain.totalRNA.batch3/rawReads/ BXH3_2brain_CCGTCC_L004 /storage/saba/index/rmsk.rRNA.RGSC5.0.rn5 AGATCGGAAGAGCACACGTCTGAACTCCAGTCACCCGTCCCGATCTCGTATGCCGTCTTCTGCTTG AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT
+qsub -q compute -N BXH5_1 -l nodes=1:ppn=12 -V -- /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/tophat.rRNA.batch3.sh /storage/saba/Rat.RI.Brain.totalRNA.batch3/rawReads/ BXH5_1brain_ACAGTG_L003 /storage/saba/index/rmsk.rRNA.RGSC5.0.rn5 AGATCGGAAGAGCACACGTCTGAACTCCAGTCACCCGTCCCGATCTCGTATGCCGTCTTCTGCTTG AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT
+</code></pre>
+
+<p><strong>move files</strong></p>
+
+<h2>Proportion of Reads Aligned to rRNA</h2>
+
+<p>This batch was subjected to 2 washes with riboZero.  </p>
+
+<table><thead>
+<tr>
+<th align="center">Sample</th>
+<th align="center">Number of Paired-End Reads After Trimming</th>
+<th align="center">Number of Paired-End Reads with at Least One Fragment Aligned to rRNA</th>
+<th align="center">Percent of Paired-End Reads Aligned to rRNA</th>
+<th align="center">Number of Paired-End Reads NOT Aligned to rRNA</th>
+</tr>
+</thead><tbody>
+<tr>
+<td align="center">BNLX_1</td>
+<td align="center">149,363,754</td>
+<td align="center">6,608,664</td>
+<td align="center">4.4%</td>
+<td align="center">142,755,090</td>
+</tr>
+<tr>
+<td align="center">BXH10_1</td>
+<td align="center">135,837,499</td>
+<td align="center">4,836,675</td>
+<td align="center">3.6%</td>
+<td align="center">131,000,824</td>
+</tr>
+<tr>
+<td align="center">BXH11_1</td>
+<td align="center">142,826,616</td>
+<td align="center">13,559,766</td>
+<td align="center">9.5%</td>
+<td align="center">129,266,850</td>
+</tr>
+<tr>
+<td align="center">BXH13_1</td>
+<td align="center">135,856,642</td>
+<td align="center">10,267,331</td>
+<td align="center">7.6%</td>
+<td align="center">125,589,311</td>
+</tr>
+<tr>
+<td align="center">BXH3_2</td>
+<td align="center">137,728,735</td>
+<td align="center">45,072,766</td>
+<td align="center">32.7%</td>
+<td align="center">92,655,969</td>
+</tr>
+<tr>
+<td align="center">BXH6_1</td>
+<td align="center">140,493,663</td>
+<td align="center">11,004,714</td>
+<td align="center">7.8%</td>
+<td align="center">129,488,949</td>
+</tr>
+<tr>
+<td align="center">BXH8_1</td>
+<td align="center">130,484,682</td>
+<td align="center">5,721,968</td>
+<td align="center">4.4%</td>
+<td align="center">124,762,714</td>
+</tr>
+<tr>
+<td align="center">BXH9_2</td>
+<td align="center">133,249,813</td>
+<td align="center">24,644,940</td>
+<td align="center">18.5%</td>
+<td align="center">108,604,873</td>
+</tr>
+<tr>
+<td align="center">BNLX_2</td>
+<td align="center">146,967,998</td>
+<td align="center">16,456,059</td>
+<td align="center">11.2%</td>
+<td align="center">130,511,939</td>
+</tr>
+<tr>
+<td align="center">BXH10_2</td>
+<td align="center">143,119,831</td>
+<td align="center">7,338,128</td>
+<td align="center">5.1%</td>
+<td align="center">135,781,703</td>
+</tr>
+<tr>
+<td align="center">BXH11_2</td>
+<td align="center">141,798,413</td>
+<td align="center">22,051,108</td>
+<td align="center">15.6%</td>
+<td align="center">119,747,305</td>
+</tr>
+<tr>
+<td align="center">BXH3_1</td>
+<td align="center">147,811,613</td>
+<td align="center">13,701,206</td>
+<td align="center">9.3%</td>
+<td align="center">134,110,407</td>
+</tr>
+<tr>
+<td align="center">BXH5_1</td>
+<td align="center">141,010,463</td>
+<td align="center">6,091,831</td>
+<td align="center">4.3%</td>
+<td align="center">134,918,632</td>
+</tr>
+<tr>
+<td align="center">BXH6_2</td>
+<td align="center">145,851,234</td>
+<td align="center">8,285,150</td>
+<td align="center">5.7%</td>
+<td align="center">137,566,084</td>
+</tr>
+<tr>
+<td align="center">BXH9_1</td>
+<td align="center">132,511,173</td>
+<td align="center">50,227,904</td>
+<td align="center">37.9%</td>
+<td align="center">82,283,269</td>
+</tr>
+<tr>
+<td align="center">SHR_1</td>
+<td align="center">146,070,861</td>
+<td align="center">11,993,557</td>
+<td align="center">8.2%</td>
+<td align="center">134,077,304</td>
+</tr>
+</tbody></table>
+
+<h2>6. Convert to fastq files</h2>
+
+<pre><code>qsub -q compute -N BNLX_2 -l nodes=1:ppn=12 -V -- /storage/saba/sharedPrograms/bamToFastQ_py.sh /storage/saba/Rat.RI.Brain.totalRNA.batch3/alignedReads/BNLX_2.rRNA
+qsub -q compute -N BXH10_1 -l nodes=1:ppn=12 -V -- /storage/saba/sharedPrograms/bamToFastQ_py.sh /storage/saba/Rat.RI.Brain.totalRNA.batch3/alignedReads/BXH10_1.rRNA
+qsub -q compute -N BXH10_2 -l nodes=1:ppn=12 -V -- /storage/saba/sharedPrograms/bamToFastQ_py.sh /storage/saba/Rat.RI.Brain.totalRNA.batch3/alignedReads/BXH10_2.rRNA
+qsub -q compute -N BXH11_1 -l nodes=1:ppn=12 -V -- /storage/saba/sharedPrograms/bamToFastQ_py.sh /storage/saba/Rat.RI.Brain.totalRNA.batch3/alignedReads/BXH11_1.rRNA
+qsub -q compute -N BXH11_2 -l nodes=1:ppn=12 -V -- /storage/saba/sharedPrograms/bamToFastQ_py.sh /storage/saba/Rat.RI.Brain.totalRNA.batch3/alignedReads/BXH11_2.rRNA
+qsub -q compute -N BXH13_1 -l nodes=1:ppn=12 -V -- /storage/saba/sharedPrograms/bamToFastQ_py.sh /storage/saba/Rat.RI.Brain.totalRNA.batch3/alignedReads/BXH13_1.rRNA
+qsub -q compute -N BXH3_1 -l nodes=1:ppn=12 -V -- /storage/saba/sharedPrograms/bamToFastQ_py.sh /storage/saba/Rat.RI.Brain.totalRNA.batch3/alignedReads/BXH3_1.rRNA
+qsub -q compute -N BXH3_2 -l nodes=1:ppn=12 -V -- /storage/saba/sharedPrograms/bamToFastQ_py.sh /storage/saba/Rat.RI.Brain.totalRNA.batch3/alignedReads/BXH3_2.rRNA
+qsub -q compute -N BXH5_1 -l nodes=1:ppn=12 -V -- /storage/saba/sharedPrograms/bamToFastQ_py.sh /storage/saba/Rat.RI.Brain.totalRNA.batch3/alignedReads/BXH5_1.rRNA
+qsub -q compute -N BXH6_1 -l nodes=1:ppn=12 -V -- /storage/saba/sharedPrograms/bamToFastQ_py.sh /storage/saba/Rat.RI.Brain.totalRNA.batch3/alignedReads/BXH6_1.rRNA
+qsub -q compute -N BXH6_2 -l nodes=1:ppn=12 -V -- /storage/saba/sharedPrograms/bamToFastQ_py.sh /storage/saba/Rat.RI.Brain.totalRNA.batch3/alignedReads/BXH6_2.rRNA
+qsub -q compute -N BXH8_1 -l nodes=1:ppn=12 -V -- /storage/saba/sharedPrograms/bamToFastQ_py.sh /storage/saba/Rat.RI.Brain.totalRNA.batch3/alignedReads/BXH8_1.rRNA
+qsub -q compute -N BXH9_1 -l nodes=1:ppn=12 -V -- /storage/saba/sharedPrograms/bamToFastQ_py.sh /storage/saba/Rat.RI.Brain.totalRNA.batch3/alignedReads/BXH9_1.rRNA
+qsub -q compute -N BXH9_2 -l nodes=1:ppn=12 -V -- /storage/saba/sharedPrograms/bamToFastQ_py.sh /storage/saba/Rat.RI.Brain.totalRNA.batch3/alignedReads/BXH9_2.rRNA
+qsub -q compute -N SHR_1 -l nodes=1:ppn=12 -V -- /storage/saba/sharedPrograms/bamToFastQ_py.sh /storage/saba/Rat.RI.Brain.totalRNA.batch3/alignedReads/SHR_1.rRNA
+</code></pre>
+
+<p>16 out of 16 of the fastq files were created correctly.</p>
+
+<h2>7.  Quantitate using RSEM and Ensembl Transcripts </h2>
+
+<pre><code>qsub -q compute -N quant1 -l nodes=1:ppn=12 -V --  /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/quantRSEM.batch3.sh BNLX_1 5648
+qsub -q compute -N quant2 -l nodes=1:ppn=12 -V --  /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/quantRSEM.batch3.sh BNLX_2 5649
+qsub -q compute -N quant3 -l nodes=1:ppn=12 -V --  /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/quantRSEM.batch3.sh BXH10_1 5650 
+qsub -q compute -N quant4 -l nodes=1:ppn=12 -V --  /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/quantRSEM.batch3.sh BXH10_2 5651
+qsub -q compute -N quant5 -l nodes=1:ppn=12 -V --  /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/quantRSEM.batch3.sh BXH11_1 5652
+qsub -q compute -N quant6 -l nodes=1:ppn=12 -V --  /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/quantRSEM.batch3.sh BXH11_2 5653
+qsub -q compute -N quant7 -l nodes=1:ppn=12 -V --  /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/quantRSEM.batch3.sh BXH13_1 5654
+qsub -q compute -N quant8 -l nodes=1:ppn=12 -V --  /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/quantRSEM.batch3.sh BXH3_1 5655
+qsub -q compute -N quant9 -l nodes=1:ppn=12 -V --  /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/quantRSEM.batch3.sh BXH3_2 5656
+
+
+
+qsub -q compute -N quant10 -l nodes=1:ppn=12 -V --  /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/quantRSEM.batch3.sh BXH5_1 5657
+qsub -q compute -N quant11 -l nodes=1:ppn=12 -V --  /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/quantRSEM.batch3.sh BXH6_1 5658
+qsub -q compute -N quant12 -l nodes=1:ppn=12 -V --  /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/quantRSEM.batch3.sh BXH6_2 5659
+qsub -q compute -N quant13 -l nodes=1:ppn=12 -V --  /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/quantRSEM.batch3.sh BXH8_1 5660
+qsub -q compute -N quant14 -l nodes=1:ppn=12 -V --  /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/quantRSEM.batch3.sh BXH9_1 5661
+qsub -q compute -N quant15 -l nodes=1:ppn=12 -V --  /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/quantRSEM.batch3.sh BXH9_2 5662
+qsub -q compute -N quant16 -l nodes=1:ppn=12 -V --  /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/quantRSEM.batch3.sh SHR_1 5663
 </code></pre>
 
 </body>

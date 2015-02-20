@@ -1,0 +1,3 @@
+  543126812 /storage/saba/Rat.RI.Brain.totalRNA.batch3/alignedReads/BXH10_2.rRNA/unmapped.end1.fq
+  543126812 /storage/saba/Rat.RI.Brain.totalRNA.batch3/alignedReads/BXH10_2.rRNA/unmapped.end2.fq
+ 1086253624 total

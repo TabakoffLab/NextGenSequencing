@@ -1,0 +1,3 @@
+  577600892 /hi-seq/RI.Brain.totalRNA.24Sep14/cleanedReads/HXB1_1.no_rRNA.end1.fq
+  577600892 /hi-seq/RI.Brain.totalRNA.24Sep14/cleanedReads/HXB1_1.no_rRNA.end2.fq
+ 1155201784 total

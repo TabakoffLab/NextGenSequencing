@@ -1,0 +1,3 @@
+  430752396 /hi-seq/RI.Brain.totalRNA.24Sep14/cleanedReads/SHR_1.no_rRNA.end1.fq
+  430752396 /hi-seq/RI.Brain.totalRNA.24Sep14/cleanedReads/SHR_1.no_rRNA.end2.fq
+  861504792 total

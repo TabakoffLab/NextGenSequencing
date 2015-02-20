@@ -1,0 +1,3 @@
+  245226460 /hi-seq/RI.Brain.totalRNA.24Sep14/cleanedReads/BXH2_1.no_rRNA.end1.fq
+  245226460 /hi-seq/RI.Brain.totalRNA.24Sep14/cleanedReads/BXH2_1.no_rRNA.end2.fq
+  490452920 total

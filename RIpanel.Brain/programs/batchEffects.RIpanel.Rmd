@@ -1,0 +1,400 @@
+========================================================
+
+Combine RSEM Values Across Batches
+----------------------------------
+
+```{r}
+rm(list=ls())
+options(stringsAsFactors=FALSE)
+base.path = "/Volumes/saba/BxH.HxB.Rats/RNA-Seq/"
+
+fileListing = read.table(file=paste(base.path,"data/fileListing.brain.26Jan15.txt",sep=""),sep="\t",header=TRUE)
+fileListing$rsemName = paste(toupper(gsub(".b[1-9]","",fileListing$sampleName)),".b",fileListing$batch,sep="")
+#rsemListing = read.table(file=paste(base.path,"data/fileListing.RSEM.txt",sep=""),sep="\t",header=FALSE)
+
+sampleList=fileListing$rsemName
+
+for(i in sampleList){
+  y = read.table(file=paste(base.path,"quantitation/rsem.Ensembl/",i,".genes.results",sep=""),sep="\t",header=TRUE)
+  y=y[,c("gene_id","expected_count")]
+  colnames(y)[grep("count",colnames(y))]=paste(i,"cnt",sep=".")
+  if(i==sampleList[1]) counts=y
+  if(i!=sampleList[1]) counts=merge(counts,y,by=c("gene_id"))
+  }
+
+rownames(counts)=counts$gene_id
+counts=counts[,grep("cnt",colnames(counts))]
+
+## remove samples with less than 10 million aligned reads
+counts=counts[,colSums(counts)>10000000]
+colnames(counts)=gsub(".cnt","",colnames(counts),fixed=TRUE)
+
+## check general clustering
+plot(hclust(as.dist(1-cor(counts,method="spearman"))))
+#definitely see some clustering by batch
+
+## RUV
+library("RUVSeq")
+
+#get spike information
+spikeInfo=read.table(file=paste(base.path,"spikeSource/ERCC_Controls_Analysis.txt",sep=""),sep="\t",header=TRUE)
+controls=spikeInfo$ERCC.ID[spikeInfo$expected.fold.change.ratio==1]
+
+#retain genes if at 5% of samples have more than five reads
+expressed = counts[rowSums(counts>5)>(0.05*ncol(counts)),]
+#17,449 of 25,169 genes retained
+
+genes = rownames(expressed)[grep("ENS",rownames(expressed))]
+spikes = rownames(expressed)[rownames(expressed) %in% controls]
+
+#create expression set
+strains = as.factor(unlist(lapply(strsplit(colnames(expressed),split="_",fixed=TRUE),function(a) a[1])))
+batch = as.factor(unlist(lapply(strsplit(colnames(expressed),split=".",fixed=TRUE),function(a) a[2])))
+set=newSeqExpressionSet(as.matrix(round(expressed)),phenoData=data.frame(strains,batch,row.names=colnames(expressed)))
+
+#library(RColorBrewer)
+#colors <- brewer.pal(12,"Set2")
+
+plotRLE(set,outline=FALSE)
+plotPCA(set)
+
+set=betweenLaneNormalization(set,which="upper")
+plotRLE(set)
+plotPCA(set)
+plot(hclust(as.dist(1-cor(normCounts(set),method="spearman"))))
+
+set1.2 = RUVg(set,spikes,k=2)
+pData(set1.2)
+#pData(set1)[order(pData(set1)$W_3),]
+plotPCA(set1.2)
+plot(hclust(as.dist(1-cor(normCounts(set1.2),method="spearman"))))
+
+
+design = model.matrix(~ strains + W_1 + W_2,data=pData(set1.2))
+y = DGEList(counts=counts(set),group=strains)
+y = calcNormFactors(y, method="upperquartile")
+y=estimateGLMCommonDisp(y,design)
+y=estimateGLMTagwiseDisp(y,design)
+
+fit=glmFit(y,design)
+lrt=glmLRT(fit,coef=colnames(design)[grep("strains",colnames(design))])
+
+topTags(lrt)
+plot(hist(lrt$table$PValue))
+
+strainCoef = fit$coefficients[,grep("strains",colnames(fit$coefficients))]
+colnames(strainCoef) = gsub("strains","",colnames(strainCoef)) 
+strainEst = cbind(BNLX=rep(0,nrow(strainCoef)),strainCoef)
+
+plot(hclust(as.dist(1-cor(strainCoef[-grep("ERCC",rownames(strainCoef)),],method="spearman"))))
+
+res1.2=rowSums(residuals(fit,type="deviance")**2)
+
+##################################
+##  2) Empirical Control Genes  ##
+##################################
+
+design = model.matrix(~ strains,data=pData(set))
+y = DGEList(counts=counts(set),group=strains)
+y = calcNormFactors(y, method="upperquartile")
+y=estimateGLMCommonDisp(y,design)
+y=estimateGLMTagwiseDisp(y,design)
+
+fit=glmFit(y,design)
+lrt=glmLRT(fit,coef=colnames(design)[grep("strains",colnames(design))])
+res.strainOnly=rowSums(residuals(fit,type="deviance")**2)
+
+top = topTags(lrt,n=nrow(set))$table
+empirical=rownames(set)[which(!(rownames(set) %in% rownames(top)[1:5000]))]
+
+set2.2 = RUVg(set, empirical,k=2)
+
+plotPCA(set2.2)
+plot(hclust(as.dist(1-cor(normCounts(set2.2),method="spearman"))))
+## still a significant batch effect
+
+design = model.matrix(~ strains + W_1 + W_2,data=pData(set2.2))
+y = DGEList(counts=counts(set),group=strains)
+y = calcNormFactors(y, method="upperquartile")
+y=estimateGLMCommonDisp(y,design)
+y=estimateGLMTagwiseDisp(y,design)
+
+fit=glmFit(y,design)
+lrt=glmLRT(fit,coef=colnames(design)[grep("strains",colnames(design))])
+
+strainCoef = fit$coefficients[,grep("strains",colnames(fit$coefficients))]
+colnames(strainCoef) = gsub("strains","",colnames(strainCoef)) 
+strainEst = cbind(BNLX=rep(0,nrow(strainCoef)),strainCoef)
+
+plot(hclust(as.dist(1-cor(strainCoef[-grep("ERCC",rownames(strainCoef)),],method="spearman"))))
+
+res2.2=rowSums(residuals(fit,type="deviance")**2)
+
+#############################
+##  3) Replicated Samples  ##
+#############################
+
+z=as.character(unique(strains[duplicated(strains)]))
+maxNum=4
+
+#differences = t(sapply(z,function(a) c(which(strains==a),rep(-1,maxNum-length(which(strains==a))))))
+differences = matrix(grep("SHR_1",colnames(set)),nr=1)
+
+set3.2=RUVs(set,genes,k=2,differences)
+plotPCA(set3.2)
+plot(hclust(as.dist(1-cor(normCounts(set3.2),method="spearman"))))
+
+design = model.matrix(~ strains + W_1 + W_2,data=pData(set3.2))
+y = DGEList(counts=counts(set),group=strains)
+y = calcNormFactors(y, method="upperquartile")
+y=estimateGLMCommonDisp(y,design)
+y=estimateGLMTagwiseDisp(y,design)
+
+fit=glmFit(y,design)
+res3.2=rowSums(residuals(fit,type="deviance")**2)
+
+summary(res.strainOnly)
+summary(res1.2)
+summary(res2.2)
+summary(res3.2)
+summary(res4.2)
+
+strainCoef = fit$coefficients[,grep("strains",colnames(fit$coefficients))]
+colnames(strainCoef) = gsub("strains","",colnames(strainCoef)) 
+strainEst = cbind(BNLX=rep(0,nrow(strainCoef)),strainCoef)
+
+plot(hclust(as.dist(1-cor(strainCoef[-grep("ERCC",rownames(strainCoef)),],method="spearman"))))
+
+####################
+##  4) Residuals  ##
+####################
+design = model.matrix(~ strains,data=pData(set))
+y = DGEList(counts=counts(set),group=strains)
+y = calcNormFactors(y, method="upperquartile")
+y=estimateGLMCommonDisp(y,design)
+y=estimateGLMTagwiseDisp(y,design)
+
+fit=glmFit(y,design)
+res=residuals(fit,type="deviance")
+
+set4.2=RUVr(set,genes,k=2,res)
+plotPCA(set4.2)
+plot(hclust(as.dist(1-cor(normCounts(set4.2),method="spearman"))))
+# not much different then with the empirical negative contorls - batch effects still present
+
+design = model.matrix(~ strains + W_1 + W_2,data=pData(set4.2))
+y = DGEList(counts=counts(set),group=strains)
+y = calcNormFactors(y, method="upperquartile")
+y=estimateGLMCommonDisp(y,design)
+y=estimateGLMTagwiseDisp(y,design)
+
+fit=glmFit(y,design)
+res4.2=rowSums(residuals(fit,type="deviance")**2)
+
+strainCoef = fit$coefficients[,grep("strains",colnames(fit$coefficients))]
+colnames(strainCoef) = gsub("strains","",colnames(strainCoef)) 
+strainEst = cbind(BNLX=rep(0,nrow(strainCoef)),strainCoef)
+
+plot(hclust(as.dist(1-cor(strainCoef[-grep("ERCC",rownames(strainCoef)),],method="spearman"))))
+
+
+##  Compare Dendrograms on Normalized Counts  ##
+set1=RUVg(set,spikes,k=10)
+set2=RUVg(set,empirical,k=10)
+set3=RUVs(set,genes,k=10,differences)
+set4=RUVr(set,genes,k=10,res)
+plot(hclust(as.dist(1-cor(normCounts(set1)[-grep("ERCC",rownames(normCounts(set4))),],method="spearman"))))
+
+
+##  Minimize Residuals  ##
+getRes = function(designMatrix){
+  y=DGEList(counts=counts(set),group=strains)
+  y=calcNormFactors(y, method="upperquartile")
+  y=estimateGLMCommonDisp(y,designMatrix)
+  y=estimateGLMTagwiseDisp(y,designMatrix)
+  fit=glmFit(y,designMatrix)
+  res=residuals(fit,type="deviance")
+  return(rowSums(res**2))
+  }
+
+design = model.matrix(~ 1,data=pData(set))
+res.totalVar = getRes(design)
+
+resids = data.frame(gene_id=names(res.totalVar),totalVar=res.totalVar,strainOnly=res.strainOnly,spikes=res1.2,empSpikes=res2.2,sampleReps=res3.2,resids=res4.2)
+
+resids$herit.spikes = 1 - resids$spikes/resids$totalVar
+resids$herit.unadj = 1 - resids$strainOnly/resids$totalVar
+
+plot(resids$herit.unadj,resids$herit.spikes)
+abline(0,1,col="red")
+
+plot(hist(resids$herit.empSpikes-resids$herit.unadj))
+
+sum((resids$strainOnly-resids$empSpikes)>0)/nrow(resids)
+sum((resids$strainOnly-resids$spikes)>0)/nrow(resids)
+sum((resids$strainOnly-resids$sampleReps)>0)/nrow(resids)
+sum((resids$strainOnly-resids$resids)>0)/nrow(resids)
+
+sum((resids$strainOnly-resids$spikes)>0)/nrow(resids)
+sum((resids$strainOnly-resids$sampleReps)>0)/nrow(resids)
+sum((resids$spikes-resids$sampleReps)>0)/nrow(resids)
+
+
+sum(resids$empSpikes==0)/nrow(resids)
+sum(resids$spikes==0)/nrow(resids)
+sum(resids$sampleReps==0)/nrow(resids)
+sum(resids$resids==0)/nrow(resids)
+```
+
+Centering Control Genes
+
+```{r}
+
+ercc = expressed[grep("ERCC",rownames(expressed)),]
+spikeInfo$factor.mix1=1/(2**(spikeInfo$log2.Mix.1.Mix.2./-2))
+spikeInfo$factor.mix2=(2**(spikeInfo$log2.Mix.1.Mix.2./2))
+spike_i = fileListing[match(colnames(new),fileListing$rsemName),"spike"]
+
+
+mix1=spikeInfo[match(rownames(ercc),spikeInfo$ERCC.ID),"factor.mix1"]
+mix2=spikeInfo[match(rownames(ercc),spikeInfo$ERCC.ID),"factor.mix2"]
+
+m1 = as.numeric(matrix(spike_i==1,nc=1)) %*% matrix(mix1,nr=1)
+m2 = as.numeric(matrix(spike_i==2,nc=1)) %*% matrix(mix2,nr=1)
+
+centered = t(m1)*ercc + t(m2)*ercc
+
+newSet = newSeqExpressionSet(as.matrix(round(rbind(expressed[genes,],centered))),phenoData=data.frame(strains,batch,row.names=colnames(expressed)))
+
+set5.2 = RUVg(newSet,rownames(centered),k=2)
+pData(set5.2)
+#pData(set1)[order(pData(set1)$W_3),]
+plotPCA(set5.2)
+plot(hclust(as.dist(1-cor(normCounts(set5.2),method="spearman"))))
+
+
+design = model.matrix(~ strains + W_1 + W_2,data=pData(set5.2))
+y = DGEList(counts=counts(set),group=strains)
+y = calcNormFactors(y, method="upperquartile")
+y=estimateGLMCommonDisp(y,design)
+y=estimateGLMTagwiseDisp(y,design)
+
+fit=glmFit(y,design)
+lrt=glmLRT(fit,coef=colnames(design)[grep("strains",colnames(design))])
+lrt.W1=glmLRT(fit,coef="W_1")
+sum(lrt.W1$table$PValue<0.01)
+plot(hist(lrt.W1$table$PValue))
+
+strainCoef = fit$coefficients[,grep("strains",colnames(fit$coefficients))]
+colnames(strainCoef) = gsub("strains","",colnames(strainCoef)) 
+strainEst = cbind(BNLX=rep(0,nrow(strainCoef)),strainCoef)
+
+#strainMeans = strainEst + fit$coefficients[,1]
+plot(hclust(as.dist(1-cor(strainCoef[-grep("ERCC",rownames(strainEst)),],method="spearman"))))
+
+res5.2=rowSums(residuals(fit,type="deviance")**2)
+
+resids = data.frame(gene_id=names(res.totalVar),totalVar=res.totalVar,strainOnly=res.strainOnly,spikes=res1.2,empSpikes=res2.2,sampleReps=res3.2,resids=res4.2,allSpikes=res5.2)
+
+resids$herit.spikes = 1 - resids$spikes/resids$totalVar
+resids$herit.unadj = 1 - resids$strainOnly/resids$totalVar
+resids$herit.allSpikes = 1 - resids$allSpikes/resids$totalVar
+
+sum((resids$strainOnly-resids$spikes)>0)/nrow(resids)
+sum((resids$strainOnly-resids$allSpikes)>0)/nrow(resids)
+sum((resids$spikes-resids$allSpikes)>0)/nrow(resids)
+
+plot(hist(resids$spikes-resids$allSpikes))
+```
+
+
+```
+set3=RUVs(set,genes,k=1,differences)
+colnames(pData(set3))[3] = "spikes"
+set1=RUVg(set3,spikes,k=1)
+colnames(pData(set1))[3:4] = c("W_1","W_2")
+
+plotPCA(set1)
+plot(hclust(as.dist(1-cor(normCounts(set1),method="spearman"))))
+
+
+design = model.matrix(~ strains + W_1 + W_2,data=pData(set1))
+y = DGEList(counts=counts(set),group=strains)
+y = calcNormFactors(y, method="upperquartile")
+y=estimateGLMCommonDisp(y,design)
+y=estimateGLMTagwiseDisp(y,design)
+
+fit=glmFit(y,design)
+res1=rowSums(residuals(fit,type="deviance")**2)
+
+sum((resids$strainOnly-res1)>0)/nrow(resids)
+sum((resids$strainOnly-resids$spikes)>0)/nrow(resids)
+sum((resids$strainOnly-resids$sampleReps)>0)/nrow(resids)
+sum((resids$spikes-resids$sampleReps)>0)/nrow(resids)
+sum((res1-resids$sampleReps)>0)/nrow(resids)
+sum((res1-resids$spikes)>0)/nrow(resids)
+
+```
+
+```{r}
+## Differential Expression
+library(limma)
+library(DESeq) 
+
+counts = counts(set)
+counts = counts[,!(colnames(counts) %in% c("HXB20_1.b2","SHR_2.b1","BNLX_1.b3","HXB2_1.b1"))]
+
+strains = as.factor(unlist(lapply(strsplit(colnames(counts),split="_",fixed=TRUE),function(a) a[1])))
+batch = as.factor(unlist(lapply(strsplit(colnames(counts),split=".",fixed=TRUE),function(a) a[2])))
+
+expSet=newSeqExpressionSet(as.matrix(counts),phenoData=data.frame(strains,batch,row.names=colnames(counts)))
+
+differences = matrix(grep("SHR_1",colnames(expSet)),nr=1)
+#expSet=RUVs(expSet,genes,k=2,differences)
+expSet=RUVg(expSet,spikes,k=2)
+
+
+##  DESeq Size Factors
+cds = newCountDataSet(counts, pData(expSet)$strains)
+cds = estimateSizeFactors(cds)
+
+##  Voom Expression Estimates
+design = model.matrix(~ strains,data=pData(expSet))
+
+voomed.librarySize = voom(counts,design=design,normalize.method="none",lib.size=sizeFactors(cds))
+
+voomed = voomed.librarySize$E
+
+##  Examine Principal Components 
+PCA = prcomp(voomed,scale=TRUE)
+PC1.results = summary(aov(as.numeric(PCA$rotation[,1]) ~ pData(expSet)$strains))
+PC2.results = summary(aov(as.numeric(PCA$rotation[,2]) ~ pData(expSet)$strains))
+
+summary(aov(as.numeric(PCA$rotation[,1]) ~ pData(expSet)$batch))
+summary(aov(as.numeric(PCA$rotation[,2]) ~ pData(expSet)$batch))
+
+summary(aov(as.numeric(PCA$rotation[,1]) ~ pData(expSet)$W_1))
+summary(aov(as.numeric(PCA$rotation[,2]) ~ pData(expSet)$W_1))
+
+summary(aov(as.numeric(PCA$rotation[,1]) ~ pData(expSet)$W_2))
+summary(aov(as.numeric(PCA$rotation[,2]) ~ pData(expSet)$W_2))
+
+design = model.matrix(~ strains + W_1 + W_2,data=pData(expSet))
+fit = lmFit(voomed.librarySize$E,design=design,weights=voomed.librarySize$weights)
+eBayes.results = eBayes(fit)
+
+results = data.frame(transcript=rownames(estCounts),interactionEffect=eBayes.results$p.value[,4])
+
+
+
+sort((PCA$rotation[,1]-mean(PCA$rotation[,1]))/sd(PCA$rotation[,1]))
+
+strainCoef = fit$coefficients[,grep("strains",colnames(fit$coefficients))]
+colnames(strainCoef) = gsub("strains","",colnames(strainCoef)) 
+strainEst = cbind(BNLX=rep(0,nrow(strainCoef)),strainCoef)
+
+#strainMeans = strainEst + fit$coefficients[,1]
+plot(hclust(as.dist(1-cor(strainCoef[-grep("ERCC",rownames(strainEst)),],method="spearman"))))
+
+
+

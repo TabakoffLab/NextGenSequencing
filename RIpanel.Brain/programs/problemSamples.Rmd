@@ -1,65 +1,26 @@
-RI Panel - Batch 1 (Brain) Total RNA RNA-Seq
+Examine Problem Samples
 ========================================================
 
-* 2 samples per strain (SHR, BXH12, HXB13, HXB17, HXB2, HXB25, HXB27, HXB7)
-* tissues received from Dr. Michal Pravenec at Academy of Sciences of the Czech Republic, Prague, Czech Republic
-* ribosomal RNA depleted total RNA
-* 2X100 reads using the stranded protocol
-* sequencing done by Beckman Coulter Genomics - received September 5, 2014
-* synthetic spike-in were added to each sample 
-  * SHR_1, BXH12_1, HXB13_1, HXB17_1, HXB2_1, HXB25_1, HXB27_1, and HXB7_1 have mix 1; SHR_2, BXH12_2, HXB13_2, HXB17_2, HXB2_2, HXB25_2, HXB27_2, and HXB7_2 have mix 2
-  * 4 mL of 1:100 diluted spikes were added after RNA extraction but before rRNA-depletion
-  * Information regarding the spike-ins can be found here: http://products.invitrogen.com/ivgn/product/4456739
+RI Panel - Batch 1 (Brain) Total RNA RNA-Seq
+--------------------------------------------
+* BXH12_2, HXB13_2, HXB27_1, and HXB27_2
 
 1. Unzip Files - DONE
 ---------------
 ```
-qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/unzip.yucca.sh
+qsub -q compute /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/unzip.yucca.HXB13_2.sh
 ```
 
-2. Determine number of reads sent for each sample - DONE
+2. Determine number of reads sent for each sample
 -------------------------------------------------
 ```
-qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/countRawReads.brain.batch1.sh
+qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/countRawReads.HXB13_2.sh
 ```
 
-```{r,echo=FALSE}
-rm(list=ls())
-options(stringsAsFactors=FALSE)
-setwd("~/Documents/NextGenSeq/Rat.RI.Brain.totalRNA.batch1/")
-rawCounts = read.table(file="data/rawReadCounts.10Sep14.txt",sep=" ",header=FALSE,fill=TRUE)
-
-rawCounts$readFrag = as.numeric(rawCounts$V3)
-rawCounts$file = unlist(lapply(strsplit(rawCounts$V1,split="/",fixed=TRUE),function(a) a[length(a)]))
-rawCounts$strain = unlist(lapply(strsplit(rawCounts$file,split="_",fixed=TRUE),function(a) a[1]))
-rawCounts$sampleNum = unlist(lapply(strsplit(rawCounts$file,split="_",fixed=TRUE),function(a) a[2]))
-rawCounts$sample = paste(rawCounts$strain,rawCounts$sampleNum,sep="_")
-
-readFragments = aggregate(rawCounts$readFrag,by=list(sample=rawCounts$sample),sum)
-readFragments$numPairedReads = prettyNum(readFragments$x/2,big.mark=",",scientific=FALSE)
-readFragments$numReadFragments = prettyNum(readFragments$x,big.mark=",",scientific=FALSE)
-
-readFragments=readFragments[,colnames(readFragments)!="x"]
-forPrint = readFragments[,c("sample","numPairedReads","numReadFragments")]
-colnames(forPrint) = c("sample","Number of Paired-End Reads","Number of Read Fragments")
-```
-
-Raw Reads/Read Fragments
----------------------------
-
-```{r, results='asis',echo=FALSE}
-kable(forPrint,align=rep("c",ncol(readFragments)))
-```
-
-Total Number of Paired End Reads: `r prettyNum(sum(rawCounts$readFrag)/2,big.mark=",",scientific=FALSE)`  
-Total Number of Read Fragments:  `r prettyNum(sum(rawCounts$readFrag),big.mark=",",scientific=FALSE)`  
-Average Number of Paired End Reads Per Sample: `r prettyNum(sum(rawCounts$readFrag/2)/length(unique(rawCounts$sample)),big.mark=",",scientific=FALSE)`  
-
-3. Trim reads for adaptors and for quality - DONE
+3. Trim reads for adaptors and for quality
 ---------------
-
 ```
-qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/trimReads.brain.batch1.sh
+qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/trimReads.HXB13_2.sh
 ```
 
 Compress raw reads after trimmed reads become available
@@ -67,60 +28,13 @@ Compress raw reads after trimmed reads become available
 qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/compressRawReads.sh
 ```
 
-
-
-4. Characterize Trimmed Reads - DONE
+4. Characterize Trimmed Reads
 ---------------
 ```
 qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/countTrimmedReads.sh
 ```
 
-```{r,echo=FALSE}
-options(stringsAsFactors=FALSE)
-setwd("~/Documents/NextGenSeq/Rat.RI.Brain.totalRNA.batch1/")
-
-trimmed = read.table(file="data/trimmedReadCounts.18Sep14.txt",sep="",header=FALSE)
-trimmed$file = unlist(lapply(strsplit(trimmed$V1,split="/",fixed=TRUE),function(a) a[6]))
-trimmed$sample = unlist(lapply(strsplit(trimmed$file,split="_",fixed=TRUE),function(a) paste(a[1],a[2],sep="_")))
-trimmed$read = unlist(lapply(strsplit(trimmed$file,split="_",fixed=TRUE),function(a) a[9]))
-trimmed$lane = unlist(lapply(strsplit(trimmed$file,split="_",fixed=TRUE),function(a) a[8]))
-
-bySample = merge(trimmed[trimmed$read=="R1",c("sample","lane","V2","V3")],trimmed[trimmed$read=="R2",c("sample","lane","V2")],by=c("sample","lane"))
-bySample$numReadFrag = bySample$V3*2
-colnames(bySample) = c("sample","lane","avgFragLength.R1","numReads","avgFragLength.R2","numReadFrag")
-
-rawCounts$lane = unlist(lapply(strsplit(rawCounts$file,split="_",fixed=TRUE),function(a) a[8])) 
-rawCounts = rawCounts[grep("_R1",rawCounts$file),]
-
-bySample = merge(rawCounts,bySample,by=c("sample","lane"))
-bySample$pctReadsAfterTrim = paste(sprintf("%.1f",round(100*bySample$numReads/bySample$readFrag,1)),"%",sep="")
-
-bySample$numPairedReads = bySample$readFrag
-bySample$numReadFragments = bySample$readFrag*2
-
-forPrint2 = bySample[,c("sample","lane","numPairedReads","numReadFragments","avgFragLength.R1","avgFragLength.R2","numReadFrag","pctReadsAfterTrim")]
-forPrint2$avgFragLength.R1 = sprintf("%.1f",round(forPrint2$avgFragLength.R1,1))
-forPrint2$avgFragLength.R2 = sprintf("%.1f",round(forPrint2$avgFragLength.R2,1))
-forPrint2$numReadFrag = prettyNum(forPrint2$numReadFrag,big.mark=",",scientific=FALSE)
-forPrint2$numPairedReads = prettyNum(forPrint2$numPairedReads,big.mark=",",scientific=FALSE)
-forPrint2$numReadFragments = prettyNum(forPrint2$numReadFragments,big.mark=",",scientific=FALSE)
-
-
-colnames(forPrint2) = c("sample","lane","Number of Paired-End Reads","Number of Read Fragments","Average Read Fragment Length After Trimming (first read fragment)","Average Read Fragment Length After Trimming (second read fragment)","Number of Read Fragments After Trimming","Percent of Read Fragments That Remained After Trimming")
-```
-
-Trimmed Reads/Read Fragments
----------------------------
-
-```{r, results='asis',echo=FALSE}
-kable(forPrint2,align=rep("c",ncol(forPrint2)))
-```
-
-Total Number of Paired End Reads After Trimming: `r prettyNum(sum(as.numeric(bySample$numReads)),big.mark=",",scientific=FALSE)`  
-Total Number of Read Fragments After Trimming:  `r prettyNum(sum(bySample$numReadFrag),big.mark=",",scientific=FALSE)`  
-Average Number of Paired End Reads Per Sample After Trimming: `r prettyNum(2*mean(bySample$numReads),big.mark=",",scientific=FALSE)`  
-
-5. Align to ribosomal RNA - DONE
+5. Align to ribosomal RNA
 ---------------------------
 ```
 qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/alignTo.rRNA.batch1.10Oct14.sh
@@ -385,4 +299,5 @@ bad = bad[order(rowSums(bad),decreasing=TRUE),]
 
 plot(hclust(as.dist(1-cor(good,method="spearman"))))
 ```
+
 

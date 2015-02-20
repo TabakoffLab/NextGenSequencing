@@ -1,9 +1,10 @@
 #!/bin/bash
 export LC_ALL='C'
-#module add bio/bedtools2
-#module add bio/samtools
-#module add python/3.4.2
+module add bio/bedtools2
+module add bio/samtools
+module add python/3.4.2
 
+SCRIPTS="/storage/saba/sharedPrograms/"
 
 ls -alh $1
 
@@ -23,11 +24,13 @@ wait $SAML
 ls -alh $1
 echo "run python:"
 
-python3 /data2/saba/NextGenSeq/sharedPrograms/filterUnpaired.py $1/left.test.sam $1/right.test.sam | samtools view -bu -t /data2/saba/index/SHR_rn5_wSpikesAndM.fa.fai - | bedtools bamtofastq -i - -fq $1/unmapped.end1.fq &
+PYSCRPT=$SCRIPTS"filterUnpaired.py"
+
+python3 $PYSCRPT $1/left.test.sam $1/right.test.sam | samtools view -bu -t /storage/saba/index/SHR_rn5_wSpikesAndM.fa.fai - | bedtools bamtofastq -i - -fq $1/unmapped.end1.fq &
 
 AWKE1=$!
 
-python3 /data2/saba/NextGenSeq/sharedPrograms/filterUnpaired.py $1/right.test.sam $1/left.test.sam | samtools view -bu -t /data2/saba/index/SHR_rn5_wSpikesAndM.fa.fai - | bedtools bamtofastq -i - -fq $1/unmapped.end2.fq &
+python3 $PYSCRPT $1/right.test.sam $1/left.test.sam | samtools view -bu -t /storage/saba/index/SHR_rn5_wSpikesAndM.fa.fai - | bedtools bamtofastq -i - -fq $1/unmapped.end2.fq &
 
 AWKE2=$!
 

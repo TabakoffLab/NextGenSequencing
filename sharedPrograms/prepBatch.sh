@@ -1,5 +1,8 @@
 #!/bin/bash
 
+
+SCRIPTS="/home/mahaffey/"
+
 PATH1=$1
 #path to gz files ex /storage/mahaffey/batch/rawReads/
 
@@ -16,27 +19,46 @@ echo "PATH: $PATH1"
 #setup file names and paths for L001(R1,R2) and L002(R1,R2)
 ZIPLIST=$PATH1"*.fastq.gz"
 
+MAX=10
+
 if [ "${#ZIPLIST[@]}" -gt "0" ]
 then
 	COUNT=0
+	GTMAX=0
 	for f in $ZIPLIST
 	do
 		LEN=${#f}-3
 		UNZIP=${f:0:$LEN}
 		echo "test unzip: $UNZIP"
+		echo "file:$COUNT"
 		if ! [ -s $UNZIP ]
 		then
+			if [ "$COUNT" -eq "$MAX" ]
+			then
+				GTMAX=1
+				COUNT=0
+				echo "Exceeded Max"
+			fi
+			if [ "$GTMAX" -eq "1" ]
+			then
+				echo "wait $COUNT : ${GZPID[COUNT]}"
+				wait ${GZPID[COUNT]}
+			fi
 			echo "unzipping $f"
 			gzip -d $f &
 			GZPID[$COUNT]=$!
-			COUNT=$COUNT+1
+			COUNT=$[COUNT + 1]
 		fi
 	done
 fi
 
-for pid in $GZPID
+
+for i in `seq 0 $COUNT`;
 do
-	wait $pid
+#for pid in $GZPID
+#do
+	echo "final wait $i : ${GZPID[i]}"
+	wait ${GZPID[i]}
 done
 
 FQLIST=$PATH1"*_L001_R1.fastq"
@@ -53,12 +75,8 @@ do
 	len=${#SAMPLE}-14
 	SAMPLE=${SAMPLE:0:$len}
 	echo "sample $SAMPLE"
-	TEMP="qsub -q compute -N ${SAMPLE:0:9} -j oe -m bea -M $EMAIL -l nodes=1:ppn=12 -V -- /home/mahaffey/nodeBatch.sh $PATH1 $SAMPLE $index $AD1 $AD2"
+	TEMP="qsub -q compute -N ${SAMPLE:0:9} -j oe -m bea -M $EMAIL -l nodes=1:ppn=12 -V -- $SCRIPTS""nodeBatch.sh $PATH1 $SAMPLE $index $AD1 $AD2"
 	echo $TEMP >> $BATCH
 done
 
 chmod ug+x $BATCH
-
-
-
-

@@ -155,7 +155,6 @@ get HXB1_1.rRNA/align_summary.txt rRNA.summary.HXB1_1.txt
 get HXB20_1.rRNA/align_summary.txt rRNA.summary.HXB20_1.txt 
 get HXB23_1.rRNA/align_summary.txt rRNA.summary.HXB23_1.txt 
 get HXB5_1.rRNA/align_summary.txt rRNA.summary.HXB5_1.txt
-
 get HXB31_1.rRNA/align_summary.txt rRNA.summary.HXB31_1.txt 
 
 
@@ -170,7 +169,6 @@ setwd("~/Documents/NextGenSeq/Rat.RI.Brain.totalRNA.batch2/data")
 options(stringsAsFactors=FALSE)
 
 sampleList = unique(forPrint2$sample)
-sampleList = sampleList[sampleList!="HXB31_1"]
 
 rStats = c()
 for(i in sampleList){
@@ -202,6 +200,8 @@ kable(rTable,align=rep("c",ncol(rTable)))
 -----------------------------------------------
 ```
 /data2/saba/sharedPrograms/bamToFastQ.buildup.phenogen.sh /hi-seq/RI.Brain.totalRNA.24Sep14/alignedReads/BXH2_1.rRNA
+wc -l /hi-seq/RI.Brain.totalRNA.24Sep14/cleanedReads/BXH2_1.no_rRNA.*.fq > /hi-seq/RI.Brain.totalRNA.24Sep14/alignedReads/BXH2_1.rRNA/numUnmappedFQ.txt
+
 /data2/saba/sharedPrograms/bamToFastQ.buildup.phenogen.sh /hi-seq/RI.Brain.totalRNA.24Sep14/alignedReads/HXB10_1.rRNA
 /data2/saba/sharedPrograms/bamToFastQ.buildup.phenogen.sh /hi-seq/RI.Brain.totalRNA.24Sep14/alignedReads/HXB1_1.rRNA
 /data2/saba/sharedPrograms/bamToFastQ.buildup.phenogen.sh /hi-seq/RI.Brain.totalRNA.24Sep14/alignedReads/HXB15_1.rRNA
@@ -218,5 +218,98 @@ kable(rTable,align=rep("c",ncol(rTable)))
 /data2/saba/sharedPrograms/bamToFastQ.buildup.phenogen.sh /hi-seq/RI.Brain.totalRNA.24Sep14/alignedReads/HXB5_1.rRNA
 /data2/saba/sharedPrograms/bamToFastQ.buildup.phenogen.sh /hi-seq/RI.Brain.totalRNA.24Sep14/alignedReads/SHR_1.rRNA
 
+qsub -q compute -N HXB31_1 -l nodes=1:ppn=12 -V -- /storage/saba/sharedPrograms/bamToFastQ_py.sh /storage/saba/Rat.RI.Brain.totalRNA.batch2/alignedReads/HXB31_1.rRNA
+get unmapped.end1.fq HXB31_1.no_rRNA.end1.fq
+get unmapped.end2.fq HXB31_1.no_rRNA.end2.fq
+
+
+
+```
+```{r,echo=FALSE,eval=FALSE}
+## NOT R code, but don't want in Md file
+get BXH2_1.rRNA/numUnmappedFQ.txt unmappedFQ.summary.BXH2_1.txt
+get HXB1_1.rRNA/numUnmappedFQ.txt unmappedFQ.summary.HXB1_1.txt
+get HXB10_1.rRNA/numUnmappedFQ.txt unmappedFQ.summary.HXB10_1.txt 
+get HXB15_1.rRNA/numUnmappedFQ.txt unmappedFQ.summary.HXB15_1.txt 
+get HXB18_1.rRNA/numUnmappedFQ.txt unmappedFQ.summary.HXB18_1.txt
+get HXB20_1.rRNA/numUnmappedFQ.txt unmappedFQ.summary.HXB20_1.txt 
+get HXB21_1.rRNA/numUnmappedFQ.txt unmappedFQ.summary.HXB21_1.txt 
+get HXB22_1.rRNA/numUnmappedFQ.txt unmappedFQ.summary.HXB22_1.txt
+get HXB23_1.rRNA/numUnmappedFQ.txt unmappedFQ.summary.HXB23_1.txt 
+get HXB24_1.rRNA/numUnmappedFQ.txt unmappedFQ.summary.HXB24_1.txt 
+get HXB29_1.rRNA/numUnmappedFQ.txt unmappedFQ.summary.HXB29_1.txt 
+get HXB3_1.rRNA/numUnmappedFQ.txt unmappedFQ.summary.HXB3_1.txt 
+get HXB4_1.rRNA/numUnmappedFQ.txt unmappedFQ.summary.HXB4_1.txt
+get HXB5_1.rRNA/numUnmappedFQ.txt unmappedFQ.summary.HXB5_1.txt
+get SHR_1.rRNA/numUnmappedFQ.txt unmappedFQ.summary.SHR_1.txt
+get HXB31_1.rRNA/numUnmappedFQ.txt unmappedFQ.summary.HXB31_1.txt
+```
+
+```{r,echo=FALSE,eval=TRUE}
+setwd("~/Documents/NextGenSeq/Rat.RI.Brain.totalRNA.batch2/data")
+options(stringsAsFactors=FALSE)
+
+unmappedStats = c()
+for(i in sampleList){
+  x = read.table(file=paste("unmappedFQ.summary.",i,".txt",sep=""),sep=" ",header=FALSE,fill=TRUE)
+  sample = i
+  numReads = as.numeric(x[1,3])/4
+  unmappedStats = rbind(unmappedStats,data.frame(sample,numReads))
+}
+
+rownames(unmappedStats) = unmappedStats$sample
+
+numCorrect = sum(as.numeric(gsub(",","",rTable[,"Number of Paired-End Reads NOT Aligned to rRNA"],fixed=TRUE))==unmappedStats[rTable$Sample,2])
+
+numSamples = nrow(unmappedStats)
+```
+
+`r numCorrect` out of `r numSamples` of the fastq files were created correctly.
+
+7.  Quantitate using RSEM and Ensembl Transcripts - RUNNING
+------------------------------------------------------
+```
+export PATH=/usr/local/rsem/bin:$PATH
+
+rsem-prepare-reference --bowtie2 --gtf /data2/saba/NextGenSeq/source/ensemblGenes.RGSC5.0.rn5.CLEANED.gtf /data2/saba/index/rn5_wSpikes.fa /data2/saba/index/RSEM/rn5.ensembl.wSpikes &
+
+##  DONE  ##
+/data2/saba/BxH.HxB.Rats/RNA-Seq/programs/quantRSEM.batch2.sh BXH2_1 646 &
+/data2/saba/BxH.HxB.Rats/RNA-Seq/programs/quantRSEM.batch2.sh HXB10_1 6461 &
+/data2/saba/BxH.HxB.Rats/RNA-Seq/programs/quantRSEM.batch2.sh HXB1_1 6462 &
+/data2/saba/BxH.HxB.Rats/RNA-Seq/programs/quantRSEM.batch2.sh HXB15_1 6463
+/data2/saba/BxH.HxB.Rats/RNA-Seq/programs/quantRSEM.batch2.sh HXB18_1 6464
+/data2/saba/BxH.HxB.Rats/RNA-Seq/programs/quantRSEM.batch2.sh HXB20_1 6465
+/data2/saba/BxH.HxB.Rats/RNA-Seq/programs/quantRSEM.batch2.sh HXB21_1 6466
+/data2/saba/BxH.HxB.Rats/RNA-Seq/programs/quantRSEM.batch2.sh HXB22_1 6467
+/data2/saba/BxH.HxB.Rats/RNA-Seq/programs/quantRSEM.batch2.sh HXB23_1 6468
+/data2/saba/BxH.HxB.Rats/RNA-Seq/programs/quantRSEM.batch2.sh HXB24_1 6469
+/data2/saba/BxH.HxB.Rats/RNA-Seq/programs/quantRSEM.batch2.sh HXB29_1 6470
+/data2/saba/BxH.HxB.Rats/RNA-Seq/programs/quantRSEM.batch2.sh HXB31_1 6471
+/data2/saba/BxH.HxB.Rats/RNA-Seq/programs/quantRSEM.batch2.sh HXB3_1 6472
+/data2/saba/BxH.HxB.Rats/RNA-Seq/programs/quantRSEM.batch2.sh HXB4_1 6473
+/data2/saba/BxH.HxB.Rats/RNA-Seq/programs/quantRSEM.batch2.sh HXB5_1 6474
+/data2/saba/BxH.HxB.Rats/RNA-Seq/programs/quantRSEM.batch2.sh SHR_1 6575
+```
+
+```{r}
+options(stringsAsFactors=FALSE)
+count.path = "/Volumes/saba/BxH.HxB.Rats/RNA-Seq/quantitation/rsem.Ensembl/"
+
+sampleList = c("BXH2_1","HXB10_1","HXB1_1","HXB15_1","HXB18_1")
+
+for(i in sampleList){
+  y = read.table(file=paste(count.path,i,".b2.isoforms.results",sep=""),sep="\t",header=TRUE)
+  x = data.frame(sample=i,spikeCnt=sum(y$expected_count[grep("ERCC",y$transcript_id)]),totCnt=sum(y$expected_count))
+  if(i==sampleList[1]) spikeSummary=x
+  if(i!=sampleList[1]) spikeSummary=rbind(spikeSummary,x)
+  }
+
+spikeSummary$pct = paste(sprintf("%.1f",round(spikeSummary$spikeCnt/spikeSummary$totCnt,2)),"%",sep="")
+
+spikeSummary$spikeCnt = prettyNum(spikeSummary$spikeCnt,big.mark=",",scientific=FALSE)
+spikeSummary$totCnt = prettyNum(spikeSummary$totCnt,big.mark=",",scientific=FALSE)
+
+colnames(spikeSummary) = c("Sample","Expect Read Count - Spikes","Expect Read Count - Total","Percent of Total Reads Aligned to Synthetic Spike-Ins")
 ```
 

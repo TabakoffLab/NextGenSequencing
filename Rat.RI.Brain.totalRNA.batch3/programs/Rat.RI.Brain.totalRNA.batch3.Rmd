@@ -67,32 +67,34 @@ qsub -q compute /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/trimReads.br
 ---------------
 ```
 qsub -q compute /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/countTrimmedReads.batch3.sh
+qsub -q compute /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/countTrimmedReads.batch3.v2.sh
+
 qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/compressRawReads.batch3.sh
 
 ```
 
 ```{r,echo=FALSE}
 options(stringsAsFactors=FALSE)
-setwd("~/Documents/NextGenSeq/Rat.RI.Brain.totalRNA.batch1/")
+setwd("~/Documents/NextGenSeq/Rat.RI.Brain.totalRNA.batch3/")
 
-trimmed = read.table(file="data/trimmedReadCounts.18Sep14.txt",sep="",header=FALSE)
+trimmed = read.table(file="data/trimmedReadCounts.10Feb15.txt",sep="",header=FALSE)
 trimmed$file = unlist(lapply(strsplit(trimmed$V1,split="/",fixed=TRUE),function(a) a[6]))
-trimmed$sample = unlist(lapply(strsplit(trimmed$file,split="_",fixed=TRUE),function(a) paste(a[1],a[2],sep="_")))
-trimmed$read = unlist(lapply(strsplit(trimmed$file,split="_",fixed=TRUE),function(a) a[9]))
-trimmed$lane = unlist(lapply(strsplit(trimmed$file,split="_",fixed=TRUE),function(a) a[8]))
+trimmed$sample = unlist(lapply(strsplit(trimmed$file,split="_",fixed=TRUE),function(a) gsub("brain","",paste(a[1],a[2],sep="_"))))
+trimmed$read = unlist(lapply(strsplit(trimmed$file,split="_",fixed=TRUE),function(a) a[5]))
+trimmed$lane = unlist(lapply(strsplit(trimmed$file,split="_",fixed=TRUE),function(a) a[4]))
 
 bySample = merge(trimmed[trimmed$read=="R1",c("sample","lane","V2","V3")],trimmed[trimmed$read=="R2",c("sample","lane","V2")],by=c("sample","lane"))
 bySample$numReadFrag = bySample$V3*2
 colnames(bySample) = c("sample","lane","avgFragLength.R1","numReads","avgFragLength.R2","numReadFrag")
 
-rawCounts$lane = unlist(lapply(strsplit(rawCounts$file,split="_",fixed=TRUE),function(a) a[8])) 
+rawCounts$lane = unlist(lapply(strsplit(rawCounts$file,split="_",fixed=TRUE),function(a) a[4])) 
 rawCounts = rawCounts[grep("_R1",rawCounts$file),]
 
 bySample = merge(rawCounts,bySample,by=c("sample","lane"))
-bySample$pctReadsAfterTrim = paste(sprintf("%.1f",round(100*bySample$numReads/bySample$readFrag,1)),"%",sep="")
+bySample$pctReadsAfterTrim = paste(sprintf("%.1f",round(100*bySample$numReads/bySample$rawReads,1)),"%",sep="")
 
-bySample$numPairedReads = bySample$readFrag
-bySample$numReadFragments = bySample$readFrag*2
+bySample$numPairedReads = bySample$rawReads
+bySample$numReadFragments = bySample$rawReads*2
 
 forPrint2 = bySample[,c("sample","lane","numPairedReads","numReadFragments","avgFragLength.R1","avgFragLength.R2","numReadFrag","pctReadsAfterTrim")]
 forPrint2$avgFragLength.R1 = sprintf("%.1f",round(forPrint2$avgFragLength.R1,1))
@@ -116,15 +118,13 @@ Total Number of Paired End Reads After Trimming: `r prettyNum(sum(as.numeric(byS
 Total Number of Read Fragments After Trimming:  `r prettyNum(sum(bySample$numReadFrag),big.mark=",",scientific=FALSE)`  
 Average Number of Paired End Reads Per Sample After Trimming: `r prettyNum(2*mean(bySample$numReads),big.mark=",",scientific=FALSE)`  
 
-5. Align to ribosomal RNA - RUNNING
+5. Align to ribosomal RNA - DONE
 ---------------------------
 ```
 qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/alignTo.rRNA.brain.totalRNA.batch3.sh
 qsub -q compute /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/restart.rRNAalign.batch3.sh
 
 qsub -q compute -N BXH3_1 -l nodes=1:ppn=12 -V -- /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/tophat.rRNA.batch3.sh /storage/saba/Rat.RI.Brain.totalRNA.batch3/rawReads/ BXH3_1brain_CGATGT_L001 /storage/saba/index/rmsk.rRNA.RGSC5.0.rn5 AGATCGGAAGAGCACACGTCTGAACTCCAGTCACCCGTCCCGATCTCGTATGCCGTCTTCTGCTTG AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT
-
-##  Running  ##
 qsub -q compute -N BXH6_1 -l nodes=1:ppn=12 -V -- /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/tophat.rRNA.batch3.sh /storage/saba/Rat.RI.Brain.totalRNA.batch3/rawReads/ BXH6_1brain_TGACCA_L004 /storage/saba/index/rmsk.rRNA.RGSC5.0.rn5 AGATCGGAAGAGCACACGTCTGAACTCCAGTCACCCGTCCCGATCTCGTATGCCGTCTTCTGCTTG AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT
 qsub -q compute -N BXH6_2 -l nodes=1:ppn=12 -V -- /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/tophat.rRNA.batch3.sh /storage/saba/Rat.RI.Brain.totalRNA.batch3/rawReads/ BXH6_2brain_GTGAAA_L003 /storage/saba/index/rmsk.rRNA.RGSC5.0.rn5 AGATCGGAAGAGCACACGTCTGAACTCCAGTCACCCGTCCCGATCTCGTATGCCGTCTTCTGCTTG AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT
 qsub -q compute -N BXH8_1 -l nodes=1:ppn=12 -V -- /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/tophat.rRNA.batch3.sh /storage/saba/Rat.RI.Brain.totalRNA.batch3/rawReads/ BXH8_1brain_AGTTCC_L006 /storage/saba/index/rmsk.rRNA.RGSC5.0.rn5 AGATCGGAAGAGCACACGTCTGAACTCCAGTCACCCGTCCCGATCTCGTATGCCGTCTTCTGCTTG AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT
@@ -133,13 +133,7 @@ qsub -q compute -N SHR_1.b3 -l nodes=1:ppn=12 -V -- /storage/saba/Rat.RI.Brain.t
 qsub -q compute -N BXH9_1 -l nodes=1:ppn=12 -V -- /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/tophat.rRNA.batch3.sh /storage/saba/Rat.RI.Brain.totalRNA.batch3/rawReads/ BXH9_1brain_AGTCAA_L007 /storage/saba/index/rmsk.rRNA.RGSC5.0.rn5 AGATCGGAAGAGCACACGTCTGAACTCCAGTCACCCGTCCCGATCTCGTATGCCGTCTTCTGCTTG AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT
 qsub -q compute -N BXH11_2 -l nodes=1:ppn=12 -V -- /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/tophat.rRNA.batch3.sh /storage/saba/Rat.RI.Brain.totalRNA.batch3/rawReads/ BXH11_2brain_CTTGTA_L002 /storage/saba/index/rmsk.rRNA.RGSC5.0.rn5 AGATCGGAAGAGCACACGTCTGAACTCCAGTCACCCGTCCCGATCTCGTATGCCGTCTTCTGCTTG AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT
 qsub -q compute -N BXH3_2 -l nodes=1:ppn=12 -V -- /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/tophat.rRNA.batch3.sh /storage/saba/Rat.RI.Brain.totalRNA.batch3/rawReads/ BXH3_2brain_CCGTCC_L004 /storage/saba/index/rmsk.rRNA.RGSC5.0.rn5 AGATCGGAAGAGCACACGTCTGAACTCCAGTCACCCGTCCCGATCTCGTATGCCGTCTTCTGCTTG AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT
-
-##  in queue  ##
 qsub -q compute -N BXH5_1 -l nodes=1:ppn=12 -V -- /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/tophat.rRNA.batch3.sh /storage/saba/Rat.RI.Brain.totalRNA.batch3/rawReads/ BXH5_1brain_ACAGTG_L003 /storage/saba/index/rmsk.rRNA.RGSC5.0.rn5 AGATCGGAAGAGCACACGTCTGAACTCCAGTCACCCGTCCCGATCTCGTATGCCGTCTTCTGCTTG AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT
-
-
-
-
 ```
 
 **move files**
@@ -172,7 +166,7 @@ This batch was subjected to 2 washes with riboZero.
 setwd("~/Documents/NextGenSeq/Rat.RI.Brain.totalRNA.batch3/data")
 options(stringsAsFactors=FALSE)
 
-sampleList = c("BNLX_1","BXH10_1","BXH11_1","BXH13_1","BXH3_2","BXH6_1","BXH8_1","BXH9_2","BNLX_2","BXH10_2","BXH11_2","BXH3_1","BXH5_1","BXH6_2","BXH9_1","SHR_1")
+sampleList = c("BNLX_1","BXH10_1","BXH11_1","BXH13_1","BXH3_2","BXH6_1","BXH8_1","BXH9_2","BNLX_2.v1","BXH10_2","BXH11_2","BXH3_1","BXH5_1","BXH6_2","BXH9_1","SHR_1")
 
 rStats = c()
 for(i in sampleList){
@@ -187,6 +181,7 @@ for(i in sampleList){
 
 rStats$numReadFrag = (rStats$mappedLeft + rStats$mappedRight)
 rStats$numDeletedPairedReads = (rStats$mappedLeft + rStats$mappedRight - rStats$mappedPairs)
+rStats$sample = gsub(".v1","",rStats$sample)
 
 rStats = rStats[,c("sample","numReads","numReadFrag","mappedPairs","numDeletedPairedReads")]
 
@@ -204,7 +199,143 @@ kable(rTable,align=rep("c",ncol(rTable)))
 6. Convert to fastq files
 ---------------------------
 ```
-qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/convertToFastQ.batch3.sh
+qsub -q compute -N BNLX_2 -l nodes=1:ppn=12 -V -- /storage/saba/sharedPrograms/bamToFastQ_py.sh /storage/saba/Rat.RI.Brain.totalRNA.batch3/alignedReads/BNLX_2.rRNA
+qsub -q compute -N BXH10_1 -l nodes=1:ppn=12 -V -- /storage/saba/sharedPrograms/bamToFastQ_py.sh /storage/saba/Rat.RI.Brain.totalRNA.batch3/alignedReads/BXH10_1.rRNA
+qsub -q compute -N BXH10_2 -l nodes=1:ppn=12 -V -- /storage/saba/sharedPrograms/bamToFastQ_py.sh /storage/saba/Rat.RI.Brain.totalRNA.batch3/alignedReads/BXH10_2.rRNA
+qsub -q compute -N BXH11_1 -l nodes=1:ppn=12 -V -- /storage/saba/sharedPrograms/bamToFastQ_py.sh /storage/saba/Rat.RI.Brain.totalRNA.batch3/alignedReads/BXH11_1.rRNA
+qsub -q compute -N BXH11_2 -l nodes=1:ppn=12 -V -- /storage/saba/sharedPrograms/bamToFastQ_py.sh /storage/saba/Rat.RI.Brain.totalRNA.batch3/alignedReads/BXH11_2.rRNA
+qsub -q compute -N BXH13_1 -l nodes=1:ppn=12 -V -- /storage/saba/sharedPrograms/bamToFastQ_py.sh /storage/saba/Rat.RI.Brain.totalRNA.batch3/alignedReads/BXH13_1.rRNA
+qsub -q compute -N BXH3_1 -l nodes=1:ppn=12 -V -- /storage/saba/sharedPrograms/bamToFastQ_py.sh /storage/saba/Rat.RI.Brain.totalRNA.batch3/alignedReads/BXH3_1.rRNA
+qsub -q compute -N BXH3_2 -l nodes=1:ppn=12 -V -- /storage/saba/sharedPrograms/bamToFastQ_py.sh /storage/saba/Rat.RI.Brain.totalRNA.batch3/alignedReads/BXH3_2.rRNA
+qsub -q compute -N BXH5_1 -l nodes=1:ppn=12 -V -- /storage/saba/sharedPrograms/bamToFastQ_py.sh /storage/saba/Rat.RI.Brain.totalRNA.batch3/alignedReads/BXH5_1.rRNA
+qsub -q compute -N BXH6_1 -l nodes=1:ppn=12 -V -- /storage/saba/sharedPrograms/bamToFastQ_py.sh /storage/saba/Rat.RI.Brain.totalRNA.batch3/alignedReads/BXH6_1.rRNA
+qsub -q compute -N BXH6_2 -l nodes=1:ppn=12 -V -- /storage/saba/sharedPrograms/bamToFastQ_py.sh /storage/saba/Rat.RI.Brain.totalRNA.batch3/alignedReads/BXH6_2.rRNA
+qsub -q compute -N BXH8_1 -l nodes=1:ppn=12 -V -- /storage/saba/sharedPrograms/bamToFastQ_py.sh /storage/saba/Rat.RI.Brain.totalRNA.batch3/alignedReads/BXH8_1.rRNA
+qsub -q compute -N BXH9_1 -l nodes=1:ppn=12 -V -- /storage/saba/sharedPrograms/bamToFastQ_py.sh /storage/saba/Rat.RI.Brain.totalRNA.batch3/alignedReads/BXH9_1.rRNA
+qsub -q compute -N BXH9_2 -l nodes=1:ppn=12 -V -- /storage/saba/sharedPrograms/bamToFastQ_py.sh /storage/saba/Rat.RI.Brain.totalRNA.batch3/alignedReads/BXH9_2.rRNA
+qsub -q compute -N SHR_1 -l nodes=1:ppn=12 -V -- /storage/saba/sharedPrograms/bamToFastQ_py.sh /storage/saba/Rat.RI.Brain.totalRNA.batch3/alignedReads/SHR_1.rRNA
 ```
+
+```{r,echo=FALSE,eval=FALSE}
+## NOT R code, but don't want in Md file
+# move files to cleanedReads folder
+cd /storage/saba/Rat.RI.Brain.totalRNA.batch3
+mv ./alignedReads/BNLX_1.rRNA/unmapped.end1.fq ./cleanedReads/BNLX_1.no_rRNA.end1.fq
+mv ./alignedReads/BNLX_2.rRNA/unmapped.end1.fq ./cleanedReads/BNLX_2.no_rRNA.end1.fq
+mv ./alignedReads/BXH10_1.rRNA/unmapped.end1.fq ./cleanedReads/BXH10_1.no_rRNA.end1.fq
+mv ./alignedReads/BXH10_2.rRNA/unmapped.end1.fq ./cleanedReads/BXH10_2.no_rRNA.end1.fq
+mv ./alignedReads/BXH11_1.rRNA/unmapped.end1.fq ./cleanedReads/BXH11_1.no_rRNA.end1.fq
+mv ./alignedReads/BXH11_2.rRNA/unmapped.end1.fq ./cleanedReads/BXH11_2.no_rRNA.end1.fq
+mv ./alignedReads/BXH13_1.rRNA/unmapped.end1.fq ./cleanedReads/BXH13_1.no_rRNA.end1.fq
+mv ./alignedReads/BXH3_1.rRNA/unmapped.end1.fq ./cleanedReads/BXH3_1.no_rRNA.end1.fq
+mv ./alignedReads/BXH3_2.rRNA/unmapped.end1.fq ./cleanedReads/BXH3_2.no_rRNA.end1.fq
+mv ./alignedReads/BXH5_1.rRNA/unmapped.end1.fq ./cleanedReads/BXH5_1.no_rRNA.end1.fq
+mv ./alignedReads/BXH6_1.rRNA/unmapped.end1.fq ./cleanedReads/BXH6_1.no_rRNA.end1.fq
+mv ./alignedReads/BXH6_2.rRNA/unmapped.end1.fq ./cleanedReads/BXH6_2.no_rRNA.end1.fq
+mv ./alignedReads/BXH8_1.rRNA/unmapped.end1.fq ./cleanedReads/BXH8_1.no_rRNA.end1.fq
+mv ./alignedReads/BXH9_1.rRNA/unmapped.end1.fq ./cleanedReads/BXH9_1.no_rRNA.end1.fq
+mv ./alignedReads/BXH9_2.rRNA/unmapped.end1.fq ./cleanedReads/BXH9_2.no_rRNA.end1.fq
+mv ./alignedReads/SHR_1.rRNA/unmapped.end1.fq ./cleanedReads/SHR_1.no_rRNA.end1.fq
+mv ./alignedReads/BNLX_1.rRNA/unmapped.end2.fq ./cleanedReads/BNLX_1.no_rRNA.end2.fq
+mv ./alignedReads/BNLX_2.rRNA/unmapped.end2.fq ./cleanedReads/BNLX_2.no_rRNA.end2.fq
+mv ./alignedReads/BXH10_1.rRNA/unmapped.end2.fq ./cleanedReads/BXH10_1.no_rRNA.end2.fq
+mv ./alignedReads/BXH10_2.rRNA/unmapped.end2.fq ./cleanedReads/BXH10_2.no_rRNA.end2.fq
+mv ./alignedReads/BXH11_1.rRNA/unmapped.end2.fq ./cleanedReads/BXH11_1.no_rRNA.end2.fq
+mv ./alignedReads/BXH11_2.rRNA/unmapped.end2.fq ./cleanedReads/BXH11_2.no_rRNA.end2.fq
+mv ./alignedReads/BXH13_1.rRNA/unmapped.end2.fq ./cleanedReads/BXH13_1.no_rRNA.end2.fq
+mv ./alignedReads/BXH3_1.rRNA/unmapped.end2.fq ./cleanedReads/BXH3_1.no_rRNA.end2.fq
+mv ./alignedReads/BXH3_2.rRNA/unmapped.end2.fq ./cleanedReads/BXH3_2.no_rRNA.end2.fq
+mv ./alignedReads/BXH5_1.rRNA/unmapped.end2.fq ./cleanedReads/BXH5_1.no_rRNA.end2.fq
+mv ./alignedReads/BXH6_1.rRNA/unmapped.end2.fq ./cleanedReads/BXH6_1.no_rRNA.end2.fq
+mv ./alignedReads/BXH6_2.rRNA/unmapped.end2.fq ./cleanedReads/BXH6_2.no_rRNA.end2.fq
+mv ./alignedReads/BXH8_1.rRNA/unmapped.end2.fq ./cleanedReads/BXH8_1.no_rRNA.end2.fq
+mv ./alignedReads/BXH9_1.rRNA/unmapped.end2.fq ./cleanedReads/BXH9_1.no_rRNA.end2.fq
+mv ./alignedReads/BXH9_2.rRNA/unmapped.end2.fq ./cleanedReads/BXH9_2.no_rRNA.end2.fq
+mv ./alignedReads/SHR_1.rRNA/unmapped.end2.fq ./cleanedReads/SHR_1.no_rRNA.end2.fq
+```
+
+```{r,echo=FALSE,eval=FALSE}
+## NOT R code, but don't want in Md file
+get BNLX_1.rRNA/numUnmappedFQ.txt unmappedFQ.summary.BNLX_1.txt
+get BNLX_2.rRNA/numUnmappedFQ.txt unmappedFQ.summary.BNLX_2.txt
+get BXH10_1.rRNA/numUnmappedFQ.txt unmappedFQ.summary.BXH10_1.txt
+get BXH10_2.rRNA/numUnmappedFQ.txt unmappedFQ.summary.BXH10_2.txt
+get BXH11_1.rRNA/numUnmappedFQ.txt unmappedFQ.summary.BXH11_1.txt
+get BXH11_2.rRNA/numUnmappedFQ.txt unmappedFQ.summary.BXH11_2.txt
+get BXH13_1.rRNA/numUnmappedFQ.txt unmappedFQ.summary.BXH13_1.txt
+get BXH3_1.rRNA/numUnmappedFQ.txt unmappedFQ.summary.BXH3_1.txt
+get BXH3_2.rRNA/numUnmappedFQ.txt unmappedFQ.summary.BXH3_2.txt
+get BXH5_1.rRNA/numUnmappedFQ.txt unmappedFQ.summary.BXH5_1.txt
+get BXH6_1.rRNA/numUnmappedFQ.txt unmappedFQ.summary.BXH6_1.txt
+get BXH6_2.rRNA/numUnmappedFQ.txt unmappedFQ.summary.BXH6_2.txt
+get BXH8_1.rRNA/numUnmappedFQ.txt unmappedFQ.summary.BXH8_1.txt
+get BXH9_1.rRNA/numUnmappedFQ.txt unmappedFQ.summary.BXH9_1.txt
+get BXH9_2.rRNA/numUnmappedFQ.txt unmappedFQ.summary.BXH9_2.txt
+get SHR_1.rRNA/numUnmappedFQ.txt unmappedFQ.summary.SHR_1.txt
+```
+
+
+```{r,echo=FALSE,eval=TRUE}
+setwd("~/Documents/NextGenSeq/Rat.RI.Brain.totalRNA.batch3/data")
+options(stringsAsFactors=FALSE)
+
+sampleList = gsub(".v1","",sampleList)
+
+unmappedStats = c()
+for(i in sampleList){
+  x = read.table(file=paste("unmappedFQ.summary.",i,".txt",sep=""),sep=" ",header=FALSE,fill=TRUE)
+  sample = i
+  numReads = as.numeric(x[1,3])/4
+  unmappedStats = rbind(unmappedStats,data.frame(sample,numReads))
+}
+
+rownames(unmappedStats) = unmappedStats$sample
+
+numCorrect = sum(as.numeric(gsub(",","",rTable[,"Number of Paired-End Reads NOT Aligned to rRNA"],fixed=TRUE))==unmappedStats[rTable$Sample,2])
+
+numSamples = nrow(unmappedStats)
+```
+
+`r numCorrect` out of `r numSamples` of the fastq files were created correctly.
+
+
+7.  Quantitate using RSEM and Ensembl Transcripts 
+------------------------------------------------------
+```
+qsub -q compute -N quant1 -l nodes=1:ppn=12 -V --  /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/quantRSEM.batch3.sh BNLX_1 5648
+qsub -q compute -N quant2 -l nodes=1:ppn=12 -V --  /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/quantRSEM.batch3.sh BNLX_2 5649
+qsub -q compute -N quant3 -l nodes=1:ppn=12 -V --  /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/quantRSEM.batch3.sh BXH10_1 5650 
+qsub -q compute -N quant4 -l nodes=1:ppn=12 -V --  /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/quantRSEM.batch3.sh BXH10_2 5651
+qsub -q compute -N quant5 -l nodes=1:ppn=12 -V --  /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/quantRSEM.batch3.sh BXH11_1 5652
+qsub -q compute -N quant6 -l nodes=1:ppn=12 -V --  /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/quantRSEM.batch3.sh BXH11_2 5653
+qsub -q compute -N quant7 -l nodes=1:ppn=12 -V --  /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/quantRSEM.batch3.sh BXH13_1 5654
+qsub -q compute -N quant8 -l nodes=1:ppn=12 -V --  /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/quantRSEM.batch3.sh BXH3_1 5655
+qsub -q compute -N quant9 -l nodes=1:ppn=12 -V --  /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/quantRSEM.batch3.sh BXH3_2 5656
+
+
+
+qsub -q compute -N quant10 -l nodes=1:ppn=12 -V --  /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/quantRSEM.batch3.sh BXH5_1 5657
+#qsub -q compute -N quant11 -l nodes=1:ppn=12 -V --  /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/quantRSEM.batch3.sh BXH6_1 5658
+#qsub -q compute -N quant12 -l nodes=1:ppn=12 -V --  /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/quantRSEM.batch3.sh BXH6_2 5659
+#qsub -q compute -N quant13 -l nodes=1:ppn=12 -V --  /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/quantRSEM.batch3.sh BXH8_1 5660
+#qsub -q compute -N quant14 -l nodes=1:ppn=12 -V --  /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/quantRSEM.batch3.sh BXH9_1 5661
+
+/data2/saba/BxH.HxB.Rats/RNA-Seq/programs/quantRSEM.batch3.phenogen.sh SHR_1 65464 
+/data2/saba/BxH.HxB.Rats/RNA-Seq/programs/quantRSEM.batch3.phenogen.sh BXH9_2 654129 
+
+##  running  ##
+/data2/saba/BxH.HxB.Rats/RNA-Seq/programs/quantRSEM.batch3.phenogen.sh BXH9_1 654128 
+/data2/saba/BxH.HxB.Rats/RNA-Seq/programs/quantRSEM.batch3.phenogen.sh BXH8_1 654127 
+/data2/saba/BxH.HxB.Rats/RNA-Seq/programs/quantRSEM.batch3.phenogen.sh BXH6_2 654126 
+/data2/saba/BxH.HxB.Rats/RNA-Seq/programs/quantRSEM.batch3.phenogen.sh BXH6_1 654125 
+
+/data2/saba/BxH.HxB.Rats/RNA-Seq/programs/quantRSEM.batch3.phenogen.sh BXH5_1 5657 
+
+
+
+
+
+```
+
 
 
