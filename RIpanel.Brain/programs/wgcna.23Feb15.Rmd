@@ -1,0 +1,64 @@
+Title
+========================================================
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring web pages (click the **Help** toolbar button for more details on using R Markdown).
+
+When you click the **Knit HTML** button a web page will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+rm(list=ls())
+options(stringsAsFactors=FALSE)
+library(WGCNA)
+
+base.path = "/data2/saba/BxH.HxB.Rats/RNA-Seq/"
+
+load(paste(base.path,"Rdata/strainEst.RUVs2.Rdata",sep=""))
+
+dim(strainEst)
+
+## limit to ensembl genes and recombinant inbred strains
+datExpr = t(strainEst[grep("ENS",rownames(strainEst)),grepl("BXH",colnames(strainEst)) | grepl("HXB",colnames(strainEst))])
+
+## determine appropriate beta parameter
+powers = c(c(1:15),seq(from=16,to=20,by=2))
+
+sft=pickSoftThreshold(datExpr,powerVector=powers,corFnc="cor",corOptions=list(use ='pairwise.complete.obs', method = 'spearman'),verbose=5)
+
+pdf(file=paste(base.path,"images/SoftThresholdingPower.23Feb15.pdf",sep=""))
+plot(sft$fitIndices[,1], -sign(sft$fitIndices[,3])*sft$fitIndices[,2],
+xlab="Soft Threshold (power)",ylab="Scale Free Topology Model Fit,signed R^2",type="n",
+main = paste("Scale independence"));
+text(sft$fitIndices[,1], -sign(sft$fitIndices[,3])*sft$fitIndices[,2],
+labels=powers,cex=cex1,col="red")
+# this line corresponds to using an R^2 cut-off of h
+abline(h=0.80,col="red")
+
+# Mean connectivity as a function of the soft-thresholding power
+plot(sft$fitIndices[,1], sft$fitIndices[,5],
+xlab="Soft Threshold (power)",ylab="Mean Connectivity", type="n",
+main = paste("Mean connectivity"))
+text(sft$fitIndices[,1], sft$fitIndices[,5], labels=powers, cex=cex1,col="red")
+
+dev.off()
+
+save(sft, file=paste(rData.path,"SoftThresholdingPower.Rdata",sep=""))
+
+
+##############################################################
+##  WGCNA in HXB Brain Expression Data (RNAseq Derived TC)  ##
+##############################################################
+dim(datExpr)
+net = blockwiseModules(datExpr,power=8, minModuleSize=5, deepSplit=4, numericLabels=TRUE,pamRespectsDendro=FALSE,saveTOMs=TRUE, saveTOMFileBase="brain",verbose=3,networkType="unsigned", corType="bicor")
+
+table(net$colors)
+
+
+
+```
+
+You can also embed plots, for example:
+
+```{r fig.width=7, fig.height=6}
+plot(cars)
+```
+

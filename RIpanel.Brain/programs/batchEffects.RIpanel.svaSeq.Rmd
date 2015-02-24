@@ -1,0 +1,198 @@
+========================================================
+
+Combine RSEM Values Across Batches
+----------------------------------
+
+```{r}
+rm(list=ls())
+options(stringsAsFactors=FALSE)
+library(sva)
+library(RUVSeq)
+
+base.path = "/Volumes/saba/BxH.HxB.Rats/RNA-Seq/"
+rData.path = "/Volumes/saba/BxH.HxB.Rats/RNA-Seq/Rdata/"
+
+fileListing = read.table(file=paste(base.path,"data/fileListing.brain.26Jan15.txt",sep=""),sep="\t",header=TRUE)
+fileListing$rsemName = paste(toupper(gsub(".b[1-9]","",fileListing$sampleName)),".b",fileListing$batch,sep="")
+#rsemListing = read.table(file=paste(base.path,"data/fileListing.RSEM.txt",sep=""),sep="\t",header=FALSE)
+
+sampleList=fileListing$rsemName
+
+for(i in sampleList){
+  y = read.table(file=paste(base.path,"quantitation/rsem.Ensembl/",i,".genes.results",sep=""),sep="\t",header=TRUE)
+  y=y[,c("gene_id","expected_count")]
+  colnames(y)[grep("count",colnames(y))]=paste(i,"cnt",sep=".")
+  if(i==sampleList[1]) counts=y
+  if(i!=sampleList[1]) counts=merge(counts,y,by=c("gene_id"))
+  }
+
+rownames(counts)=counts$gene_id
+counts=counts[,grep("cnt",colnames(counts))]
+
+## remove samples with less than 10 million aligned reads
+counts=counts[,colSums(counts)>10000000]
+colnames(counts)=gsub(".cnt","",colnames(counts),fixed=TRUE)
+
+#retain genes if at 5% of samples have more than five reads
+expressed = counts[rowSums(counts>5)>(0.05*ncol(counts)),]
+#17,449 of 25,169 genes retained
+
+#remove duplicates ?
+expressed = expressed[!duplicated(expressed),]
+#17,369 of #17,449 genes retained
+```
+
+### Clusting of Samples Prior To Adjustments
+
+```{r,echo=FALSE,fig.width=8,fig.height=6}
+## check general clustering
+plot(hclust(as.dist(1-cor(expressed,method="spearman"))))
+```
+Obvious clustering by batch
+
+```{r}
+#get spike information
+spikeInfo=read.table(file=paste(base.path,"spikeSource/ERCC_Controls_Analysis.txt",sep=""),sep="\t",header=TRUE)
+controls=spikeInfo$ERCC.ID[spikeInfo$expected.fold.change.ratio==1]
+
+genes = rownames(expressed)[grep("ENS",rownames(expressed))]
+spikes = rownames(expressed)[rownames(expressed) %in% controls]
+
+#create expression set
+strain = as.factor(unlist(lapply(strsplit(colnames(expressed),split="_",fixed=TRUE),function(a) a[1])))
+batch = as.factor(unlist(lapply(strsplit(colnames(expressed),split=".",fixed=TRUE),function(a) a[2])))
+
+set=newSeqExpressionSet(as.matrix(round(expressed)),phenoData=data.frame(strain,batch,row.names=colnames(expressed)))
+
+dat0 = counts(set)
+mod1 = model.matrix(~ strain,data=pData(set))
+mod0 = cbind(mod1[,1])
+
+## Estimate batch with svaseq (unsupervised)
+batch_unsup_sva = svaseq(dat0,mod1,mod0,n.sv=1)$sv
+
+## Estimate batch with svaseq (supervised)
+batch_sup_sva = svaseq(dat0,mod1,mod0,controls=(rownames(expressed) %in% controls),n.sv=1)$sv
+
+## Estimate batch with RUVs
+differences = matrix(grep("SHR_1",colnames(set)),nr=1)
+batch_samples_ruv = pData(RUVs(set,genes,k=1,differences))$W
+
+## Differential expression using VOOM and eBayes
+dge <- DGEList(counts=dat0)
+dge <- calcNormFactors(dge)
+
+design_sup = model.matrix(~ strain + batch_sup_sva)
+v_sup <- voom(dge,design_sup,plot=FALSE)
+fit_sup <- lmFit(v_sup,design_sup,weights=v_sup$weights)
+fit_sup <- eBayes(fit_sup)
+
+design_unsup = model.matrix(~ strain + batch_unsup_sva)
+v_unsup <- voom(dge,design_unsup,plot=FALSE)
+fit_unsup <- lmFit(v_unsup,design_unsup,weights=v_unsup$weights)
+fit_unsup <- eBayes(fit_unsup)
+
+design_ruv = model.matrix(~ strain + batch_samples_ruv)
+v_ruv <- voom(dge,design_ruv,plot=FALSE)
+fit_ruv <- lmFit(v_ruv,design_ruv,weights=v_ruv$weights)
+fit_ruv <- eBayes(fit_ruv)
+
+design_none = model.matrix(~ strain)
+v_none = voom(dge,design_none,plot=FALSE)
+fit_none = lmFit(v_none,design_none,weights=v_none$weights)
+fit_none = eBayes(fit_none)
+
+sum(fit_none$sigma>fit_unsup$sigma)/nrow(fit_sup)
+sum(fit_none$sigma>fit_sup$sigma)/nrow(fit_sup)
+sum(fit_none$sigma>fit_ruv$sigma)/nrow(fit_sup)
+```
+
+
+```{r}
+design = model.matrix(~ batch_samples_ruv)
+v = voom(dge,design,plot=FALSE)
+fit = lmFit(v,design)
+tmp=residuals(fit,v)
+plot(hclust(as.dist(1-cor(tmp,method="spearman"))))
+
+design2 = model.matrix(~ strain)
+fit2 = lmFit(tmp,design2)
+fit2 = eBayes(fit2)
+
+strainCoef = data.frame(BNLX=0,fit2$coefficients[,grep("strain",colnames(fit2$coefficients))])
+colnames(strainCoef) = gsub("strain","",colnames(strainCoef))
+strainMeans = strainCoef + fit2$coefficients[,1]
+
+plot(hclust(as.dist(1-cor(strainMeans,method="spearman"))))
+
+sum(fit2$F.p.value<0.0001)
+sum(fit_none$F.p.value<0.0001)
+```
+
+Using edgeR for estimating effects
+
+```{r}
+set=betweenLaneNormalization(set,which="upper")
+
+y=DGEList(counts=counts(set),group=strain)
+y=calcNormFactors(y,method="upperquartile")
+
+y_unsup = estimateGLMCommonDisp(y,design_unsup)
+y_unsup = estimateGLMTagwiseDisp(y_unsup,design_unsup)
+fit_unsup = glmFit(y_unsup,design_unsup)
+res_unsup = rowSums(residuals(fit_unsup,type="deviance")**2)
+
+y_sup = estimateGLMCommonDisp(y,design_sup)
+y_sup = estimateGLMTagwiseDisp(y_sup,design_sup)
+fit_sup = glmFit(y_sup,design_sup)
+res_sup = rowSums(residuals(fit_sup,type="deviance")**2)
+
+y_ruv = estimateGLMCommonDisp(y,design_ruv)
+y_ruv = estimateGLMTagwiseDisp(y_ruv,design_ruv)
+fit_ruv = glmFit(y_ruv,design_ruv)
+res_ruv = rowSums(residuals(fit_ruv,type="deviance")**2)
+
+y_none = estimateGLMCommonDisp(y,design_none)
+y_none = estimateGLMTagwiseDisp(y_none,design_none)
+fit_none = glmFit(y_none,design_none)
+res_none = rowSums(residuals(fit_none,type="deviance")**2)
+
+design_total = model.matrix(~ 1,data=pData(set))
+y_total = estimateGLMCommonDisp(y,design_total)
+y_total = estimateGLMTagwiseDisp(y_total,design_total)
+fit_total = glmFit(y_total,design_total)
+res_total = rowSums(residuals(fit_total,type="deviance")**2)
+
+resids = data.frame(gene_id=names(res_total),total=res_total,strainOnly=res_none,sva_unsup=res_unsup,sva_sup=res_sup,ruv_s=res_ruv)
+
+
+sum(resids$sva_unsup<resids$strainOnly)/nrow(resids)
+sum(resids$sva_sup<resids$strainOnly)/nrow(resids)
+sum(resids$ruv_s<resids$strainOnly)/nrow(resids)
+
+sum(resids$ruv_s<resids$sva_unsup)/nrow(resids)
+
+
+ruv2 = RUVs(set,genes,k=2,differences)
+design_ruv2 = model.matrix(~ strain + W_1 + W_2,data=pData(ruv2))
+y_ruv2 = estimateGLMCommonDisp(y,design_ruv2)
+y_ruv2 = estimateGLMTagwiseDisp(y_ruv2,design_ruv2)
+fit_ruv2 = glmFit(y_ruv2,design_ruv2)
+res_ruv2 = rowSums(residuals(fit_ruv2,type="deviance")**2)
+
+resids = data.frame(gene_id=names(res_total),total=res_total,strainOnly=res_none,sva_unsup=res_unsup,sva_sup=res_sup,ruv_s=res_ruv,ruv_s2=res_ruv2)
+
+sum(resids$ruv_s2<resids$ruv_s)/nrow(resids)
+
+## Get Strain Estimates
+strainCoef = fit_ruv2$coefficients[,grep("strain",colnames(fit_ruv2$coefficients))]
+colnames(strainCoef) = gsub("strain","",colnames(strainCoef)) 
+strainEst = cbind(BNLX=rep(0,nrow(strainCoef)),strainCoef)
+strainEst = strainEst + fit_ruv2$coefficients[,1]
+
+
+save(strainEst,file=paste(rData.path,"strainEst.RUVs2.Rdata",sep=""))
+```
+
+
+
