@@ -28,11 +28,17 @@ counts=counts[,grep("cnt",colnames(counts))]
 ## remove samples with less than 10 million aligned reads
 counts=counts[,colSums(counts)>10000000]
 colnames(counts)=gsub(".cnt","",colnames(counts),fixed=TRUE)
+```
 
-## check general clustering
+
+### Clustering of Raw Count Data
+```{r,echo=FALSE,fig.width=8,fig.height=5}
 plot(hclust(as.dist(1-cor(counts,method="spearman"))))
-#definitely see some clustering by batch
+```
 
+Definitely see some clustering by batch
+
+```{r,echo=FALSE}
 ## RUV
 library("RUVSeq")
 
@@ -42,8 +48,11 @@ controls=spikeInfo$ERCC.ID[spikeInfo$expected.fold.change.ratio==1]
 
 #retain genes if at 5% of samples have more than five reads
 expressed = counts[rowSums(counts>5)>(0.05*ncol(counts)),]
-#17,449 of 25,169 genes retained
+```
 
+Reduced genes from `r nrow(counts)` to `r rnow(expressed)` based on the criteria that 5% of samples had to have more than 5 reads.
+
+```{r, echo=FALSE}
 genes = rownames(expressed)[grep("ENS",rownames(expressed))]
 spikes = rownames(expressed)[rownames(expressed) %in% controls]
 
@@ -54,22 +63,47 @@ set=newSeqExpressionSet(as.matrix(round(expressed)),phenoData=data.frame(strains
 
 #library(RColorBrewer)
 #colors <- brewer.pal(12,"Set2")
+#plotRLE(set,outline=FALSE)
+```
 
-plotRLE(set,outline=FALSE)
+### Principal Component Analysis (PCA) Prior to Adjustment 
+```{r,echo=FALSE,fig.width=8,fig.height=5}
 plotPCA(set)
+```
 
+```{r, echo=FALSE}
 set=betweenLaneNormalization(set,which="upper")
-plotRLE(set)
+```
+
+### Principal Component Analysis (PCA) After Upper Quartile Adjustment for Library Size 
+```{r,echo=FALSE,fig.width=8,fig.height=5}
 plotPCA(set)
+```
+
+### Hierarchical Clustering of Samples After Upper Quartile Adjustment for Library Size 
+```{r,echo=FALSE,fig.width=8,fig.height=5}
 plot(hclust(as.dist(1-cor(normCounts(set),method="spearman"))))
+```
 
+
+```{r,echo=FALSE}
 set1.2 = RUVg(set,spikes,k=2)
-pData(set1.2)
+#pData(set1.2)
 #pData(set1)[order(pData(set1)$W_3),]
+```
+
+
+### Principal Component Analysis (PCA) After RUVg (remove unwanted variance using gene-level control (e.g., ERCC spike-ins)) 
+```{r,echo=FALSE,fig.width=8,fig.height=5}
 plotPCA(set1.2)
+```
+
+### Hierarchical Clustering After RUVg (remove unwanted variance using gene-level control (e.g., ERCC spike-ins)) 
+```{r,echo=FALSE,fig.width=8,fig.height=5}
 plot(hclust(as.dist(1-cor(normCounts(set1.2),method="spearman"))))
+```
 
-
+```{r, echo=FALSE}
 design = model.matrix(~ strains + W_1 + W_2,data=pData(set1.2))
 y = DGEList(counts=counts(set),group=strains)
 y = calcNormFactors(y, method="upperquartile")
@@ -77,23 +111,28 @@ y=estimateGLMCommonDisp(y,design)
 y=estimateGLMTagwiseDisp(y,design)
 
 fit=glmFit(y,design)
-lrt=glmLRT(fit,coef=colnames(design)[grep("strains",colnames(design))])
+#lrt=glmLRT(fit,coef=colnames(design)[grep("strains",colnames(design))])
 
-topTags(lrt)
-plot(hist(lrt$table$PValue))
+#topTags(lrt)
+#plot(hist(lrt$table$PValue))
 
 strainCoef = fit$coefficients[,grep("strains",colnames(fit$coefficients))]
 colnames(strainCoef) = gsub("strains","",colnames(strainCoef)) 
 strainEst = cbind(BNLX=rep(0,nrow(strainCoef)),strainCoef)
 
-plot(hclust(as.dist(1-cor(strainCoef[-grep("ERCC",rownames(strainCoef)),],method="spearman"))))
-
 res1.2=rowSums(residuals(fit,type="deviance")**2)
+```
 
-##################################
-##  2) Empirical Control Genes  ##
-##################################
+### Hierarchical Clustering of Strain Estimates from RUVg/
 
+```{r,echo=FALSE,fig.width=8,fig.height=5}
+plot(hclust(as.dist(1-cor(strainEst[-grep("ERCC",rownames(strainEst)),],method="spearman"))))
+```
+
+2. Empirical Control Genes  
+5,000 genes with the highest (least significant) p-values in a model without adjustment are used as control genes.
+
+```{r,echo=FALSE,eval=FALSE}
 design = model.matrix(~ strains,data=pData(set))
 y = DGEList(counts=counts(set),group=strains)
 y = calcNormFactors(y, method="upperquartile")
@@ -129,20 +168,17 @@ strainEst = cbind(BNLX=rep(0,nrow(strainCoef)),strainCoef)
 plot(hclust(as.dist(1-cor(strainCoef[-grep("ERCC",rownames(strainCoef)),],method="spearman"))))
 
 res2.2=rowSums(residuals(fit,type="deviance")**2)
+```
 
-#############################
-##  3) Replicated Samples  ##
-#############################
+3.  Replicated Samples (SHR_1 sample in all three batches)
 
-z=as.character(unique(strains[duplicated(strains)]))
-maxNum=4
-
+```{r,echo=FALSE}
+#z=as.character(unique(strains[duplicated(strains)]))
+#maxNum=4
 #differences = t(sapply(z,function(a) c(which(strains==a),rep(-1,maxNum-length(which(strains==a))))))
-differences = matrix(grep("SHR_1",colnames(set)),nr=1)
 
+differences = matrix(grep("SHR_1",colnames(set)),nr=1)
 set3.2=RUVs(set,genes,k=2,differences)
-plotPCA(set3.2)
-plot(hclust(as.dist(1-cor(normCounts(set3.2),method="spearman"))))
 
 design = model.matrix(~ strains + W_1 + W_2,data=pData(set3.2))
 y = DGEList(counts=counts(set),group=strains)
@@ -153,17 +189,32 @@ y=estimateGLMTagwiseDisp(y,design)
 fit=glmFit(y,design)
 res3.2=rowSums(residuals(fit,type="deviance")**2)
 
-summary(res.strainOnly)
-summary(res1.2)
-summary(res2.2)
-summary(res3.2)
-summary(res4.2)
-
 strainCoef = fit$coefficients[,grep("strains",colnames(fit$coefficients))]
 colnames(strainCoef) = gsub("strains","",colnames(strainCoef)) 
 strainEst = cbind(BNLX=rep(0,nrow(strainCoef)),strainCoef)
+```
 
-plot(hclust(as.dist(1-cor(strainCoef[-grep("ERCC",rownames(strainCoef)),],method="spearman"))))
+### Principal Component Analysis (PCA) After RUVs (remove unwanted variance using sample replicates) 
+```{r,echo=FALSE,fig.width=8,fig.height=5}
+plotPCA(set3.2)
+```
+
+### Hierarchical Clustering After RUVs (remove unwanted variance using sample replicates) 
+```{r,echo=FALSE,fig.width=8,fig.height=5}
+plot(hclust(as.dist(1-cor(normCounts(set3.2),method="spearman"))))
+```
+
+### Hierarchical Clustering of Strain Coefficients After RUVs 
+
+```{r,echo=FALSE,fig.width=8,fig.height=5}
+plot(hclust(as.dist(1-cor(strainEst[-grep("ERCC",rownames(strainEst)),],method="spearman"))))
+```
+
+```{r,echo=FALSE,eval=FALSE}
+
+
+
+
 
 ####################
 ##  4) Residuals  ##
@@ -248,7 +299,7 @@ sum(resids$resids==0)/nrow(resids)
 
 Centering Control Genes
 
-```{r}
+```{r,eval=FALSE,echo=FALSE}
 
 ercc = expressed[grep("ERCC",rownames(expressed)),]
 spikeInfo$factor.mix1=1/(2**(spikeInfo$log2.Mix.1.Mix.2./-2))
@@ -308,7 +359,7 @@ plot(hist(resids$spikes-resids$allSpikes))
 ```
 
 
-```
+```{r,echo=FALSE,eval=FALSE}
 set3=RUVs(set,genes,k=1,differences)
 colnames(pData(set3))[3] = "spikes"
 set1=RUVg(set3,spikes,k=1)
@@ -336,7 +387,7 @@ sum((res1-resids$spikes)>0)/nrow(resids)
 
 ```
 
-```{r}
+```{r,echo=FALSE,eval=FALSE}
 ## Differential Expression
 library(limma)
 library(DESeq) 
@@ -395,6 +446,6 @@ strainEst = cbind(BNLX=rep(0,nrow(strainCoef)),strainCoef)
 
 #strainMeans = strainEst + fit$coefficients[,1]
 plot(hclust(as.dist(1-cor(strainCoef[-grep("ERCC",rownames(strainEst)),],method="spearman"))))
-
+```
 
 
