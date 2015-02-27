@@ -41,7 +41,6 @@ x=data.frame(aggregate(polyA$V4,by=list(transcript_id=polyA$transcript_id),min),
 colnames(x)[2]="V4"
 polyA.transcripts = merge(polyA[!duplicated(polyA$transcript_id),c("V1","V7","V9","transcript_id","gene_id")],x,by="transcript_id")
 
-
 y=data.frame(aggregate(total$V4,by=list(transcript_id=total$transcript_id),min),V5=aggregate(total$V5,by=list(transcript_id=total$transcript_id),max)$x)
 colnames(y)[2]="V4"
 total.transcripts = merge(total[!duplicated(total$transcript_id),c("V1","V7","V9","transcript_id","gene_id")],y,by="transcript_id")
@@ -134,6 +133,9 @@ colnames(overlap) <- c(paste(c("chr","start","stop","V5","strand","transcript_id
 ## remove records that are overlap of the same Ensembl transcript
 overlap = overlap[overlap$transcript_id.polya!=overlap$transcript_id.total,]
 
+## remove overlapping Ensembl Transcripts
+overlap = overlap[!(grepl("ENS",overlap$transcript_id.polya) & grepl("ENS",overlap$transcript_id.total)),]
+
 ## add exon information to overlaps
 setPolya = setTotal = onePerTrans[,c("transcript_id","x.x","x.y","exonNum")]
 colnames(setPolya) = c("transcript_id.polya","exonStarts.polya","exonStops.polya","exonNum.polya")
@@ -160,6 +162,7 @@ overlap$exonJunct.total = apply(overlap[,c("exonStarts.total","exonStops.total")
 ## remove overlap that is on the opposite strand
 overlap <- overlap[overlap$strand.polya=="." | overlap$strand.total=="." | overlap$strand.polya==overlap$strand.total,]
 
+
 ## remove overlap where coding regions don't overlap  ##
 intronCheck =c()
 for(i in 1:nrow(overlap)){
@@ -170,13 +173,13 @@ for(i in 1:nrow(overlap)){
   
 overlap = overlap[intronCheck==0,]
 
-## transcripts without any overlap - 25,653 transcripts
+## transcripts without any overlap - 25,829 transcripts
 noOverlap = onePerTrans[!(onePerTrans$transcript_id %in% unique(c(overlap$transcript_id.polya,overlap$transcript_id.total))),]
 
 ##  perfect overlap - 51 transcripts
 perfect = overlap[overlap$exonStarts.polya==overlap$exonStarts.total & overlap$exonStops.polya==overlap$exonStops.total,]
 
-##  identify exon junction matches - 1,888 transcripts
+##  identify exon junction matches - 1,887 transcripts
 reduced = overlap[!(overlap$ID %in% perfect$ID),]
 exonJunctMatch <- reduced[!is.na(reduced$exonJunct.polya) & !is.na(reduced$exonJunct.total) & reduced$exonJunct.polya==reduced$exonJunct.total,]
 
@@ -200,8 +203,23 @@ transcriptsToEnsembl = c(matched$transcript_id.polya[grep("ENS",matched$transcri
 matched.undup = matched[!grepl("ENS",matched$transcript_id.total) & !grepl("ENS",matched$transcript_id.polya),]
 matched.undup = matched.undup[!(matched.undup$transcript_id.total %in% transcriptsToEnsembl) & !(matched.undup$transcript_id.polya %in% transcriptsToEnsembl), ]
 
-##  create new transcript for matched transcripts - 1,516 matches
-matched.undup$transcript_id = paste("both",c(1:nrow(matched.undup)),sep=".")
+
+##  create new transcript for matched transcripts - 1,426 matches
+
+#generate appropriate transcript ID
+tmp.total = unlist(lapply(strsplit(matched.undup$transcript_id.total,split=".",fixed=TRUE),function(a) a[2]))
+tmp.polya = unlist(lapply(strsplit(matched.undup$transcript_id.polya,split=".",fixed=TRUE),function(a) a[2]))
+
+tmp.undup = rep(NA,length(tmp.total))
+tmp.undup[grepl("atched",tmp.total) | grepl("atched",tmp.polya)] = "matched"
+tmp.undup[grepl("SHR",tmp.total) & grepl("SHR",tmp.polya)] = "SHR"
+tmp.undup[grepl("BNLx",tmp.total) & grepl("BNLx",tmp.polya)] = "BNLx"
+tmp.undup[grepl("BNLx",tmp.total) & grepl("SHR",tmp.polya)] = "matched"
+tmp.undup[grepl("SHR",tmp.total) & grepl("BNLx",tmp.polya)] = "matched"
+
+matched.undup$transcript_id = paste("both",tmp.undup,c(1:nrow(matched.undup)),sep=".")
+
+#create other variables
 matched.undup$gene_id = NA
 matched.undup$V1 = matched.undup$chr.polya
 matched.undup$V6 = 1000
@@ -223,7 +241,7 @@ matched.toAdd = matched.undup[,colnames(onePerTrans)]
 new.transcripts = onePerTrans[!(onePerTrans$transcript_id %in% c(matched.undup$transcript_id.polya,matched.undup$transcript_id.total,transcriptsToEnsembl)),]
 new.transcripts = rbind(new.transcripts,matched.toAdd)
 
-if(printNow) write.table(new.transcripts[,c("V1","start","stop","transcript_id","V6","V7")],file="RNA-Seq.Brain/reconstruction/tmp/combined.brain.19Feb15.bed",sep="\t",quote=FALSE,row.names=FALSE,col.names=FALSE)
+if(printNow) write.table(new.transcripts[,c("V1","start","stop","transcript_id","V6","V7")],file="RNA-Seq.Brain/reconstruction/tmp/combined.brain.26Feb15.bed",sep="\t",quote=FALSE,row.names=FALSE,col.names=FALSE)
 ```
 
 Combined Transcriptome:  
@@ -242,7 +260,7 @@ BEDtools Version = bedtools v2.19.1
 ```
 export PATH=/usr/local/bedtools2/bin:$PATH
 cd /data2/saba/BNLx.SHR/RNA-Seq.Brain/reconstruction/tmp
-intersectBed -a combined.brain.19Feb15.bed -b combined.brain.19Feb15.bed -wo > overlap.brain.forGeneID.txt
+intersectBed -a combined.brain.26Feb15.bed -b combined.brain.26Feb15.bed -wo > overlap.brain.forGeneID.txt
 ```
 
 5.  Match transcripts to genes and create new GTF file  
@@ -288,10 +306,10 @@ graph.polyA <- igraph.to.graphNEL(graph.polyA)
 
 compList <- connectedComp(graph.polyA)
 
-geneNames = unlist(lapply(compList,function(a) paste(a[grep("ENS",a)],collapse="//")))
-geneNames[geneNames==""] = paste("GENE.",c(1:sum(geneNames=="")),sep="")
-geneNames = data.frame(geneNames)
-geneNames$order = c(1:nrow(geneNames))
+#geneNames = unlist(lapply(compList,function(a) paste(a[grep("ENS",a)],collapse="//")))
+#geneNames[geneNames==""] = paste("GENE.",c(1:sum(geneNames=="")),sep="")
+#geneNames = data.frame(geneNames)
+#geneNames$order = c(1:nrow(geneNames))
 
 names(compList) <- paste("GENE",c(1:length(compList)),sep=".")
 
@@ -305,14 +323,19 @@ singleTrans$transcript_id.new = paste(singleTrans$gene_id.new,1,sep=".")
 ids = rbind(multiTrans,singleTrans[,colnames(multiTrans)])
 
 convertID = function(x,y){
-if(!grepl("ENS",x)) y = gsub("GENE",unlist(lapply(strsplit(x,split=".",fixed=TRUE),function(a) a[1])),y)
+if(!grepl("ENS",x)) y = gsub("GENE",unlist(lapply(strsplit(x,split=".",fixed=TRUE),function(a) paste(a[1:2],collapse="."))),y)
 if(grepl("ENS",x)) y = x
 return(y)
 }
 
 ids$alt.id = apply(ids,1,function(a) convertID(a["id"],a["transcript_id.new"]))
+ids$alt.id = gsub("ensMatched","matched",ids$alt.id)
 
 updated <- merge(new.transcripts,ids,by.x="transcript_id",by.y="id")
+
+###  test possibilities in alt.id  ###
+z = unlist(lapply(strsplit(updated$alt.id[-grep("ENS",updated$alt.id)],split=".",fixed=TRUE), function(a) a[2]))
+table(z)
 
 ##  Create New GTF File  ##
 
@@ -327,6 +350,31 @@ gtf$V9 = paste('gene_id "',gtf$gene_id.new,'"; transcript_id "',gtf$alt.id,'"; o
 gtf = gtf[,paste("V",c(1:9),sep="")]
 gtf = gtf[!duplicated(gtf),]
 
-if(printNow) write.table(gtf,file="RNA-Seq.Brain/reconstruction/reconstruct.brain.COMBINED.19Feb15.gtf",row.names=FALSE,col.names=FALSE,quote=FALSE,sep="\t")
+if(printNow) write.table(gtf,file="RNA-Seq.Brain/reconstruction/reconstruct.brain.COMBINED.26Feb15.gtf",row.names=FALSE,col.names=FALSE,quote=FALSE,sep="\t")
+
+##  Separate PolyA from Non-PolyA  ##
+ensembl.polya = unique(c(polyA.transcripts$transcript_id[grep("ENS",polyA.transcripts$transcript_id)],matched$transcript_id.total[grep("ENS",matched$transcript_id.total)]))
+ensembl.total = unique(c(total.transcripts$transcript_id[grep("ENS",total.transcripts$transcript_id)],matched$transcript_id.polya[grep("ENS",matched$transcript_id.polya)]))
+ensembl.nonpolya = ensembl.total[!(ensembl.total %in% ensembl.polya)]
+
+ens.gtf = unique(unlist(lapply(strsplit(gtf$V9,split='"',fixed=TRUE),function(a) a[4]))[grep("ENS",unlist(lapply(strsplit(gtf$V9,split='"',fixed=TRUE),function(a) a[4])))])
+
+c(ensembl.polya,ensembl.nonpolya)[!(c(ensembl.polya,ensembl.nonpolya) %in% ens.gtf)]
+
+polyA = rbind(gtf[grepl("polya",gtf$V9) | grepl("both",gtf$V9),],gtf[unlist(lapply(strsplit(gtf$V9,split='"',fixed=TRUE),function(a) a[4])) %in% ensembl.polya,])
+
+nonPolyA = rbind(gtf[grepl("total",gtf$V9),],gtf[unlist(lapply(strsplit(gtf$V9,split='"',fixed=TRUE),function(a) a[4])) %in% ensembl.nonpolya,])
+
+polyA$V9 = gsub("both.","",polyA$V9,fixed=TRUE)
+polyA$V9 = gsub("polya.","",polyA$V9,fixed=TRUE)
+nonPolyA$V9 = gsub("total.","",nonPolyA$V9,fixed=TRUE)
+
+#printNow=TRUE
+if(printNow) write.table(polyA,file="RNA-Seq.Brain/reconstruction/reconstruct.brain.polya.26Feb15.gtf",row.names=FALSE,col.names=FALSE,quote=FALSE,sep="\t")
+if(printNow) write.table(nonPolyA,file="RNA-Seq.Brain/reconstruction/reconstruct.brain.nonpolya.26Feb15.gtf",row.names=FALSE,col.names=FALSE,quote=FALSE,sep="\t")
+
+
+
+
 ```
 

@@ -1,0 +1,65 @@
+Title
+========================================================
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring web pages (click the **Help** toolbar button for more details on using R Markdown).
+
+When you click the **Knit HTML** button a web page will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r}
+rm(list=ls())
+options(stringsAsFactors=FALSE)
+library(WGCNA)
+
+base.path = "/data2/saba/BxH.HxB.Rats/RNA-Seq/"
+#base.path = "/Volumes/saba/BxH.HxB.Rats/RNA-Seq/"
+
+load(paste(base.path,"Rdata/strainEst.RUVs2.Rdata",sep=""))
+
+dim(strainEst)
+
+## limit to ensembl genes and recombinant inbred strains
+datExpr = t(strainEst[grep("ENS",rownames(strainEst)),grepl("BXH",colnames(strainEst)) | grepl("HXB",colnames(strainEst))])
+
+softPower=8
+adjacency=adjacency(datExpr,power=softPower,corFnc="cor",corOptions="use ='pairwise.complete.obs', method = 'spearman'",type="unsigned")
+TOM=TOMsimilarity(adjacency)
+dissTOM=1-TOM
+
+geneTree=flashClust(as.dist(dissTOM),method="average")
+dynamicMods=cutreeDynamic(dendro=geneTree,distM=dissTOM,deepSplit=4,pamRespectsDendro=FALSE,minClusterSize=5)
+
+dynamicColors = labels2colors(dynamicMods)
+table(dynamicColors)
+
+MEList=moduleEigengenes(datExpr,colors=dynamicColors)
+MEs=MEList$eigengenes
+MEDiss=1-cor(MEs)
+METree=flashClust(as.dist(MEDiss), method="average")
+
+MEDissThres=0.2
+merge=mergeCloseModules(datExpr,dynamicColors,cutHeight=MEDissThres,verbose=3)
+mergedColors=merge$colors
+mergedMEs=merge$newMEs
+
+moduleColors=mergedColors
+colorOrder=c("grey",standardColors(50))
+moduleLabels=match(moduleColors,colorOrder)-1
+MEs=mergedMEs
+
+names(moduleColors) = colnames(datExpr)
+TC = colnames(datExpr)
+
+moduleMembership = cbind(TC, moduleLabels, moduleColors)
+moduleMembership[moduleMembership[,1]=="ENSRNOG00000001130",]
+
+
+save(MEs,moduleLabels,moduleColors,geneTree,file="")
+
+```
+
+You can also embed plots, for example:
+
+```{r fig.width=7, fig.height=6}
+plot(cars)
+```
+

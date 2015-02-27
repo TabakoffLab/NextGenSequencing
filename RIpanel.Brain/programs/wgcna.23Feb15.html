@@ -1,0 +1,1340 @@
+<!DOCTYPE html>
+<!-- saved from url=(0014)about:internet -->
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=9" >
+
+<title>Examination of WGCNA Module with Nitric Oxide Synthase 1</title>
+
+<style type="text/css">
+body, td {
+   font-family: sans-serif;
+   background-color: white;
+   font-size: 12px;
+   margin: 8px;
+}
+
+tt, code, pre {
+   font-family: 'DejaVu Sans Mono', 'Droid Sans Mono', 'Lucida Console', Consolas, Monaco, monospace;
+}
+
+h1 { 
+   font-size:2.2em; 
+}
+
+h2 { 
+   font-size:1.8em; 
+}
+
+h3 { 
+   font-size:1.4em; 
+}
+
+h4 { 
+   font-size:1.0em; 
+}
+
+h5 { 
+   font-size:0.9em; 
+}
+
+h6 { 
+   font-size:0.8em; 
+}
+
+a:visited {
+   color: rgb(50%, 0%, 50%);
+}
+
+pre {	
+   margin-top: 0;
+   max-width: 95%;
+   border: 1px solid #ccc;
+   white-space: pre-wrap;
+}
+
+pre code {
+   display: block; padding: 0.5em;
+}
+
+code.r, code.cpp {
+   background-color: #F8F8F8;
+}
+
+table, td, th {
+  border: none;
+}
+
+blockquote {
+   color:#666666;
+   margin:0;
+   padding-left: 1em;
+   border-left: 0.5em #EEE solid;
+}
+
+hr {
+   height: 0px;
+   border-bottom: none;
+   border-top-width: thin;
+   border-top-style: dotted;
+   border-top-color: #999999;
+}
+
+@media print {
+   * { 
+      background: transparent !important; 
+      color: black !important; 
+      filter:none !important; 
+      -ms-filter: none !important; 
+   }
+
+   body { 
+      font-size:12pt; 
+      max-width:100%; 
+   }
+       
+   a, a:visited { 
+      text-decoration: underline; 
+   }
+
+   hr { 
+      visibility: hidden;
+      page-break-before: always;
+   }
+
+   pre, blockquote { 
+      padding-right: 1em; 
+      page-break-inside: avoid; 
+   }
+
+   tr, img { 
+      page-break-inside: avoid; 
+   }
+
+   img { 
+      max-width: 100% !important; 
+   }
+
+   @page :left { 
+      margin: 15mm 20mm 15mm 10mm; 
+   }
+     
+   @page :right { 
+      margin: 15mm 10mm 15mm 20mm; 
+   }
+
+   p, h2, h3 { 
+      orphans: 3; widows: 3; 
+   }
+
+   h2, h3 { 
+      page-break-after: avoid; 
+   }
+}
+
+</style>
+
+
+
+
+
+</head>
+
+<body>
+<h1>Examination of WGCNA Module with Nitric Oxide Synthase 1</h1>
+
+<h1>PANTHER RESULTS - 02/27/15</h1>
+
+<h3>Background</h3>
+
+<p>Mapped IDs:     14865<br/>
+Unmapped IDs:   1089  </p>
+
+<h3>Pink Module</h3>
+
+<p>Mapped IDs:     320<br/>
+Unmapped IDs:   24  </p>
+
+<h3>Enriched GO - Molecular Functions in Pink Module with Nos1 (FDR&lt;0.20)</h3>
+
+<table><thead>
+<tr>
+<th align="center">GO</th>
+<th align="center">bkgrd.Num</th>
+<th align="center">pink.Num</th>
+<th align="center">expected</th>
+<th align="center">foldEnrich</th>
+<th align="center">pvalue</th>
+<th align="center">fdr</th>
+</tr>
+</thead><tbody>
+<tr>
+<td align="center">protein binding</td>
+<td align="center">5089</td>
+<td align="center">148</td>
+<td align="center">109.55</td>
+<td align="center">1.35</td>
+<td align="center">0.0000</td>
+<td align="center">0.002</td>
+</tr>
+<tr>
+<td align="center">adenyl-nucleotide exchange factor activity</td>
+<td align="center">4</td>
+<td align="center">3</td>
+<td align="center">0.09</td>
+<td align="center">&gt; 5</td>
+<td align="center">0.0001</td>
+<td align="center">0.016</td>
+</tr>
+<tr>
+<td align="center">transforming growth factor beta receptor, inhibitory cytoplasmic mediator activity</td>
+<td align="center">2</td>
+<td align="center">2</td>
+<td align="center">0.04</td>
+<td align="center">&gt; 5</td>
+<td align="center">0.0009</td>
+<td align="center">0.100</td>
+</tr>
+<tr>
+<td align="center">transferase activity, transferring nitrogenous groups</td>
+<td align="center">22</td>
+<td align="center">4</td>
+<td align="center">0.47</td>
+<td align="center">&gt; 5</td>
+<td align="center">0.0014</td>
+<td align="center">0.106</td>
+</tr>
+<tr>
+<td align="center">binding</td>
+<td align="center">9063</td>
+<td align="center">221</td>
+<td align="center">195.10</td>
+<td align="center">1.13</td>
+<td align="center">0.0016</td>
+<td align="center">0.106</td>
+</tr>
+</tbody></table>
+
+<h3>Enriched GO - Biological Processes in Pink Module with Nos1 (FDR&lt;0.05)</h3>
+
+<table><thead>
+<tr>
+<th align="center">GO</th>
+<th align="center">bkgrd.Num</th>
+<th align="center">pink.Num</th>
+<th align="center">expected</th>
+<th align="center">foldEnrich</th>
+<th align="center">pvalue</th>
+<th align="center">fdr</th>
+</tr>
+</thead><tbody>
+<tr>
+<td align="center">regulation of signaling</td>
+<td align="center">2219</td>
+<td align="center">80</td>
+<td align="center">47.77</td>
+<td align="center">1.67</td>
+<td align="center">0.0000</td>
+<td align="center">0.002</td>
+</tr>
+<tr>
+<td align="center">regulation of cell communication</td>
+<td align="center">2222</td>
+<td align="center">80</td>
+<td align="center">47.83</td>
+<td align="center">1.67</td>
+<td align="center">0.0000</td>
+<td align="center">0.002</td>
+</tr>
+<tr>
+<td align="center">regulation of signal transduction</td>
+<td align="center">1926</td>
+<td align="center">69</td>
+<td align="center">41.46</td>
+<td align="center">1.66</td>
+<td align="center">0.0000</td>
+<td align="center">0.009</td>
+</tr>
+<tr>
+<td align="center">negative regulation of epidermis development</td>
+<td align="center">10</td>
+<td align="center">4</td>
+<td align="center">0.22</td>
+<td align="center">&gt; 5</td>
+<td align="center">0.0001</td>
+<td align="center">0.031</td>
+</tr>
+<tr>
+<td align="center">regulation of multicellular organismal process</td>
+<td align="center">1956</td>
+<td align="center">67</td>
+<td align="center">42.11</td>
+<td align="center">1.59</td>
+<td align="center">0.0001</td>
+<td align="center">0.031</td>
+</tr>
+<tr>
+<td align="center">positive regulation of signaling</td>
+<td align="center">1122</td>
+<td align="center">44</td>
+<td align="center">24.15</td>
+<td align="center">1.82</td>
+<td align="center">0.0001</td>
+<td align="center">0.032</td>
+</tr>
+<tr>
+<td align="center">nervous system development</td>
+<td align="center">1733</td>
+<td align="center">60</td>
+<td align="center">37.31</td>
+<td align="center">1.61</td>
+<td align="center">0.0001</td>
+<td align="center">0.041</td>
+</tr>
+<tr>
+<td align="center">anatomical structure development</td>
+<td align="center">3677</td>
+<td align="center">108</td>
+<td align="center">79.16</td>
+<td align="center">1.36</td>
+<td align="center">0.0002</td>
+<td align="center">0.041</td>
+</tr>
+<tr>
+<td align="center">positive regulation of cell communication</td>
+<td align="center">1129</td>
+<td align="center">43</td>
+<td align="center">24.30</td>
+<td align="center">1.77</td>
+<td align="center">0.0002</td>
+<td align="center">0.041</td>
+</tr>
+<tr>
+<td align="center">multicellular organismal development</td>
+<td align="center">3493</td>
+<td align="center">103</td>
+<td align="center">75.19</td>
+<td align="center">1.37</td>
+<td align="center">0.0002</td>
+<td align="center">0.041</td>
+</tr>
+<tr>
+<td align="center">positive regulation of intracellular signal transduction</td>
+<td align="center">663</td>
+<td align="center">29</td>
+<td align="center">14.27</td>
+<td align="center">2.03</td>
+<td align="center">0.0003</td>
+<td align="center">0.041</td>
+</tr>
+<tr>
+<td align="center">cardiac septum morphogenesis</td>
+<td align="center">41</td>
+<td align="center">6</td>
+<td align="center">0.88</td>
+<td align="center">&gt; 5</td>
+<td align="center">0.0003</td>
+<td align="center">0.041</td>
+</tr>
+<tr>
+<td align="center">negative regulation of signaling</td>
+<td align="center">903</td>
+<td align="center">36</td>
+<td align="center">19.44</td>
+<td align="center">1.85</td>
+<td align="center">0.0003</td>
+<td align="center">0.041</td>
+</tr>
+<tr>
+<td align="center">negative regulation of cell communication</td>
+<td align="center">908</td>
+<td align="center">36</td>
+<td align="center">19.55</td>
+<td align="center">1.84</td>
+<td align="center">0.0003</td>
+<td align="center">0.041</td>
+</tr>
+<tr>
+<td align="center">embryonic organ morphogenesis</td>
+<td align="center">246</td>
+<td align="center">15</td>
+<td align="center">5.30</td>
+<td align="center">2.83</td>
+<td align="center">0.0004</td>
+<td align="center">0.041</td>
+</tr>
+<tr>
+<td align="center">central nervous system development</td>
+<td align="center">808</td>
+<td align="center">33</td>
+<td align="center">17.39</td>
+<td align="center">1.90</td>
+<td align="center">0.0004</td>
+<td align="center">0.041</td>
+</tr>
+<tr>
+<td align="center">organ development</td>
+<td align="center">2389</td>
+<td align="center">75</td>
+<td align="center">51.43</td>
+<td align="center">1.46</td>
+<td align="center">0.0004</td>
+<td align="center">0.041</td>
+</tr>
+<tr>
+<td align="center">positive regulation of signal transduction</td>
+<td align="center">988</td>
+<td align="center">38</td>
+<td align="center">21.27</td>
+<td align="center">1.79</td>
+<td align="center">0.0004</td>
+<td align="center">0.041</td>
+</tr>
+<tr>
+<td align="center">intraspecies interaction between organisms</td>
+<td align="center">44</td>
+<td align="center">6</td>
+<td align="center">0.95</td>
+<td align="center">&gt; 5</td>
+<td align="center">0.0004</td>
+<td align="center">0.041</td>
+</tr>
+<tr>
+<td align="center">social behavior</td>
+<td align="center">44</td>
+<td align="center">6</td>
+<td align="center">0.95</td>
+<td align="center">&gt; 5</td>
+<td align="center">0.0004</td>
+<td align="center">0.041</td>
+</tr>
+<tr>
+<td align="center">single-organism developmental process</td>
+<td align="center">4012</td>
+<td align="center">114</td>
+<td align="center">86.37</td>
+<td align="center">1.32</td>
+<td align="center">0.0004</td>
+<td align="center">0.041</td>
+</tr>
+<tr>
+<td align="center">single-multicellular organism process</td>
+<td align="center">4229</td>
+<td align="center">119</td>
+<td align="center">91.04</td>
+<td align="center">1.31</td>
+<td align="center">0.0004</td>
+<td align="center">0.041</td>
+</tr>
+<tr>
+<td align="center">regulation of intracellular signal transduction</td>
+<td align="center">1211</td>
+<td align="center">44</td>
+<td align="center">26.07</td>
+<td align="center">1.69</td>
+<td align="center">0.0005</td>
+<td align="center">0.041</td>
+</tr>
+<tr>
+<td align="center">regulation of epidermis development</td>
+<td align="center">45</td>
+<td align="center">6</td>
+<td align="center">0.97</td>
+<td align="center">&gt; 5</td>
+<td align="center">0.0005</td>
+<td align="center">0.041</td>
+</tr>
+<tr>
+<td align="center">developmental process</td>
+<td align="center">4030</td>
+<td align="center">114</td>
+<td align="center">86.75</td>
+<td align="center">1.31</td>
+<td align="center">0.0005</td>
+<td align="center">0.041</td>
+</tr>
+<tr>
+<td align="center">regulation of response to stimulus</td>
+<td align="center">2450</td>
+<td align="center">76</td>
+<td align="center">52.74</td>
+<td align="center">1.44</td>
+<td align="center">0.0005</td>
+<td align="center">0.041</td>
+</tr>
+<tr>
+<td align="center">negative regulation of biological process</td>
+<td align="center">3404</td>
+<td align="center">99</td>
+<td align="center">73.28</td>
+<td align="center">1.35</td>
+<td align="center">0.0006</td>
+<td align="center">0.044</td>
+</tr>
+<tr>
+<td align="center">regulation of BMP signaling pathway</td>
+<td align="center">65</td>
+<td align="center">7</td>
+<td align="center">1.40</td>
+<td align="center">&gt; 5</td>
+<td align="center">0.0006</td>
+<td align="center">0.044</td>
+</tr>
+<tr>
+<td align="center">multicellular organismal process</td>
+<td align="center">4400</td>
+<td align="center">122</td>
+<td align="center">94.72</td>
+<td align="center">1.29</td>
+<td align="center">0.0007</td>
+<td align="center">0.046</td>
+</tr>
+<tr>
+<td align="center">regulation of alpha-amino-3-hydroxy-5-methyl-4-isoxazole propionate selective glutamate receptor activity</td>
+<td align="center">18</td>
+<td align="center">4</td>
+<td align="center">0.39</td>
+<td align="center">&gt; 5</td>
+<td align="center">0.0007</td>
+<td align="center">0.046</td>
+</tr>
+<tr>
+<td align="center">regulation of stem cell differentiation</td>
+<td align="center">87</td>
+<td align="center">8</td>
+<td align="center">1.87</td>
+<td align="center">4.27</td>
+<td align="center">0.0007</td>
+<td align="center">0.046</td>
+</tr>
+<tr>
+<td align="center">negative regulation of pathway-restricted SMAD protein phosphorylation</td>
+<td align="center">8</td>
+<td align="center">3</td>
+<td align="center">0.17</td>
+<td align="center">&gt; 5</td>
+<td align="center">0.0007</td>
+<td align="center">0.048</td>
+</tr>
+</tbody></table>
+
+<h3>Enriched GO - Cellular Components in Pink Module with Nos1 (FDR&lt;0.10)</h3>
+
+<table><thead>
+<tr>
+<th align="center">GO</th>
+<th align="center">bkgrd.Num</th>
+<th align="center">pink.Num</th>
+<th align="center">expected</th>
+<th align="center">foldEnrich</th>
+<th align="center">pvalue</th>
+<th align="center">fdr</th>
+</tr>
+</thead><tbody>
+<tr>
+<td align="center">photoreceptor inner segment</td>
+<td align="center">34</td>
+<td align="center">6</td>
+<td align="center">0.73</td>
+<td align="center">&gt; 5</td>
+<td align="center">0.0001</td>
+<td align="center">0.030</td>
+</tr>
+<tr>
+<td align="center">synapse</td>
+<td align="center">676</td>
+<td align="center">29</td>
+<td align="center">14.55</td>
+<td align="center">1.99</td>
+<td align="center">0.0004</td>
+<td align="center">0.054</td>
+</tr>
+<tr>
+<td align="center">neuron part</td>
+<td align="center">1150</td>
+<td align="center">41</td>
+<td align="center">24.76</td>
+<td align="center">1.66</td>
+<td align="center">0.0011</td>
+<td align="center">0.100</td>
+</tr>
+</tbody></table>
+
+<h3>Enriched GO - Molecular Functions (Experimental) in Pink Module with Nos1 (FDR&lt;0.10)</h3>
+
+<table><thead>
+<tr>
+<th align="center">GO</th>
+<th align="center">bkgrd.Num</th>
+<th align="center">pink.Num</th>
+<th align="center">expected</th>
+<th align="center">foldEnrich</th>
+<th align="center">pvalue</th>
+<th align="center">fdr</th>
+</tr>
+</thead><tbody>
+<tr>
+<td align="center">protein complex binding</td>
+<td align="center">316</td>
+<td align="center">17</td>
+<td align="center">6.80</td>
+<td align="center">2.50</td>
+<td align="center">0.0006</td>
+<td align="center">0.046</td>
+</tr>
+<tr>
+<td align="center">neurotrophin TRK receptor binding</td>
+<td align="center">2</td>
+<td align="center">2</td>
+<td align="center">0.04</td>
+<td align="center">&gt; 5</td>
+<td align="center">0.0009</td>
+<td align="center">0.046</td>
+</tr>
+<tr>
+<td align="center">macromolecular complex binding</td>
+<td align="center">367</td>
+<td align="center">18</td>
+<td align="center">7.90</td>
+<td align="center">2.28</td>
+<td align="center">0.0012</td>
+<td align="center">0.046</td>
+</tr>
+</tbody></table>
+
+<h3>Enriched GO - Biological Processes (Experimental) in Pink Module with Nos1 (FDR&lt;0.10)</h3>
+
+<table><thead>
+<tr>
+<th align="center">GO</th>
+<th align="center">bkgrd.Num</th>
+<th align="center">pink.Num</th>
+<th align="center">expected</th>
+<th align="center">foldEnrich</th>
+<th align="center">pvalue</th>
+<th align="center">fdr</th>
+</tr>
+</thead><tbody>
+<tr>
+<td align="center">developmental growth involved in morphogenesis</td>
+<td align="center">9</td>
+<td align="center">4</td>
+<td align="center">0.19</td>
+<td align="center">&gt; 5</td>
+<td align="center">0.0000</td>
+<td align="center">0.028</td>
+</tr>
+<tr>
+<td align="center">tissue development</td>
+<td align="center">188</td>
+<td align="center">14</td>
+<td align="center">4.05</td>
+<td align="center">3.46</td>
+<td align="center">0.0001</td>
+<td align="center">0.028</td>
+</tr>
+<tr>
+<td align="center">developmental cell growth</td>
+<td align="center">12</td>
+<td align="center">4</td>
+<td align="center">0.26</td>
+<td align="center">&gt; 5</td>
+<td align="center">0.0001</td>
+<td align="center">0.030</td>
+</tr>
+<tr>
+<td align="center">developmental growth</td>
+<td align="center">52</td>
+<td align="center">7</td>
+<td align="center">1.12</td>
+<td align="center">&gt; 5</td>
+<td align="center">0.0002</td>
+<td align="center">0.030</td>
+</tr>
+<tr>
+<td align="center">growth</td>
+<td align="center">61</td>
+<td align="center">7</td>
+<td align="center">1.31</td>
+<td align="center">&gt; 5</td>
+<td align="center">0.0004</td>
+<td align="center">0.053</td>
+</tr>
+<tr>
+<td align="center">regulation of cellular component organization</td>
+<td align="center">364</td>
+<td align="center">19</td>
+<td align="center">7.84</td>
+<td align="center">2.42</td>
+<td align="center">0.0004</td>
+<td align="center">0.053</td>
+</tr>
+<tr>
+<td align="center">anatomical structure development</td>
+<td align="center">1103</td>
+<td align="center">41</td>
+<td align="center">23.74</td>
+<td align="center">1.73</td>
+<td align="center">0.0005</td>
+<td align="center">0.053</td>
+</tr>
+<tr>
+<td align="center">central nervous system development</td>
+<td align="center">287</td>
+<td align="center">16</td>
+<td align="center">6.18</td>
+<td align="center">2.59</td>
+<td align="center">0.0006</td>
+<td align="center">0.057</td>
+</tr>
+<tr>
+<td align="center">brain development</td>
+<td align="center">238</td>
+<td align="center">14</td>
+<td align="center">5.12</td>
+<td align="center">2.73</td>
+<td align="center">0.0008</td>
+<td align="center">0.060</td>
+</tr>
+<tr>
+<td align="center">head development</td>
+<td align="center">238</td>
+<td align="center">14</td>
+<td align="center">5.12</td>
+<td align="center">2.73</td>
+<td align="center">0.0008</td>
+<td align="center">0.060</td>
+</tr>
+<tr>
+<td align="center">single-multicellular organism process</td>
+<td align="center">1290</td>
+<td align="center">45</td>
+<td align="center">27.77</td>
+<td align="center">1.62</td>
+<td align="center">0.0010</td>
+<td align="center">0.060</td>
+</tr>
+<tr>
+<td align="center">cell growth</td>
+<td align="center">20</td>
+<td align="center">4</td>
+<td align="center">0.43</td>
+<td align="center">&gt; 5</td>
+<td align="center">0.0010</td>
+<td align="center">0.060</td>
+</tr>
+<tr>
+<td align="center">regulation of neuron projection development</td>
+<td align="center">164</td>
+<td align="center">11</td>
+<td align="center">3.53</td>
+<td align="center">3.12</td>
+<td align="center">0.0010</td>
+<td align="center">0.060</td>
+</tr>
+<tr>
+<td align="center">organ development</td>
+<td align="center">657</td>
+<td align="center">27</td>
+<td align="center">14.14</td>
+<td align="center">1.91</td>
+<td align="center">0.0012</td>
+<td align="center">0.061</td>
+</tr>
+<tr>
+<td align="center">system development</td>
+<td align="center">1046</td>
+<td align="center">38</td>
+<td align="center">22.52</td>
+<td align="center">1.69</td>
+<td align="center">0.0012</td>
+<td align="center">0.061</td>
+</tr>
+<tr>
+<td align="center">multicellular organismal development</td>
+<td align="center">1067</td>
+<td align="center">38</td>
+<td align="center">22.97</td>
+<td align="center">1.65</td>
+<td align="center">0.0017</td>
+<td align="center">0.066</td>
+</tr>
+<tr>
+<td align="center">multicellular organismal process</td>
+<td align="center">1366</td>
+<td align="center">46</td>
+<td align="center">29.41</td>
+<td align="center">1.56</td>
+<td align="center">0.0017</td>
+<td align="center">0.066</td>
+</tr>
+<tr>
+<td align="center">nervous system development</td>
+<td align="center">680</td>
+<td align="center">27</td>
+<td align="center">14.64</td>
+<td align="center">1.84</td>
+<td align="center">0.0019</td>
+<td align="center">0.066</td>
+</tr>
+<tr>
+<td align="center">positive regulation of multicellular organismal process</td>
+<td align="center">353</td>
+<td align="center">17</td>
+<td align="center">7.60</td>
+<td align="center">2.24</td>
+<td align="center">0.0020</td>
+<td align="center">0.066</td>
+</tr>
+<tr>
+<td align="center">protein nitrosylation</td>
+<td align="center">3</td>
+<td align="center">2</td>
+<td align="center">0.06</td>
+<td align="center">&gt; 5</td>
+<td align="center">0.0020</td>
+<td align="center">0.066</td>
+</tr>
+<tr>
+<td align="center">peptidyl-cysteine modification</td>
+<td align="center">3</td>
+<td align="center">2</td>
+<td align="center">0.06</td>
+<td align="center">&gt; 5</td>
+<td align="center">0.0020</td>
+<td align="center">0.066</td>
+</tr>
+<tr>
+<td align="center">peptidyl-cysteine S-nitrosylation</td>
+<td align="center">3</td>
+<td align="center">2</td>
+<td align="center">0.06</td>
+<td align="center">&gt; 5</td>
+<td align="center">0.0020</td>
+<td align="center">0.066</td>
+</tr>
+<tr>
+<td align="center">single-organism developmental process</td>
+<td align="center">1226</td>
+<td align="center">42</td>
+<td align="center">26.39</td>
+<td align="center">1.59</td>
+<td align="center">0.0020</td>
+<td align="center">0.066</td>
+</tr>
+<tr>
+<td align="center">regulation of cell projection organization</td>
+<td align="center">180</td>
+<td align="center">11</td>
+<td align="center">3.87</td>
+<td align="center">2.84</td>
+<td align="center">0.0021</td>
+<td align="center">0.066</td>
+</tr>
+<tr>
+<td align="center">developmental process</td>
+<td align="center">1233</td>
+<td align="center">42</td>
+<td align="center">26.54</td>
+<td align="center">1.58</td>
+<td align="center">0.0022</td>
+<td align="center">0.067</td>
+</tr>
+<tr>
+<td align="center">positive regulation of blood circulation</td>
+<td align="center">61</td>
+<td align="center">6</td>
+<td align="center">1.31</td>
+<td align="center">4.57</td>
+<td align="center">0.0023</td>
+<td align="center">0.067</td>
+</tr>
+<tr>
+<td align="center">neuron projection extension</td>
+<td align="center">4</td>
+<td align="center">2</td>
+<td align="center">0.09</td>
+<td align="center">&gt; 5</td>
+<td align="center">0.0035</td>
+<td align="center">0.088</td>
+</tr>
+<tr>
+<td align="center">positive regulation of extracellular matrix organization</td>
+<td align="center">4</td>
+<td align="center">2</td>
+<td align="center">0.09</td>
+<td align="center">&gt; 5</td>
+<td align="center">0.0035</td>
+<td align="center">0.088</td>
+</tr>
+<tr>
+<td align="center">artery smooth muscle contraction</td>
+<td align="center">4</td>
+<td align="center">2</td>
+<td align="center">0.09</td>
+<td align="center">&gt; 5</td>
+<td align="center">0.0035</td>
+<td align="center">0.088</td>
+</tr>
+<tr>
+<td align="center">tonic smooth muscle contraction</td>
+<td align="center">4</td>
+<td align="center">2</td>
+<td align="center">0.09</td>
+<td align="center">&gt; 5</td>
+<td align="center">0.0035</td>
+<td align="center">0.088</td>
+</tr>
+<tr>
+<td align="center">locomotory behavior</td>
+<td align="center">14</td>
+<td align="center">3</td>
+<td align="center">0.30</td>
+<td align="center">&gt; 5</td>
+<td align="center">0.0036</td>
+<td align="center">0.088</td>
+</tr>
+<tr>
+<td align="center">positive regulation of nervous system development</td>
+<td align="center">167</td>
+<td align="center">10</td>
+<td align="center">3.60</td>
+<td align="center">2.78</td>
+<td align="center">0.0038</td>
+<td align="center">0.088</td>
+</tr>
+<tr>
+<td align="center">cell differentiation</td>
+<td align="center">579</td>
+<td align="center">23</td>
+<td align="center">12.46</td>
+<td align="center">1.85</td>
+<td align="center">0.0040</td>
+<td align="center">0.088</td>
+</tr>
+<tr>
+<td align="center">cellular developmental process</td>
+<td align="center">582</td>
+<td align="center">23</td>
+<td align="center">12.53</td>
+<td align="center">1.84</td>
+<td align="center">0.0042</td>
+<td align="center">0.088</td>
+</tr>
+<tr>
+<td align="center">cell-substrate adhesion</td>
+<td align="center">15</td>
+<td align="center">3</td>
+<td align="center">0.32</td>
+<td align="center">&gt; 5</td>
+<td align="center">0.0044</td>
+<td align="center">0.088</td>
+</tr>
+<tr>
+<td align="center">striated muscle tissue development</td>
+<td align="center">31</td>
+<td align="center">4</td>
+<td align="center">0.67</td>
+<td align="center">&gt; 5</td>
+<td align="center">0.0048</td>
+<td align="center">0.088</td>
+</tr>
+<tr>
+<td align="center">regulation of anatomical structure size</td>
+<td align="center">72</td>
+<td align="center">6</td>
+<td align="center">1.55</td>
+<td align="center">3.87</td>
+<td align="center">0.0051</td>
+<td align="center">0.088</td>
+</tr>
+<tr>
+<td align="center">tissue morphogenesis</td>
+<td align="center">16</td>
+<td align="center">3</td>
+<td align="center">0.34</td>
+<td align="center">&gt; 5</td>
+<td align="center">0.0052</td>
+<td align="center">0.088</td>
+</tr>
+<tr>
+<td align="center">regulation of neuron differentiation</td>
+<td align="center">204</td>
+<td align="center">11</td>
+<td align="center">4.39</td>
+<td align="center">2.50</td>
+<td align="center">0.0053</td>
+<td align="center">0.088</td>
+</tr>
+<tr>
+<td align="center">protein targeting</td>
+<td align="center">32</td>
+<td align="center">4</td>
+<td align="center">0.69</td>
+<td align="center">&gt; 5</td>
+<td align="center">0.0054</td>
+<td align="center">0.088</td>
+</tr>
+<tr>
+<td align="center">muscle tissue development</td>
+<td align="center">32</td>
+<td align="center">4</td>
+<td align="center">0.69</td>
+<td align="center">&gt; 5</td>
+<td align="center">0.0054</td>
+<td align="center">0.088</td>
+</tr>
+<tr>
+<td align="center">protein targeting to mitochondrion</td>
+<td align="center">5</td>
+<td align="center">2</td>
+<td align="center">0.11</td>
+<td align="center">&gt; 5</td>
+<td align="center">0.0054</td>
+<td align="center">0.088</td>
+</tr>
+<tr>
+<td align="center">regulation of extracellular matrix organization</td>
+<td align="center">5</td>
+<td align="center">2</td>
+<td align="center">0.11</td>
+<td align="center">&gt; 5</td>
+<td align="center">0.0054</td>
+<td align="center">0.088</td>
+</tr>
+<tr>
+<td align="center">stem cell maintenance</td>
+<td align="center">5</td>
+<td align="center">2</td>
+<td align="center">0.11</td>
+<td align="center">&gt; 5</td>
+<td align="center">0.0054</td>
+<td align="center">0.088</td>
+</tr>
+<tr>
+<td align="center">protein localization to mitochondrion</td>
+<td align="center">5</td>
+<td align="center">2</td>
+<td align="center">0.11</td>
+<td align="center">&gt; 5</td>
+<td align="center">0.0054</td>
+<td align="center">0.088</td>
+</tr>
+<tr>
+<td align="center">vascular smooth muscle contraction</td>
+<td align="center">5</td>
+<td align="center">2</td>
+<td align="center">0.11</td>
+<td align="center">&gt; 5</td>
+<td align="center">0.0054</td>
+<td align="center">0.088</td>
+</tr>
+<tr>
+<td align="center">establishment of protein localization to mitochondrion</td>
+<td align="center">5</td>
+<td align="center">2</td>
+<td align="center">0.11</td>
+<td align="center">&gt; 5</td>
+<td align="center">0.0054</td>
+<td align="center">0.088</td>
+</tr>
+<tr>
+<td align="center">protein localization to organelle</td>
+<td align="center">33</td>
+<td align="center">4</td>
+<td align="center">0.71</td>
+<td align="center">&gt; 5</td>
+<td align="center">0.0060</td>
+<td align="center">0.095</td>
+</tr>
+<tr>
+<td align="center">epithelium development</td>
+<td align="center">75</td>
+<td align="center">6</td>
+<td align="center">1.61</td>
+<td align="center">3.72</td>
+<td align="center">0.0062</td>
+<td align="center">0.096</td>
+</tr>
+<tr>
+<td align="center">cell adhesion</td>
+<td align="center">76</td>
+<td align="center">6</td>
+<td align="center">1.64</td>
+<td align="center">3.67</td>
+<td align="center">0.0065</td>
+<td align="center">0.098</td>
+</tr>
+<tr>
+<td align="center">biological adhesion</td>
+<td align="center">76</td>
+<td align="center">6</td>
+<td align="center">1.64</td>
+<td align="center">3.67</td>
+<td align="center">0.0065</td>
+<td align="center">0.098</td>
+</tr>
+</tbody></table>
+
+<h3>Enriched GO - Cellular Components (Experimental) in Pink Module with Nos1 (FDR&lt;0.10)</h3>
+
+<table><thead>
+<tr>
+<th align="center">GO</th>
+<th align="center">bkgrd.Num</th>
+<th align="center">pink.Num</th>
+<th align="center">expected</th>
+<th align="center">foldEnrich</th>
+<th align="center">pvalue</th>
+<th align="center">fdr</th>
+</tr>
+</thead><tbody>
+<tr>
+<td align="center">synapse</td>
+<td align="center">346</td>
+<td align="center">19</td>
+<td align="center">7.45</td>
+<td align="center">2.55</td>
+<td align="center">0.0002</td>
+<td align="center">0.030</td>
+</tr>
+<tr>
+<td align="center">cell projection part</td>
+<td align="center">390</td>
+<td align="center">19</td>
+<td align="center">8.40</td>
+<td align="center">2.26</td>
+<td align="center">0.0009</td>
+<td align="center">0.046</td>
+</tr>
+<tr>
+<td align="center">neuron part</td>
+<td align="center">721</td>
+<td align="center">29</td>
+<td align="center">15.52</td>
+<td align="center">1.87</td>
+<td align="center">0.0010</td>
+<td align="center">0.046</td>
+</tr>
+<tr>
+<td align="center">neuron projection</td>
+<td align="center">641</td>
+<td align="center">26</td>
+<td align="center">13.80</td>
+<td align="center">1.88</td>
+<td align="center">0.0017</td>
+<td align="center">0.055</td>
+</tr>
+<tr>
+<td align="center">cell-cell adherens junction</td>
+<td align="center">15</td>
+<td align="center">3</td>
+<td align="center">0.32</td>
+<td align="center">&gt; 5</td>
+<td align="center">0.0044</td>
+<td align="center">0.084</td>
+</tr>
+<tr>
+<td align="center">photoreceptor inner segment</td>
+<td align="center">15</td>
+<td align="center">3</td>
+<td align="center">0.32</td>
+<td align="center">&gt; 5</td>
+<td align="center">0.0044</td>
+<td align="center">0.084</td>
+</tr>
+<tr>
+<td align="center">cell projection</td>
+<td align="center">766</td>
+<td align="center">28</td>
+<td align="center">16.49</td>
+<td align="center">1.70</td>
+<td align="center">0.0048</td>
+<td align="center">0.084</td>
+</tr>
+<tr>
+<td align="center">neuronal cell body</td>
+<td align="center">358</td>
+<td align="center">16</td>
+<td align="center">7.71</td>
+<td align="center">2.08</td>
+<td align="center">0.0053</td>
+<td align="center">0.084</td>
+</tr>
+<tr>
+<td align="center">cell body</td>
+<td align="center">394</td>
+<td align="center">17</td>
+<td align="center">8.48</td>
+<td align="center">2.00</td>
+<td align="center">0.0058</td>
+<td align="center">0.084</td>
+</tr>
+<tr>
+<td align="center">Golgi apparatus</td>
+<td align="center">187</td>
+<td align="center">10</td>
+<td align="center">4.03</td>
+<td align="center">2.48</td>
+<td align="center">0.0080</td>
+<td align="center">0.098</td>
+</tr>
+<tr>
+<td align="center">somatodendritic compartment</td>
+<td align="center">481</td>
+<td align="center">19</td>
+<td align="center">10.35</td>
+<td align="center">1.83</td>
+<td align="center">0.0090</td>
+<td align="center">0.098</td>
+</tr>
+<tr>
+<td align="center">growth cone</td>
+<td align="center">82</td>
+<td align="center">6</td>
+<td align="center">1.77</td>
+<td align="center">3.40</td>
+<td align="center">0.0093</td>
+<td align="center">0.098</td>
+</tr>
+<tr>
+<td align="center">site of polarized growth</td>
+<td align="center">83</td>
+<td align="center">6</td>
+<td align="center">1.79</td>
+<td align="center">3.36</td>
+<td align="center">0.0098</td>
+<td align="center">0.098</td>
+</tr>
+</tbody></table>
+
+<h3>Enriched PANTHER Pathways in Pink Module with Nos1 (p&lt;0.05)</h3>
+
+<table><thead>
+<tr>
+<th align="left"></th>
+<th align="center">PANTHER Category</th>
+<th align="center">bkgrd.Num</th>
+<th align="center">pink.Num</th>
+<th align="center">expected</th>
+<th align="center">foldEnrich</th>
+<th align="center">pvalue</th>
+<th align="center">fdr</th>
+</tr>
+</thead><tbody>
+<tr>
+<td align="left">1</td>
+<td align="center">Ionotropic glutamate receptor pathway</td>
+<td align="center">45</td>
+<td align="center">5</td>
+<td align="center">0.97</td>
+<td align="center">&gt; 5</td>
+<td align="center">0.0031</td>
+<td align="center">0.091</td>
+</tr>
+<tr>
+<td align="left">2</td>
+<td align="center">Hedgehog signaling pathway</td>
+<td align="center">21</td>
+<td align="center">3</td>
+<td align="center">0.45</td>
+<td align="center">&gt; 5</td>
+<td align="center">0.0109</td>
+<td align="center">0.158</td>
+</tr>
+<tr>
+<td align="left">4</td>
+<td align="center">Metabotropic glutamate receptor group II pathway</td>
+<td align="center">30</td>
+<td align="center">3</td>
+<td align="center">0.65</td>
+<td align="center">4.65</td>
+<td align="center">0.0277</td>
+<td align="center">0.268</td>
+</tr>
+<tr>
+<td align="left">9</td>
+<td align="center">Notch signaling pathway</td>
+<td align="center">38</td>
+<td align="center">3</td>
+<td align="center">0.82</td>
+<td align="center">3.67</td>
+<td align="center">0.0498</td>
+<td align="center">0.361</td>
+</tr>
+</tbody></table>
+
+<h3>Enriched PANTHER Protein Classes in Pink Module with Nos1 (p&lt;0.05)</h3>
+
+<table><thead>
+<tr>
+<th align="center">PANTHER Category</th>
+<th align="center">bkgrd.Num</th>
+<th align="center">pink.Num</th>
+<th align="center">expected</th>
+<th align="center">foldEnrich</th>
+<th align="center">pvalue</th>
+<th align="center">fdr</th>
+</tr>
+</thead><tbody>
+<tr>
+<td align="center">transaminase</td>
+<td align="center">23</td>
+<td align="center">3</td>
+<td align="center">0.50</td>
+<td align="center">&gt; 5</td>
+<td align="center">0.0139</td>
+<td align="center">0.583</td>
+</tr>
+<tr>
+<td align="center">intermediate filament binding protein</td>
+<td align="center">9</td>
+<td align="center">2</td>
+<td align="center">0.19</td>
+<td align="center">&gt; 5</td>
+<td align="center">0.0165</td>
+<td align="center">0.583</td>
+</tr>
+<tr>
+<td align="center">cytoskeletal protein</td>
+<td align="center">699</td>
+<td align="center">24</td>
+<td align="center">15.05</td>
+<td align="center">1.59</td>
+<td align="center">0.0176</td>
+<td align="center">0.583</td>
+</tr>
+<tr>
+<td align="center">lipase</td>
+<td align="center">73</td>
+<td align="center">5</td>
+<td align="center">1.57</td>
+<td align="center">3.18</td>
+<td align="center">0.0218</td>
+<td align="center">0.583</td>
+</tr>
+<tr>
+<td align="center">nucleotide phosphatase</td>
+<td align="center">32</td>
+<td align="center">3</td>
+<td align="center">0.69</td>
+<td align="center">4.35</td>
+<td align="center">0.0326</td>
+<td align="center">0.683</td>
+</tr>
+<tr>
+<td align="center">extracellular matrix glycoprotein</td>
+<td align="center">119</td>
+<td align="center">6</td>
+<td align="center">2.56</td>
+<td align="center">2.34</td>
+<td align="center">0.0456</td>
+<td align="center">0.683</td>
+</tr>
+</tbody></table>
+
+</body>
+
+</html>
+

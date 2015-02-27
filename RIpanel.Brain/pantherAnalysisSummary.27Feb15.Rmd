@@ -1,0 +1,93 @@
+PANTHER RESULTS - 02/27/15
+==========================
+### Background
+Mapped IDs:   14865  
+Unmapped IDs: 	1089  
+
+### Pink Module  
+Mapped IDs: 	320  
+Unmapped IDs: 	24  
+
+```{r,echo=FALSE}
+rm(list=ls())
+options(stringsAsFactors=FALSE)
+#library(WGCNA)
+
+#base.path = "/data2/saba/BxH.HxB.Rats/RNA-Seq/"
+base.path = "/Volumes/saba/BxH.HxB.Rats/RNA-Seq/"
+
+goMF = read.table(file=paste(base.path,"data/PANTHER.Pink/goMolecularFunction.27Feb15.txt",sep=""),sep="\t",skip=5,fill=TRUE,header=TRUE)
+goMF = goMF[goMF[,3]>1,]
+goMF$pvalue = as.numeric(goMF[,5]=="+")*goMF[,7] + as.numeric(goMF[,5]=="-")*(1-goMF[,7])
+goMF$fdr = p.adjust(goMF$pvalue,method="BH")
+
+goBP = read.table(file=paste(base.path,"data/PANTHER.Pink/goBiologicalProcesses.27Feb15.txt",sep=""),sep="\t",skip=5,fill=TRUE,header=TRUE)
+goBP = goBP[goBP[,3]>1,]
+goBP$pvalue = as.numeric(goBP[,5]=="+")*goBP[,7] + as.numeric(goBP[,5]=="-")*(1-goBP[,7])
+goBP$fdr = p.adjust(goBP$pvalue,method="BH")
+
+goCC = read.table(file=paste(base.path,"data/PANTHER.Pink/goCellularComponent.27Feb15.txt",sep=""),sep="\t",skip=5,fill=TRUE,header=TRUE)
+goCC = goCC[goCC[,3]>1,]
+goCC$pvalue = as.numeric(goCC[,5]=="+")*goCC[,7] + as.numeric(goCC[,5]=="-")*(1-goCC[,7])
+goCC$fdr = p.adjust(goCC$pvalue,method="BH")
+
+colnames(goMF) = colnames(goBP) = colnames(goCC) = c("GO","bkgrd.Num","pink.Num","expected","direction","foldEnrich","two.sided.p","pvalue","fdr")
+
+printMF = goMF[goMF$fdr<0.10,c("GO","bkgrd.Num","pink.Num","expected","foldEnrich","pvalue","fdr")]
+printBP = goBP[goBP$fdr<0.10,c("GO","bkgrd.Num","pink.Num","expected","foldEnrich","pvalue","fdr")]
+printCC = goCC[goCC$fdr<0.10,c("GO","bkgrd.Num","pink.Num","expected","foldEnrich","pvalue","fdr")]
+
+printMF$fdr = sprintf("%.3f",round(printMF$fdr,3))
+printBP$fdr = sprintf("%.3f",round(printBP$fdr,3))
+printCC$fdr = sprintf("%.3f",round(printCC$fdr,3))
+
+printMF$pvalue = sprintf("%.4f",round(printMF$pvalue,4))
+printBP$pvalue = sprintf("%.4f",round(printBP$pvalue,4))
+printCC$pvalue = sprintf("%.4f",round(printCC$pvalue,4))
+```
+
+### Enriched GO - Molecular Functions in Pink Module with Nos1 (FDR<0.10)
+```{r, results='asis',echo=FALSE}
+kable(printMF,align=rep("c",ncol(printMF)))
+```
+
+### Enriched GO - Biological Processes in Pink Module with Nos1 (FDR<0.10)
+```{r, results='asis',echo=FALSE}
+kable(printBP,align=rep("c",ncol(printBP)))
+```
+
+### Enriched GO - Cellular Components in Pink Module with Nos1 (FDR<0.10)
+```{r, results='asis',echo=FALSE}
+kable(printCC,align=rep("c",ncol(printCC)))
+```
+
+
+```{r,echo=FALSE}
+base.path = "/Volumes/saba/BxH.HxB.Rats/RNA-Seq/"
+
+paths = read.table(file=paste(base.path,"data/PANTHER.Pink/pantherPathway.pink.27Feb15.txt",sep=""),sep="\t",skip=5,fill=TRUE,header=TRUE)
+paths = paths[paths[,3]>1,]
+paths$pvalue = as.numeric(paths[,5]=="+")*paths[,7] + as.numeric(paths[,5]=="-")*(1-paths[,7])
+paths$fdr = p.adjust(paths$pvalue,method="BH")
+
+colnames(paths) = c("PANTHER Category","bkgrd.Num","pink.Num","expected","direction","foldEnrich","two.sided.p","pvalue","fdr")
+
+printPaths = paths[paths$fdr<0.10,c("PANTHER Category","bkgrd.Num","pink.Num","expected","foldEnrich","pvalue","fdr")]
+
+printPaths$fdr = sprintf("%.3f",round(printPaths$fdr,3))
+printPaths$pvalue = sprintf("%.4f",round(printPaths$pvalue,4))
+```
+
+### Enriched PANTHER Pathways in Pink Module with Nos1 (fdr<0.10)
+```{r, results='asis',echo=FALSE}
+kable(printPaths,align=rep("c",ncol(printPaths)))
+```
+
+
+
+
+
+
+
+
+

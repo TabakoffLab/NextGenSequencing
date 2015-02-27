@@ -1,16 +1,13 @@
-Title
+Examination of WGCNA Module with Nitric Oxide Synthase 1
 ========================================================
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring web pages (click the **Help** toolbar button for more details on using R Markdown).
-
-When you click the **Knit HTML** button a web page will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r}
+```{r,echo=FALSE,eval=FALSE}
 rm(list=ls())
 options(stringsAsFactors=FALSE)
 library(WGCNA)
 
-base.path = "/data2/saba/BxH.HxB.Rats/RNA-Seq/"
+#base.path = "/data2/saba/BxH.HxB.Rats/RNA-Seq/"
+base.path = "/Volumes/saba/BxH.HxB.Rats/RNA-Seq/"
 
 load(paste(base.path,"Rdata/strainEst.RUVs2.Rdata",sep=""))
 
@@ -22,9 +19,15 @@ datExpr = t(strainEst[grep("ENS",rownames(strainEst)),grepl("BXH",colnames(strai
 ## determine appropriate beta parameter
 powers = c(c(1:15),seq(from=16,to=20,by=2))
 
-sft=pickSoftThreshold(datExpr,powerVector=powers,corFnc="cor",corOptions=list(use ='pairwise.complete.obs', method = 'spearman'),verbose=5)
+#sft=pickSoftThreshold(datExpr,powerVector=powers,corFnc="cor",corOptions=list(use ='pairwise.complete.obs', method = 'spearman'),verbose=5)
+sft=pickSoftThreshold(datExpr,powerVector=powers,corFnc="bicor",verbose=5)
 
-pdf(file=paste(base.path,"images/SoftThresholdingPower.23Feb15.pdf",sep=""))
+sizeGrWindow(9, 5)
+par(mfrow = c(1,2));
+cex1 = 0.8;
+
+
+pdf(file=paste(base.path,"images/SoftThresholdingPower.24Feb15.pdf",sep=""))
 plot(sft$fitIndices[,1], -sign(sft$fitIndices[,3])*sft$fitIndices[,2],
 xlab="Soft Threshold (power)",ylab="Scale Free Topology Model Fit,signed R^2",type="n",
 main = paste("Scale independence"));
@@ -41,24 +44,241 @@ text(sft$fitIndices[,1], sft$fitIndices[,5], labels=powers, cex=cex1,col="red")
 
 dev.off()
 
-save(sft, file=paste(rData.path,"SoftThresholdingPower.Rdata",sep=""))
+save(sft, file=paste(base.path,"Rdata/SoftThresholdingPower.23Feb15.Rdata",sep=""))
 
 
 ##############################################################
 ##  WGCNA in HXB Brain Expression Data (RNAseq Derived TC)  ##
 ##############################################################
-dim(datExpr)
-net = blockwiseModules(datExpr,power=8, minModuleSize=5, deepSplit=4, numericLabels=TRUE,pamRespectsDendro=FALSE,saveTOMs=TRUE, saveTOMFileBase="brain",verbose=3,networkType="unsigned", corType="bicor")
 
-table(net$colors)
+net = blockwiseModules(datExpr,power=9, minModuleSize=5, deepSplit=4, numericLabels=TRUE,pamRespectsDendro=FALSE,saveTOMs=TRUE, saveTOMFileBase="brain",verbose=3,networkType="unsigned", corType="bicor")
+
+moduleLabels = net$colors
+moduleColors = labels2colors(net$colors)
+names(moduleColors) = colnames(datExpr)
+TC = colnames(datExpr)
+
+moduleMembership = cbind(TC, moduleLabels, moduleColors)
+MEs = net$MEs
+
+save(net,moduleLabels,moduleColors,MEs,moduleMembership,file=paste(base.path,"Rdata/HXBbrain.RNASeq.WGCNA.27Feb15.Rdata",sep=""))
 
 
+### Nos1 - ENSRNOG00000001130 ###
+
+nos1.module = moduleMembership[moduleMembership[,1]=="ENSRNOG00000001130","moduleColors"]
+
+## number of genes in module 
+sum(moduleColors==nos1.module)
+# 351 genes
+
+nos1.corrs = data.frame(corNos1=bicor(datExpr,datExpr[,"ENSRNOG00000001130"]))
+nos1.corrs$adjNos1 = abs(nos1.corrs$corNos1^9)
+
+anno=read.table(file="/Volumes/saba/annotation/ensemblGenes.Rnor_5.0.08Jul14.txt",sep="\t",header=TRUE)
+anno=anno[!duplicated(anno$EnsemblGeneID),]
+
+nos1.corrs=merge(nos1.corrs,anno,by.x=0,by.y="EnsemblGeneID",all.x=TRUE)
+nos1.corrs$adjNos1Rank = nrow(nos1.corrs)-rank(nos1.corrs$adjNos1)+1
+
+nos1.corrs = merge(nos1.corrs,data.frame(module=moduleColors),by.x="Row.names",by.y=0)
+
+nearestNeighbors = nos1.corrs[nos1.corrs$module=="pink" & nos1.corrs$GeneSymbol!="Nos1",]
+nearestNeighbors = nearestNeighbors[order(nearestNeighbors$adjNos1Rank),]
+topTen = nearestNeighbors[1:10,c("GeneSymbol","corNos1","Description")]
+
+topTen$corNos1 = sprintf("%.2f",round(topTen$corNos1,2))
+topTen$Description = unlist(lapply(strsplit(topTen$Description,split="[",fixed=TRUE),function(a) a[1]))
+topTen$Description = unlist(lapply(strsplit(topTen$Description,split="(",fixed=TRUE),function(a) a[1]))
+
+
+###  Examine Pink Module  ###
+intraConnect = intramodularConnectivity.fromExpr(datExpr, moduleColors, corFnc = "bicor", networkType = "unsigned", power = 9)
+
+intraConnect = data.frame(gene=colnames(datExpr),module=moduleColors,intraConnect)
+
+pink.intra = intraConnect[intraConnect$module=="pink",]
+pink.intra = merge(pink.intra,anno,by.x="gene",by.y="EnsemblGeneID",all.x=TRUE)
+pink.intra$rank = nrow(pink.intra) - rank(pink.intra$kWithin) + 1
+
+head(pink.intra[order(pink.intra$rank),c("gene","GeneSymbol","Description","kWithin","rank")],10)
+
+pink.intra[pink.intra$GeneSymbol=="Nos1",]
+
+write.table(unique(pink.intra$GeneSymbol[pink.intra$GeneSymbol!=""]),file=paste(base.path,"data/pinkModuleGeneSymbols.txt",sep=""),sep="\t",row.names=FALSE,col.names=FALSE,quote=FALSE)
+write.table(unique(nos1.corrs$GeneSymbol[nos1.corrs$GeneSymbol!=""]),file=paste(base.path,"data/backgrdGeneSymbols.txt",sep=""),sep="\t",row.names=FALSE,col.names=FALSE,quote=FALSE)
 
 ```
 
-You can also embed plots, for example:
 
-```{r fig.width=7, fig.height=6}
-plot(cars)
+Eigengene Characteristics
+```{r}
+head(MEs)
+
+moduleMembership[moduleMembership[,1]=="ENSRNOG00000001130",]
+
+pinkME = MEs[,"ME8"]
+names(pinkME) = rownames(datExpr)
+pinkME = pinkME[order(pinkME)]  
+
+pdf(file=paste(base.path,"images/eigengeneDist.27Feb15.pdf",sep=""))
+eigenPlot = barplot(pinkME,ylab="Pink Eigengene Value",xaxt="n", xlab="")  
+axis(1,at=eigenPlot,labels=FALSE)
+text(eigenPlot, par("usr")[3] - 0.08, labels = names(pinkME), srt = 90, xpd = TRUE,cex=0.7)
+dev.off()
+  
+PANTHER RESULTS - 02/27/15
+==========================
+### Background
+Mapped IDs: 	14865  
+Unmapped IDs: 	1089  
+
+### Pink Module  
+Mapped IDs: 	320  
+Unmapped IDs: 	24  
+
+```{r,echo=FALSE}
+rm(list=ls())
+options(stringsAsFactors=FALSE)
+#library(WGCNA)
+
+#base.path = "/data2/saba/BxH.HxB.Rats/RNA-Seq/"
+base.path = "/Volumes/saba/BxH.HxB.Rats/RNA-Seq/"
+
+goMF = read.table(file=paste(base.path,"data/PANTHER.Pink/goMolecularFunction.27Feb15.txt",sep=""),sep="\t",skip=5,fill=TRUE,header=TRUE)
+goMF = goMF[goMF[,3]>1,]
+goMF$pvalue = as.numeric(goMF[,5]=="+")*goMF[,7] + as.numeric(goMF[,5]=="-")*(1-goMF[,7])
+goMF$fdr = p.adjust(goMF$pvalue,method="BH")
+
+goBP = read.table(file=paste(base.path,"data/PANTHER.Pink/goBiologicalProcesses.27Feb15.txt",sep=""),sep="\t",skip=5,fill=TRUE,header=TRUE)
+goBP = goBP[goBP[,3]>1,]
+goBP$pvalue = as.numeric(goBP[,5]=="+")*goBP[,7] + as.numeric(goBP[,5]=="-")*(1-goBP[,7])
+goBP$fdr = p.adjust(goBP$pvalue,method="BH")
+
+goCC = read.table(file=paste(base.path,"data/PANTHER.Pink/goCellularComponent.27Feb15.txt",sep=""),sep="\t",skip=5,fill=TRUE,header=TRUE)
+goCC = goCC[goCC[,3]>1,]
+goCC$pvalue = as.numeric(goCC[,5]=="+")*goCC[,7] + as.numeric(goCC[,5]=="-")*(1-goCC[,7])
+goCC$fdr = p.adjust(goCC$pvalue,method="BH")
+
+colnames(goMF) = colnames(goBP) = colnames(goCC) = c("GO","bkgrd.Num","pink.Num","expected","direction","foldEnrich","two.sided.p","pvalue","fdr")
+
+printMF = goMF[goMF$fdr<0.10,c("GO","bkgrd.Num","pink.Num","expected","foldEnrich","pvalue","fdr")]
+printBP = goBP[goBP$fdr<0.10,c("GO","bkgrd.Num","pink.Num","expected","foldEnrich","pvalue","fdr")]
+printCC = goCC[goCC$fdr<0.10,c("GO","bkgrd.Num","pink.Num","expected","foldEnrich","pvalue","fdr")]
+
+printMF$fdr = sprintf("%.3f",round(printMF$fdr,3))
+printBP$fdr = sprintf("%.3f",round(printBP$fdr,3))
+printCC$fdr = sprintf("%.3f",round(printCC$fdr,3))
+
+printMF$pvalue = sprintf("%.4f",round(printMF$pvalue,4))
+printBP$pvalue = sprintf("%.4f",round(printBP$pvalue,4))
+printCC$pvalue = sprintf("%.4f",round(printCC$pvalue,4))
 ```
+
+### Enriched GO - Molecular Functions in Pink Module with Nos1 (FDR<0.10)
+```{r, results='asis',echo=FALSE}
+kable(printMF,align=rep("c",ncol(printMF)))
+```
+
+### Enriched GO - Biological Processes in Pink Module with Nos1 (FDR<0.10)
+```{r, results='asis',echo=FALSE}
+kable(printBP,align=rep("c",ncol(printBP)))
+```
+
+### Enriched GO - Cellular Components in Pink Module with Nos1 (FDR<0.10)
+```{r, results='asis',echo=FALSE}
+kable(printCC,align=rep("c",ncol(printCC)))
+```
+
+```{r,echo=FALSE}
+base.path = "/Volumes/saba/BxH.HxB.Rats/RNA-Seq/"
+
+goMFExp = read.table(file=paste(base.path,"data/PANTHER.Pink/goMolecularFunctionExperimental.27Feb15.txt",sep=""),sep="\t",skip=5,fill=TRUE,header=TRUE)
+goMFExp = goMFExp[goMFExp[,3]>1,]
+goMFExp$pvalue = as.numeric(goMFExp[,5]=="+")*goMFExp[,7] + as.numeric(goMFExp[,5]=="-")*(1-goMFExp[,7])
+goMFExp$fdr = p.adjust(goMFExp$pvalue,method="BH")
+
+goBPExp = read.table(file=paste(base.path,"data/PANTHER.Pink/goBiologicalProcessesExperimental.27Feb15.txt",sep=""),sep="\t",skip=5,fill=TRUE,header=TRUE)
+goBPExp = goBPExp[goBPExp[,3]>1,]
+goBPExp$pvalue = as.numeric(goBPExp[,5]=="+")*goBPExp[,7] + as.numeric(goBPExp[,5]=="-")*(1-goBPExp[,7])
+goBPExp$fdr = p.adjust(goBPExp$pvalue,method="BH")
+
+goCCExp = read.table(file=paste(base.path,"data/PANTHER.Pink/goCellularComponentExperimental.27Feb15.txt",sep=""),sep="\t",skip=5,fill=TRUE,header=TRUE)
+goCCExp = goCCExp[goCCExp[,3]>1,]
+goCCExp$pvalue = as.numeric(goCCExp[,5]=="+")*goCCExp[,7] + as.numeric(goCCExp[,5]=="-")*(1-goCCExp[,7])
+goCCExp$fdr = p.adjust(goCCExp$pvalue,method="BH")
+
+colnames(goMFExp) = colnames(goBPExp) = colnames(goCCExp) = c("GO","bkgrd.Num","pink.Num","expected","direction","foldEnrich","two.sided.p","pvalue","fdr")
+
+printMFExp = goMFExp[goMFExp$fdr<0.10,c("GO","bkgrd.Num","pink.Num","expected","foldEnrich","pvalue","fdr")]
+printBPExp = goBPExp[goBPExp$fdr<0.10,c("GO","bkgrd.Num","pink.Num","expected","foldEnrich","pvalue","fdr")]
+printCCExp = goCCExp[goCCExp$fdr<0.10,c("GO","bkgrd.Num","pink.Num","expected","foldEnrich","pvalue","fdr")]
+
+printMFExp$fdr = sprintf("%.3f",round(printMFExp$fdr,3))
+printBPExp$fdr = sprintf("%.3f",round(printBPExp$fdr,3))
+printCCExp$fdr = sprintf("%.3f",round(printCCExp$fdr,3))
+
+printMFExp$pvalue = sprintf("%.4f",round(printMFExp$pvalue,4))
+printBPExp$pvalue = sprintf("%.4f",round(printBPExp$pvalue,4))
+printCCExp$pvalue = sprintf("%.4f",round(printCCExp$pvalue,4))
+```
+
+### Enriched GO - Molecular Functions (Experimental) in Pink Module with Nos1 (FDR<0.10)
+```{r, results='asis',echo=FALSE}
+kable(printMFExp,align=rep("c",ncol(printMFExp)))
+```
+
+### Enriched GO - Biological Processes (Experimental) in Pink Module with Nos1 (FDR<0.10)
+```{r, results='asis',echo=FALSE}
+kable(printBPExp,align=rep("c",ncol(printBPExp)))
+```
+
+### Enriched GO - Cellular Components (Experimental) in Pink Module with Nos1 (FDR<0.10)
+```{r, results='asis',echo=FALSE}
+kable(printCCExp,align=rep("c",ncol(printCCExp)))
+```
+
+
+```{r,echo=FALSE}
+base.path = "/Volumes/saba/BxH.HxB.Rats/RNA-Seq/"
+
+paths = read.table(file=paste(base.path,"data/PANTHER.Pink/pantherPathway.pink.27Feb15.txt",sep=""),sep="\t",skip=5,fill=TRUE,header=TRUE)
+paths = paths[paths[,3]>1,]
+paths$pvalue = as.numeric(paths[,5]=="+")*paths[,7] + as.numeric(paths[,5]=="-")*(1-paths[,7])
+paths$fdr = p.adjust(paths$pvalue,method="BH")
+
+proteinClass = read.table(file=paste(base.path,"data/PANTHER.Pink/pantherProteinClass.27Feb15.txt",sep=""),sep="\t",skip=5,fill=TRUE,header=TRUE)
+proteinClass = proteinClass[proteinClass[,3]>1,]
+proteinClass$pvalue = as.numeric(proteinClass[,5]=="+")*proteinClass[,7] + as.numeric(proteinClass[,5]=="-")*(1-proteinClass[,7])
+proteinClass$fdr = p.adjust(proteinClass$pvalue,method="BH")
+
+colnames(paths) = colnames(proteinClass) = c("PANTHER Category","bkgrd.Num","pink.Num","expected","direction","foldEnrich","two.sided.p","pvalue","fdr")
+
+printPaths = paths[paths$pvalue<0.05,c("PANTHER Category","bkgrd.Num","pink.Num","expected","foldEnrich","pvalue","fdr")]
+printProteinClass = proteinClass[proteinClass$pvalue<0.05,c("PANTHER Category","bkgrd.Num","pink.Num","expected","foldEnrich","pvalue","fdr")]
+
+printPaths$fdr = sprintf("%.3f",round(printPaths$fdr,3))
+printProteinClass$fdr = sprintf("%.3f",round(printProteinClass$fdr,3))
+
+printPaths$pvalue = sprintf("%.4f",round(printPaths$pvalue,4))
+printProteinClass$pvalue = sprintf("%.4f",round(printProteinClass$pvalue,4))
+```
+
+### Enriched PANTHER Pathways in Pink Module with Nos1 (p<0.05)
+```{r, results='asis',echo=FALSE}
+kable(printPaths,align=rep("c",ncol(printPaths)))
+```
+
+### Enriched PANTHER Protein Classes in Pink Module with Nos1 (p<0.05)
+```{r, results='asis',echo=FALSE}
+kable(printProteinClass,align=rep("c",ncol(printProteinClass)))
+```
+
+
+
+
+
+
+
+
 
