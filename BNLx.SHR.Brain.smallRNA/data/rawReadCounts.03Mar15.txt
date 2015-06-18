@@ -1,0 +1,7 @@
+   37795272 /storage/saba/BNLx.SHR.Brain.smallRNA/rawReads/smallBNLx1.fastq
+  100414112 /storage/saba/BNLx.SHR.Brain.smallRNA/rawReads/smallBNLx2.fastq
+  100499016 /storage/saba/BNLx.SHR.Brain.smallRNA/rawReads/smallBNLx3.fastq
+   69776136 /storage/saba/BNLx.SHR.Brain.smallRNA/rawReads/smallSHR1.fastq
+   76814252 /storage/saba/BNLx.SHR.Brain.smallRNA/rawReads/smallSHR2.fastq
+      22748 /storage/saba/BNLx.SHR.Brain.smallRNA/rawReads/smallSHR3.fastq
+  385321536 total

@@ -325,3 +325,17 @@ qsub -q smp /home/data/saba/BNLx.SHR.Heart.totalRNA/programs/reconBNLx.heart.sh
 ```
 
 
+13. Quantifying Ensembl Genes/Transcripts Only
+-----------------------------
+```
+qsub -q smp -N BNLx1 -V -- /storage/saba/BNLx.SHR.Brain.Females.totalRNA/programs/quantRSEM.femaleBrain.sh BNLx1
+qsub -q smp -N BNLx2 -V -- /storage/saba/BNLx.SHR.Brain.Females.totalRNA/programs/quantRSEM.femaleBrain.sh BNLx2
+qsub -q smp -N BNLx3 -V -- /storage/saba/BNLx.SHR.Brain.Females.totalRNA/programs/quantRSEM.femaleBrain.sh BNLx3
+qsub -q smp -N BNLx4 -V -- /storage/saba/BNLx.SHR.Brain.Females.totalRNA/programs/quantRSEM.femaleBrain.sh BNLx4
+qsub -q smp -N SHR1 -V -- /storage/saba/BNLx.SHR.Brain.Females.totalRNA/programs/quantRSEM.femaleBrain.sh SHR1
+qsub -q smp -N SHR2 -V -- /storage/saba/BNLx.SHR.Brain.Females.totalRNA/programs/quantRSEM.femaleBrain.sh SHR2
+qsub -q smp -N SHR3 -V -- /storage/saba/BNLx.SHR.Brain.Females.totalRNA/programs/quantRSEM.femaleBrain.sh SHR3
+qsub -q smp -N SHR4 -V -- /storage/saba/BNLx.SHR.Brain.Females.totalRNA/programs/quantRSEM.femaleBrain.sh SHR4
+```
+
+

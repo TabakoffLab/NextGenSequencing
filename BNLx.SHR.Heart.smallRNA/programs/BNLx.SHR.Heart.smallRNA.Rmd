@@ -1,0 +1,55 @@
+BNLx and SHR Heart small RNA RNA-Seq
+========================================================
+
+* 4 samples per strain 
+* tissues received from Dr. Michal Pravenec at Academy of Sciences of the Czech Republic, Prague, Czech Republic
+* small RNA (<200 bp)
+* 1X50 reads using the unstranded protocol
+* sequencing done by UCD Genomics Core - received ?
+
+1. Unzip Files - 
+---------------
+```
+qsub -q compute -N heart.unzip /storage/saba/BNLx.SHR.Heart.smallRNA/programs/unzip.yucca.sh
+```
+
+2. Determine number of reads sent for each sample 
+-------------------------------------------------
+```
+qsub -q compute -N heart.raw /storage/saba/BNLx.SHR.Heart.smallRNA/programs/rawReadCounts.heart.smallRNA.sh
+```
+```{r,echo=FALSE}
+rm(list=ls())
+options(stringsAsFactors=FALSE)
+setwd("~/Documents/NextGenSeq/BNLx.SHR.Heart.smallRNA/")
+rawCounts = read.table(file="data/rawReadCounts.03Mar15.txt",sep="\t",header=FALSE,fill=TRUE)
+#rawCounts = rawCounts[!grepl("total",rawCounts$V1),]
+
+rawCounts$reads = unlist(lapply(strsplit(sub("^\\s+", "",rawCounts[,1]),split=" ",fixed=TRUE),function(x) as.numeric(x[1])/4))
+rawCounts$file = unlist(lapply(strsplit(sub("^\\s+", "",rawCounts[,1]),split=" ",fixed=TRUE),function(x) x[2]))
+rawCounts$sample = unlist(lapply(strsplit(rawCounts$file,split="/",fixed=TRUE),function(x) gsub("small","",gsub(".fastq","",x[length(x)]))))
+rawCounts$sample = gsub("BN_LX","BNLx",rawCounts$sample)
+rawCounts$sample = gsub("SHR_H","SHR",rawCounts$sample)
+
+rawCounts$sample = unlist(lapply(strsplit(rawCounts$sample,split="_",fixed=TRUE),function(a) a[1]))
+
+rawCounts = rawCounts[!grepl("total",rawCounts$sample),]
+
+forPrint = rawCounts[,c("sample","reads")]
+forPrint$reads = prettyNum(forPrint$reads,big.mark=",",scientific=FALSE)
+colnames(forPrint) = c("sample","Number of Reads")
+```
+
+Raw Reads/Read Fragments
+---------------------------
+
+```{r, results='asis',echo=FALSE}
+kable(forPrint,align=rep("c",ncol(forPrint)),row.names=FALSE)
+```
+
+Total Number of Reads:  `r prettyNum(sum(rawCounts$reads),big.mark=",",scientific=FALSE)`  
+Average Number of Paired End Reads Per Sample: `r prettyNum(sum(rawCounts$reads)/nrow(rawCounts),big.mark=",",scientific=FALSE)`  
+
+
+
+

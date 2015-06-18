@@ -1,0 +1,272 @@
+WGCNA Characterization for NEIHS Poster - 3/18/15
+========================================================
+
+
+```{r}
+rm(list=ls())
+options(stringsAsFactors=FALSE)
+library(WGCNA)
+
+base.path = "/Volumes/saba/BxH.HxB.Rats/RNA-Seq/"
+marker.path = "/Volumes/saba/BxH.HxB.Rats/STAR.Markers/"
+
+load(paste(base.path,"Rdata/HXBbrain.RNASeq.WGCNA.27Feb15.Rdata",sep=""))
+load(paste(base.path,"Rdata/strainEst.RUVs2.Rdata",sep=""))
+datExpr = t(strainEst[grep("ENS",rownames(strainEst)),grepl("BXH",colnames(strainEst)) | grepl("HXB",colnames(strainEst))])
+
+MEs = moduleEigengenes(datExpr,moduleColors,excludeGre=TRUE)
+eigengenes=MEs$eigengenes
+rownames(eigengenes) = rownames(datExpr)
+varExplained=as.numeric(MEs$varExplained[1,])
+names(varExplained) = colnames(eigengenes)
+
+##  Genotype Data  ##
+load(paste(marker.path,"HXB.BXHgeno.rn5.Rdata",sep=""))
+
+cleaned = read.table(file=paste(marker.path,"cleanedSTAR.rn5.txt",sep=""),sep="\t",header=TRUE)
+markers = just.geno[cleaned$SNP,grepl("HXB",colnames(just.geno)) | grepl("BXH",colnames(just.geno))]
+colnames(markers) = unlist(lapply(strsplit(colnames(markers),split="/",fixed=TRUE), function(a) a[1]))
+
+markers = markers[,rownames(eigengenes)]
+
+library(qtl)
+write.table(cleaned,file=paste(base.path,"mQTL/markerMap.txt",sep=""),sep=",",row.names=FALSE,col.names=FALSE,quote=FALSE)
+write.table(markers,file=paste(base.path,"mQTL/genotype.txt",sep=""),sep=",",row.names=TRUE,col.names=TRUE,quote=FALSE)
+write.table(t(eigengenes),file=paste(base.path,"mQTL/phenotype.txt",sep=""),sep=",",row.names=TRUE,col.names=TRUE,quote=FALSE)
+
+
+orig = read.cross(format="tidy",mapfile=paste(base.path,"mQTL/markerMap.txt",sep=""),genfile=paste(base.path,"mQTL/genotype.txt",sep=""),phefile=paste(base.path,"mQTL/phenotype.txt",sep=""),genotypes=c(1,2,3))
+
+for(i in 4:437){
+x1 = scanone(orig,pheno.col=i,method="mr")
+x1.perm = scanone(orig,pheno.col=i,method="mr",n.perm=1000,verbose=FALSE)
+x1.summary = summary(x1,perms=x1.perm,pvalues=TRUE)
+x1.max = x1.summary[which.max(x1.summary[,"lod"]),]
+output = data.frame(module=colnames(orig$pheno)[i],marker=rownames(x1.max),x1.max)
+rownames(output) = output$module
+if(i!=1) mQTL = rbind(mQTL,output)
+if(i==1) mQTL = output
+}
+
+save(mQTL,file=paste(base.path,"Rdata/mQTL.06Mar15.Rdata",sep=""))
+write.table(mQTL,file=paste(base.path,"data/mQTL.06Mar15.txt",sep=""),sep="\t",row.names=FALSE,col.names=TRUE,quote=FALSE)
+```
+
+```{r}
+rm(list=ls())
+options(stringsAsFactors=FALSE)
+library(WGCNA)
+
+base.path = "/Volumes/saba/BxH.HxB.Rats/RNA-Seq/"
+marker.path = "/Volumes/saba/BxH.HxB.Rats/STAR.Markers/"
+
+load(paste(base.path,"Rdata/mQTL.06Mar15.Rdata",sep=""))
+
+mQTL$fdr = p.adjust(mQTL$pval,method="BH")
+#sum(mQTL$pval<0.05)
+#sum(mQTL$fdr<0.05)
+#max(mQTL$pval[mQTL$fdr<0.05])
+
+##  Module Characteristics  ##
+load(paste(base.path,"Rdata/HXBbrain.RNASeq.WGCNA.27Feb15.Rdata",sep=""))
+load(paste(base.path,"Rdata/strainEst.RUVs2.Rdata",sep=""))
+datExpr = t(strainEst[grep("ENS",rownames(strainEst)),grepl("BXH",colnames(strainEst)) | grepl("HXB",colnames(strainEst))])
+anno=read.table(file="/Volumes/saba/annotation/ensemblGenes.Rnor_5.0.08Jul14.txt",sep="\t",header=TRUE)
+anno=anno[!duplicated(anno$EnsemblGeneID),]
+
+#number of genes in module
+numGenes = aggregate(moduleMembership[,"moduleColors"],by=list(module=moduleMembership[,"moduleColors"]),length)
+colnames(numGenes)[2]="numGenes"
+
+mQTL$module = gsub("ME","",mQTL$module)
+
+modules = merge(numGenes,mQTL,by="module")
+
+#hub gene
+hubs=chooseTopHubInEachModule(datExpr,moduleColors,power=9,type="unsigned",corFnc="bicor",omitColors="grey")
+hubs=data.frame(module=names(hubs),hubGene=hubs)
+hubs=merge(hubs,anno,by.x="hubGene",by.y="EnsemblGeneID")
+
+modules = merge(modules,hubs,by="module")
+
+#proportion of variance explained
+MEs.v2 = moduleEigengenes(datExpr,moduleColors,softPower=9)
+propVar = data.frame(module=gsub("ME","",colnames(MEs.v2$eigengenes)),propVar=as.numeric(MEs.v2$varExplained))
+
+modules = merge(modules,propVar,by="module")
+
+```
+
+```{r}
+## enrichment analysis
+
+#by Ensembl - 3,574 IDs were unmappable
+write.table(unique(moduleMembership[,"TC"]),file=paste(base.path,"data/bkgrdEnsemblGeneIDs.txt",sep=""),sep="\t",row.names=FALSE,col.names=FALSE,quote=FALSE)
+write.table(unique(modules$hubGene),file=paste(base.path,"data/hubGeneEnsemblGeneIDs.txt",sep=""),sep="\t",row.names=FALSE,col.names=FALSE,quote=FALSE)
+
+#by Gene Symbol - 1,088 IDs were unmappable
+bkgrd = anno$GeneSymbol[anno$EnsemblGeneID %in% moduleMembership[,"TC"]]
+bkgrd = unique(bkgrd[bkgrd!=""])                   
+write.table(bkgrd,file=paste(base.path,"data/bkgrdGeneSymbols.09Mar15.txt",sep=""),sep="\t",row.names=FALSE,col.names=FALSE,quote=FALSE)
+hubGeneSymbols = unique(modules$GeneSymbol[modules$GeneSymbol!=""])
+write.table(hubGeneSymbols,file=paste(base.path,"data/hubGeneGeneSymbols.txt",sep=""),sep="\t",row.names=FALSE,col.names=FALSE,quote=FALSE)
+
+## no interesting results ##
+#hubGeneSymbols.eQTL = unique(modules$GeneSymbol[modules$GeneSymbol!="" & modules$fdr<0.05])
+write.table(hubGeneSymbols.eQTL,file=paste(base.path,"data/hubGeneWeQTL.GeneSymbols.txt",sep=""),sep="\t",row.names=FALSE,col.names=FALSE,quote=FALSE)
+
+##  ENRICHMENT RESULTS  ##
+goMF = read.table(file=paste(base.path,"data/PANTHER.hubGenes/GO.MF.GeneSymbols.hubGenes.txt",sep=""),sep="\t",skip=5,fill=TRUE,header=TRUE)
+goMF = goMF[goMF[,3]>3,]
+goMF$pvalue = as.numeric(goMF[,5]=="+")*goMF[,7] + as.numeric(goMF[,5]=="-")*(1-goMF[,7])
+goMF$fdr = p.adjust(goMF$pvalue,method="BH")
+
+goBP = read.table(file=paste(base.path,"data/PANTHER.hubGenes/GO.BP.GeneSymbols.hubGenes.txt",sep=""),sep="\t",skip=5,fill=TRUE,header=TRUE)
+goBP = goBP[goBP[,3]>3,]
+goBP$pvalue = as.numeric(goBP[,5]=="+")*goBP[,7] + as.numeric(goBP[,5]=="-")*(1-goBP[,7])
+goBP$fdr = p.adjust(goBP$pvalue,method="BH")
+
+goCC = read.table(file=paste(base.path,"data/PANTHER.hubGenes/GO.CC.GeneSymbols.hubGenes.txt",sep=""),sep="\t",skip=5,fill=TRUE,header=TRUE)
+goCC = goCC[goCC[,3]>3,]
+goCC$pvalue = as.numeric(goCC[,5]=="+")*goCC[,7] + as.numeric(goCC[,5]=="-")*(1-goCC[,7])
+goCC$fdr = p.adjust(goCC$pvalue,method="BH")
+
+goMF[goMF$pvalue<0.001 & !is.na(goMF$pvalue),]
+goBP[goBP$pvalue<0.001 & !is.na(goBP$pvalue),]
+goCC[goCC$pvalue<0.001 & !is.na(goCC$pvalue),]
+
+goMF[1,]
+goBP[1,]
+goCC[1,]
+```
+
+
+Modules with eQTL
+```{r}
+head(modules)
+
+locs=read.table(file="/Volumes/saba/annotation/ensemblGenes.Rnor_5.0.geneLocs.09Mar2015.txt",sep="\t",header=TRUE)
+modules = merge(modules,locs,by.x="hubGene",by.y="EnsemblGeneID")
+
+w.eQTL = modules[modules$fdr<0.05,]
+
+#add marker location in bp
+cleaned = read.table(file=paste(marker.path,"cleanedSTAR.rn5.txt",sep=""),sep="\t",header=TRUE)
+w.eQTL = merge(w.eQTL,cleaned,by.x="marker",by.y="SNP")
+
+
+w.eQTL$distance = abs(w.eQTL$GeneStart-w.eQTL$bp) / 1000000
+w.eQTL$distance[w.eQTL$chr!=w.eQTL$ChromosomeName] = NA
+
+cis.eQTL=w.eQTL[!is.na(w.eQTL$distance) & w.eQTL$distance<20,]
+
+
+allGenes = merge(anno,moduleMembership,by.y="TC",by.x="EnsemblGeneID",all.y=TRUE)
+allGenes = merge(allGenes,locs,by="EnsemblGeneID",all.x=TRUE)
+```
+
+```{r}
+entrez=read.table(file="/Volumes/saba/annotation/ensemblGenes.Rnor_5.0.entrezIDs.11Mar2015.txt",sep="\t",header=TRUE)
+
+entrez = entrez[entrez$EntrezGeneID!="" & !is.na(entrez$EnsemblGeneID),]
+entrez = entrez[!duplicated(entrez$EnsemblGeneID),]
+
+allGenes = merge(allGenes,entrez,by="EnsemblGeneID",all.x=TRUE)
+
+universe = unique(allGenes$EntrezGeneID[allGenes$EntrezGeneID!=""])
+pink = unique(allGenes$EntrezGeneID[allGenes$EntrezGeneID!="" & allGenes$moduleColors=="pink"])
+
+library(rnu34.db)
+params <- new("GOHyperGParams",geneIds=pink,universeGeneIds=universe,annotation="org.Rn.eg",ontology="BP",pvalueCutoff=0.05,conditional=TRUE,testDirection="over")
+
+hgOver <- hyperGTest(params)
+
+colors = unique(allGenes$moduleColors)
+colors = colors[colors!="grey"]
+
+goResults = c()
+for(i in colors[6:438]){
+genes = unique(allGenes$EntrezGeneID[allGenes$EntrezGeneID!="" & allGenes$moduleColors==i])
+geneIds(params)=genes[!is.na(genes)]
+results = hyperGTest(params)
+sigGO = summary(results)
+sigGO = sigGO[sigGO$Count>1,]
+if(nrow(sigGO)==0) sigGO[1,]=NA
+output = data.frame(module=i,allGenesMapped=universeMappedCount(results),moduleGenesMapped=geneMappedCount(results),sigGO)
+goResults = rbind(goResults,output)
+}
+
+save(goResults,file=paste(base.path,"Rdata/goResults.bp.Rdata",sep=""))
+goResults.bp = goResults
+
+goResults.bp[goResults.bp$module=="orangered1" & goResults.bp$Pvalue<0.01,]
+goResults.bp[goResults.bp$module=="brown" & goResults.bp$Pvalue<0.01,]
+goResults.bp[goResults.bp$module=="darkorange2" & goResults.bp$Pvalue<0.01,]
+
+sigGO = goResults.bp[goResults.bp$Pvalue<0.0001,]
+
+length(unique(sigGO$module))
+
+
+########
+ontology(params)="MF"
+goResults.mf = c()
+for(i in colors){
+genes = unique(allGenes$EntrezGeneID[allGenes$EntrezGeneID!="" & allGenes$moduleColors==i])
+geneIds(params)=genes[!is.na(genes)]
+results = hyperGTest(params)
+sigGO = summary(results)
+sigGO = sigGO[sigGO$Count>1,]
+if(nrow(sigGO)==0) sigGO[1,]=NA
+output = data.frame(module=i,allGenesMapped=universeMappedCount(results),moduleGenesMapped=geneMappedCount(results),sigGO)
+goResults.mf = rbind(goResults.mf,output)
+}
+
+save(goResults.mf,file=paste(base.path,"Rdata/goResults.mf.Rdata",sep=""))
+
+
+########
+ontology(params)="CC"
+goResults.cc = c()
+for(i in colors){
+genes = unique(allGenes$EntrezGeneID[allGenes$EntrezGeneID!="" & allGenes$moduleColors==i])
+geneIds(params)=genes[!is.na(genes)]
+results = hyperGTest(params)
+sigGO = summary(results)
+sigGO = sigGO[sigGO$Count>1,]
+if(nrow(sigGO)==0) sigGO[1,]=NA
+output = data.frame(module=i,allGenesMapped=universeMappedCount(results),moduleGenesMapped=geneMappedCount(results),sigGO)
+goResults.cc = rbind(goResults.cc,output)
+}
+
+save(goResults.cc,file=paste(base.path,"Rdata/goResults.cc.Rdata",sep=""))
+
+
+##  Summaries for Poster
+sigGO.bp = goResults.bp[goResults.bp$Pvalue<0.0001,]
+length(unique(sigGO.bp$module))
+length(unique(sigGO.bp$module[duplicated(sigGO.bp$module)]))
+
+sigGO.mf = goResults.mf[goResults.mf$Pvalue<0.0001,]
+length(unique(sigGO.mf$module))
+length(unique(sigGO.mf$module[duplicated(sigGO.mf$module)]))
+
+sigGO.cc = goResults.cc[goResults.cc$Pvalue<0.0001,]
+length(unique(sigGO.cc$module))
+length(unique(sigGO.cc$module[duplicated(sigGO.cc$module)]))
+
+
+length(unique(c(unique(sigGO.bp$module),unique(sigGO.mf$module),unique(sigGO.cc$module))))
+sigGO.all = c(sigGO.bp$module,sigGO.mf$module,sigGO.cc$module)
+length(unique(sigGO.all[duplicated(sigGO.all)]))
+
+  
+  
+  
+
+head(goResults.bp)
+goResults.bp[goResults.bp$module=="dodgerblue2",]
+goResults.mf[goResults.mf$module=="dodgerblue2",]
+goResults.cc[goResults.cc$module=="dodgerblue2",]
+
+

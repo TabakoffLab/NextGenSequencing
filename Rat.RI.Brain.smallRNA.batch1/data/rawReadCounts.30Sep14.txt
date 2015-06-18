@@ -1,0 +1,16 @@
+/storage/saba/Rat.RI.Brain.smallRNA.batch1/rawReads/10_HXB2_2BRAIN_TAGCTT_L007_R1_001.fastq 51 33576761
+/storage/saba/Rat.RI.Brain.smallRNA.batch1/rawReads/11_HXB13_2BRAIN_GGCTAC_L007_R1_001.fastq 51 33252447
+/storage/saba/Rat.RI.Brain.smallRNA.batch1/rawReads/12_BXH12_1BRAIN_CTTGTA_L007_R1_001.fastq 51 35398581
+/storage/saba/Rat.RI.Brain.smallRNA.batch1/rawReads/13_HXB2_1BRAIN_CGGAAT_L008_R1_001.fastq 51 34791940
+/storage/saba/Rat.RI.Brain.smallRNA.batch1/rawReads/14_BXH12_2BRAIN_CTAGCT_L008_R1_001.fastq 51 35365795
+/storage/saba/Rat.RI.Brain.smallRNA.batch1/rawReads/15_HXB13_1BRAIN_CTATAC_L008_R1_001.fastq 51 36322662
+/storage/saba/Rat.RI.Brain.smallRNA.batch1/rawReads/16_HXB17_2BRAIN_CTCAGA_L008_R1_001.fastq 51 34335917
+/storage/saba/Rat.RI.Brain.smallRNA.batch1/rawReads/1_HXB27_1BRAIN_ATCACG_L005_R1_001.fastq 51 38224046
+/storage/saba/Rat.RI.Brain.smallRNA.batch1/rawReads/2_SHR_1BRAIN_CGATGT_L005_R1_001.fastq 51 35847101
+/storage/saba/Rat.RI.Brain.smallRNA.batch1/rawReads/3_HXB7_1BRAIN_TTAGGC_L005_R1_001.fastq 51 34962577
+/storage/saba/Rat.RI.Brain.smallRNA.batch1/rawReads/4_SHR_2BRAIN_TGACCA_L005_R1_001.fastq 51 33951564
+/storage/saba/Rat.RI.Brain.smallRNA.batch1/rawReads/5_HXB25_2BRAIN_ACAGTG_L006_R1_001.fastq 51 42289157
+/storage/saba/Rat.RI.Brain.smallRNA.batch1/rawReads/6_HXB25_1BRAIN_GCCAAT_L006_R1_001.fastq 51 39348928
+/storage/saba/Rat.RI.Brain.smallRNA.batch1/rawReads/7_HXB7_2BRAIN_CAGATC_L006_R1_001.fastq 51 39960808
+/storage/saba/Rat.RI.Brain.smallRNA.batch1/rawReads/8_HXB27_2BRAIN_ACTTGA_L006_R1_001.fastq 51 36869277
+/storage/saba/Rat.RI.Brain.smallRNA.batch1/rawReads/9_HXB17_1BRAIN_GATCAG_L007_R1_001.fastq 51 33730417

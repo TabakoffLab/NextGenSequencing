@@ -15,6 +15,7 @@ dim(strainEst)
 
 ## limit to ensembl genes and recombinant inbred strains
 datExpr = t(strainEst[grep("ENS",rownames(strainEst)),grepl("BXH",colnames(strainEst)) | grepl("HXB",colnames(strainEst))])
+dim(datExpr)
 
 ## determine appropriate beta parameter
 powers = c(c(1:15),seq(from=16,to=20,by=2))
@@ -62,6 +63,26 @@ moduleMembership = cbind(TC, moduleLabels, moduleColors)
 MEs = net$MEs
 
 save(net,moduleLabels,moduleColors,MEs,moduleMembership,file=paste(base.path,"Rdata/HXBbrain.RNASeq.WGCNA.27Feb15.Rdata",sep=""))
+```
+
+Characterization of Network
+
+```{r}
+rm(list=ls())
+options(stringsAsFactors=FALSE)
+library(WGCNA)
+
+base.path = "/Volumes/saba/BxH.HxB.Rats/RNA-Seq/"
+
+load(paste(base.path,"Rdata/HXBbrain.RNASeq.WGCNA.27Feb15.Rdata",sep=""))
+load(paste(base.path,"Rdata/strainEst.RUVs2.Rdata",sep=""))
+datExpr = t(strainEst[grep("ENS",rownames(strainEst)),grepl("BXH",colnames(strainEst)) | grepl("HXB",colnames(strainEst))])
+
+pdf(file=paste(base.path,"images/wgcna.summaryImage.02Mar15.pdf",sep=""))
+plotDendroAndColors(net$dendrograms[[1]],moduleColors[net$blockGenes[[1]]],"Module colors",dendroLabels=FALSE,hang=0.03,addGuide=TRUE,guideHang=0.05)
+dev.off()
+
+summary(table(moduleLabels)[-1])
 
 
 ### Nos1 - ENSRNOG00000001130 ###
@@ -100,6 +121,7 @@ intraConnect = data.frame(gene=colnames(datExpr),module=moduleColors,intraConnec
 pink.intra = intraConnect[intraConnect$module=="pink",]
 pink.intra = merge(pink.intra,anno,by.x="gene",by.y="EnsemblGeneID",all.x=TRUE)
 pink.intra$rank = nrow(pink.intra) - rank(pink.intra$kWithin) + 1
+rownames(pink.intra) = pink.intra$gene
 
 head(pink.intra[order(pink.intra$rank),c("gene","GeneSymbol","Description","kWithin","rank")],10)
 
@@ -108,6 +130,43 @@ pink.intra[pink.intra$GeneSymbol=="Nos1",]
 write.table(unique(pink.intra$GeneSymbol[pink.intra$GeneSymbol!=""]),file=paste(base.path,"data/pinkModuleGeneSymbols.txt",sep=""),sep="\t",row.names=FALSE,col.names=FALSE,quote=FALSE)
 write.table(unique(nos1.corrs$GeneSymbol[nos1.corrs$GeneSymbol!=""]),file=paste(base.path,"data/backgrdGeneSymbols.txt",sep=""),sep="\t",row.names=FALSE,col.names=FALSE,quote=FALSE)
 
+## Create Files for Cytoscape  ##
+
+#Create Adjacency Matrix 
+pink.corrs = bicor(datExpr[,moduleColors=="pink"])
+pink.adj = abs(pink.corrs^9)
+
+#Annotation
+anno=read.table(file="/Volumes/saba/annotation/ensemblGenes.Rnor_5.0.08Jul14.txt",sep="\t",header=TRUE)
+anno=anno[!duplicated(anno$EnsemblGeneID),]
+
+pink.anno = merge(rownames(pink.corrs),anno,by.x=1,by.y="EnsemblGeneID")
+rownames(pink.anno)=pink.anno$x
+
+pink.anno[pink.anno$GeneSymbol=="",]
+#BAND-AIDS
+pink.anno$GeneSymbol[pink.anno$x=="ENSRNOG00000038953"] = "Hmgb1"
+pink.anno$GeneSymbol[pink.anno$x=="ENSRNOG00000043068"] = "Tipin"
+pink.anno$GeneSymbol[pink.anno$x=="ENSRNOG00000047355"] = "AABR06011545.1"
+pink.anno$GeneSymbol[pink.anno$x=="ENSRNOG00000047880"] = "Ints1"
+pink.anno$GeneSymbol[pink.anno$x=="ENSRNOG00000048783"] = "LOC100909700"
+pink.anno$GeneSymbol[pink.anno$x=="ENSRNOG00000049238"] = "LOC102552659"
+pink.anno$GeneSymbol[pink.anno$x=="ENSRNOG00000049685"] = "AABR06020205.1"
+
+
+
+cyt = exportNetworkToCytoscape(pink.corrs,edgeFile=paste(base.path,"data/pink.edgeFile.txt",sep=""),nodeFile=paste(base.path,"data/pink.nodeFile.txt",sep=""),weighted=TRUE,threshold=0,altNodeNames=pink.anno[rownames(pink.corrs),"GeneSymbol"],nodeAttr=pink.intra[rownames(pink.corrs),"kWithin"])
+
+cyt.5 = exportNetworkToCytoscape(pink.corrs,edgeFile=paste(base.path,"data/pink.edgeFile_0.5.txt",sep=""),nodeFile=paste(base.path,"data/pink.nodeFile_0.5.txt",sep=""),weighted=TRUE,threshold=0.5,altNodeNames=pink.anno[rownames(pink.corrs),"GeneSymbol"],nodeAttr=pink.intra[rownames(pink.corrs),"kWithin"])
+
+cyt.8 = exportNetworkToCytoscape(pink.corrs,edgeFile=paste(base.path,"data/pink.edgeFile_0.8.txt",sep=""),nodeFile=paste(base.path,"data/pink.nodeFile_0.8.txt",sep=""),weighted=TRUE,threshold=0.8,altNodeNames=pink.anno[rownames(pink.corrs),"GeneSymbol"],nodeAttr=pink.intra[rownames(pink.corrs),"kWithin"])
+
+cyt.85 = exportNetworkToCytoscape(pink.corrs,edgeFile=paste(base.path,"data/pink.edgeFile_0.85.txt",sep=""),nodeFile=paste(base.path,"data/pink.nodeFile_0.85.txt",sep=""),weighted=TRUE,threshold=0.85,altNodeNames=pink.anno[rownames(pink.corrs),"GeneSymbol"],nodeAttr=pink.intra[rownames(pink.corrs),"kWithin"])
+
+
+dim(cyt.9[[1]])
+
+head(cyt.9[[2]])
 ```
 
 

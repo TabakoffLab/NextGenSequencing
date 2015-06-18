@@ -1,0 +1,3 @@
+/hi-seq/RI.Brain.totalRNA.09Jun15/rawReads/BNLx_3_brain_CAGATC_L005_R1.fastq 100 111066309
+/hi-seq/RI.Brain.totalRNA.09Jun15/rawReads/SHR_1_brain_GTGAAA_L005_R1.fastq 100 85522744
+/hi-seq/RI.Brain.totalRNA.09Jun15/rawReads/SHR_3_brain_CGATGT_L005_R1.fastq 100 99413434

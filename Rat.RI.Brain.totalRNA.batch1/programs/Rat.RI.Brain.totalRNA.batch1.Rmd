@@ -386,3 +386,9 @@ bad = bad[order(rowSums(bad),decreasing=TRUE),]
 plot(hclust(as.dist(1-cor(good,method="spearman"))))
 ```
 
+8. Align to strain-specific genomes - SHR only
+---------------
+```
+qsub -q smp -N batch1 /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/tophatAlign.brain.batch1.strainSpecific.sh
+```
+

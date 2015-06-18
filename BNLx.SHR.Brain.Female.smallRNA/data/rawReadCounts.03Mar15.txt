@@ -1,0 +1,9 @@
+  194808224 /storage/saba/BNLx.SHR.Brain.Females.smallRNA/rawReads/BN_LX_1_GCCAAT_L003_R1_001.fastq
+  149873912 /storage/saba/BNLx.SHR.Brain.Females.smallRNA/rawReads/BN_LX_2_ACAGTG_L003_R1_001.fastq
+  114764456 /storage/saba/BNLx.SHR.Brain.Females.smallRNA/rawReads/BN_LX_3_GATCAG_L003_R1_001.fastq
+  137422548 /storage/saba/BNLx.SHR.Brain.Females.smallRNA/rawReads/BN_LX_4_CTTGTA_L003_R1_001.fastq
+  126920948 /storage/saba/BNLx.SHR.Brain.Females.smallRNA/rawReads/SHR_1_TAGCTT_L002_R1_001.fastq
+  162602976 /storage/saba/BNLx.SHR.Brain.Females.smallRNA/rawReads/SHR_2_CAGATC_L002_R1_001.fastq
+  136848384 /storage/saba/BNLx.SHR.Brain.Females.smallRNA/rawReads/SHR_3_GGCTAC_L002_R1_001.fastq
+  164760424 /storage/saba/BNLx.SHR.Brain.Females.smallRNA/rawReads/SHR_4_ACTTGA_L002_R1_001.fastq
+ 1188001872 total

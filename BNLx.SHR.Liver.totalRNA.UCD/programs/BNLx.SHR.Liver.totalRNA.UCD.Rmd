@@ -456,3 +456,16 @@ qsub -q smp /storage/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/reconWMaskSHR.liv
 qsub -q smp /storage/saba/BNLx.SHR.Liver.totalRNA.UCD/programs/reconWMaskBNLx.liver.sh
 ```
 
+13. Quantifying Ensembl Genes/Transcripts Only
+-----------------------------
+```
+qsub -q smp -N BNLx1 -V -- /storage/saba2/BNLx.SHR.Liver.totalRNA.UCD/programs/quantRSEM.Liver.sh BNLx1
+qsub -q smp -N BNLx2 -V -- /storage/saba2/BNLx.SHR.Liver.totalRNA.UCD/programs/quantRSEM.Liver.sh BNLx2
+qsub -q smp -N BNLx3.dup -V -- /storage/saba2/BNLx.SHR.Liver.totalRNA.UCD/programs/quantRSEM.Liver.sh BNLx3.dup
+qsub -q smp -N SHR1 -V -- /storage/saba2/BNLx.SHR.Liver.totalRNA.UCD/programs/quantRSEM.Liver.sh SHR1
+qsub -q smp -N SHR25 -V -- /storage/saba2/BNLx.SHR.Liver.totalRNA.UCD/programs/quantRSEM.Liver.sh SHR25.dup
+qsub -q smp -N SHR5 -V -- /storage/saba2/BNLx.SHR.Liver.totalRNA.UCD/programs/quantRSEM.Liver.sh SHR5
+```
+
+
+

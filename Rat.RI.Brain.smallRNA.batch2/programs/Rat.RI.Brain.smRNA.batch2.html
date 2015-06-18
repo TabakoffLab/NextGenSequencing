@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<!-- saved from url=(0014)about:internet -->
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=9" >
+
+<title>RI Panel - Batch 2 (Brain) Small RNA RNA-Seq</title>
+
+<style type="text/css">
+body, td {
+   font-family: sans-serif;
+   background-color: white;
+   font-size: 12px;
+   margin: 8px;
+}
+
+tt, code, pre {
+   font-family: 'DejaVu Sans Mono', 'Droid Sans Mono', 'Lucida Console', Consolas, Monaco, monospace;
+}
+
+h1 { 
+   font-size:2.2em; 
+}
+
+h2 { 
+   font-size:1.8em; 
+}
+
+h3 { 
+   font-size:1.4em; 
+}
+
+h4 { 
+   font-size:1.0em; 
+}
+
+h5 { 
+   font-size:0.9em; 
+}
+
+h6 { 
+   font-size:0.8em; 
+}
+
+a:visited {
+   color: rgb(50%, 0%, 50%);
+}
+
+pre {	
+   margin-top: 0;
+   max-width: 95%;
+   border: 1px solid #ccc;
+   white-space: pre-wrap;
+}
+
+pre code {
+   display: block; padding: 0.5em;
+}
+
+code.r, code.cpp {
+   background-color: #F8F8F8;
+}
+
+table, td, th {
+  border: none;
+}
+
+blockquote {
+   color:#666666;
+   margin:0;
+   padding-left: 1em;
+   border-left: 0.5em #EEE solid;
+}
+
+hr {
+   height: 0px;
+   border-bottom: none;
+   border-top-width: thin;
+   border-top-style: dotted;
+   border-top-color: #999999;
+}
+
+@media print {
+   * { 
+      background: transparent !important; 
+      color: black !important; 
+      filter:none !important; 
+      -ms-filter: none !important; 
+   }
+
+   body { 
+      font-size:12pt; 
+      max-width:100%; 
+   }
+       
+   a, a:visited { 
+      text-decoration: underline; 
+   }
+
+   hr { 
+      visibility: hidden;
+      page-break-before: always;
+   }
+
+   pre, blockquote { 
+      padding-right: 1em; 
+      page-break-inside: avoid; 
+   }
+
+   tr, img { 
+      page-break-inside: avoid; 
+   }
+
+   img { 
+      max-width: 100% !important; 
+   }
+
+   @page :left { 
+      margin: 15mm 20mm 15mm 10mm; 
+   }
+     
+   @page :right { 
+      margin: 15mm 10mm 15mm 20mm; 
+   }
+
+   p, h2, h3 { 
+      orphans: 3; widows: 3; 
+   }
+
+   h2, h3 { 
+      page-break-after: avoid; 
+   }
+}
+
+</style>
+
+
+
+
+
+</head>
+
+<body>
+<h1>RI Panel - Batch 2 (Brain) Small RNA RNA-Seq</h1>
+
+<ul>
+<li>1 sample per strain (SHR, BXH2, HXB10, HXB15, HXB18, HXB1, HXB20, HXB21, HXB22, HXB23, HXB24, HXB29, HXB31, HXB3, HXB4, HXB5, SHR)</li>
+<li>tissues received from Dr. Michal Pravenec at Academy of Sciences of the Czech Republic, Prague, Czech Republic</li>
+<li>small RNA (&lt;200 bp)</li>
+<li>1X50 reads using the unstranded protocol</li>
+<li>sequencing done by UCD Genomics Core - received ?
+
+<ul>
+<li>labeled ?</li>
+</ul></li>
+</ul>
+
+<h2>1. Unzip Files - DONE</h2>
+
+<pre><code>qsub -q smp /storage/saba/Rat.RI.Brain.smallRNA.batch2/programs/unzip.yucca.sh
+</code></pre>
+
+<h2>2. Determine number of reads sent for each sample - DONE</h2>
+
+<pre><code>qsub -q compute /storage/saba/Rat.RI.Brain.smallRNA.batch2/programs/countRawReads.brain.smRNA.batch2.sh
+</code></pre>
+
+<h2>Raw Reads/Read Fragments</h2>
+
+<table><thead>
+<tr>
+<th align="center">sample</th>
+<th align="center">Number of Reads</th>
+</tr>
+</thead><tbody>
+<tr>
+<td align="center">HXB10_1</td>
+<td align="center">15,225,719</td>
+</tr>
+<tr>
+<td align="center">HXB15_1</td>
+<td align="center">39,303,282</td>
+</tr>
+<tr>
+<td align="center">HXB18_1</td>
+<td align="center">30,607,960</td>
+</tr>
+<tr>
+<td align="center">HXB1_1</td>
+<td align="center">30,808,660</td>
+</tr>
+<tr>
+<td align="center">HXB20_1</td>
+<td align="center">27,022,687</td>
+</tr>
+<tr>
+<td align="center">HXB21_1</td>
+<td align="center">17,414,703</td>
+</tr>
+<tr>
+<td align="center">HXB22_1</td>
+<td align="center">54,357,112</td>
+</tr>
+<tr>
+<td align="center">HXB23_1</td>
+<td align="center">17,560,321</td>
+</tr>
+<tr>
+<td align="center">HXB24_1</td>
+<td align="center">53,508,254</td>
+</tr>
+<tr>
+<td align="center">HXB29_1</td>
+<td align="center">54,617,709</td>
+</tr>
+<tr>
+<td align="center">BXH2_1</td>
+<td align="center">2,095,366</td>
+</tr>
+<tr>
+<td align="center">HXB31_1</td>
+<td align="center">2,467,030</td>
+</tr>
+<tr>
+<td align="center">HXB3_1</td>
+<td align="center">28,809,866</td>
+</tr>
+<tr>
+<td align="center">HXB4_1</td>
+<td align="center">31,148,558</td>
+</tr>
+<tr>
+<td align="center">HXB5_1</td>
+<td align="center">32,673,767</td>
+</tr>
+<tr>
+<td align="center">SHR_1</td>
+<td align="center">29,864,267</td>
+</tr>
+</tbody></table>
+
+<p>Total Number of Reads:  467,485,261<br/>
+Average Number of Reads Per Sample: 29,217,829  </p>
+
+</body>
+
+</html>
+

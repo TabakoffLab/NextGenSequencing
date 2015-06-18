@@ -1,0 +1,239 @@
+RI Panel - Batch 3 (Brain) Total RNA RNA-Seq
+========================================================
+
+* 1 sample per strain (BNLx)
+* 2 samples per strain (SHR)
+* tissues received from Dr. Michal Pravenec at Academy of Sciences of the Czech Republic, Prague, Czech Republic
+* ribosomal RNA depleted total RNA
+* 2X100 reads using the stranded protocol
+* sequencing done by Beckman Coulter Genomics - received June 9, 2015
+  * labeled 'HXB parental brain total RNA' by Beckman
+* synthetic spike-in were added to each sample 
+  * BXH3_1, BXH3_2, BXH5_1, BXH8_1, BXH10_1, BXH11_2, BXH13_1, and SHR_1 have mix 1
+  * BXH6_1, BXH6_2, BXH9_1, BXH9_2, BXH10_2, BXH11_1, BNLx_1, and BNLx_2 have mix 2
+  * 4 mL of 1:100 diluted spikes were added after RNA extraction but before rRNA-depletion
+  * Information regarding the spike-ins can be found here: http://products.invitrogen.com/ivgn/product/4456739
+
+1. Unzip Files - DONE
+---------------
+```
+gzip -d /hi-seq/RI.Brain.totalRNA.09Jun15/rawReads/*.gz
+#qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch4/programs/unzip.yucca.sh
+```
+
+2. Determine number of reads sent for each sample - DONE
+-------------------------------------------------
+```
+/hi-seq/RI.Brain.totalRNA.09Jun15/programs/countRawReads.brain.batch4.sh &
+```
+
+```{r,echo=FALSE}
+rm(list=ls())
+options(stringsAsFactors=FALSE)
+setwd("~/Documents/NextGenSeq/Rat.RI.Brain.totalRNA.batch4/")
+rawCounts = read.table(file="data/rawReadCounts.09Jun15.txt",sep=" ",header=FALSE,fill=TRUE)
+
+rawCounts$rawReads = as.numeric(rawCounts$V3)
+rawCounts$file = unlist(lapply(strsplit(rawCounts$V1,split="/",fixed=TRUE),function(a) a[length(a)]))
+rawCounts$strain = unlist(lapply(strsplit(rawCounts$file,split="_",fixed=TRUE),function(a) a[1]))
+rawCounts$sampleNum = unlist(lapply(strsplit(rawCounts$file,split="_",fixed=TRUE),function(a) a[2]))
+rawCounts$sample = paste(rawCounts$strain,rawCounts$sampleNum,sep="_")
+
+rawCounts$numPairedReads = prettyNum(rawCounts$rawReads,big.mark=",",scientific=FALSE)
+rawCounts$numReadFragments = prettyNum(rawCounts$rawReads*2,big.mark=",",scientific=FALSE)
+
+forPrint = rawCounts[,c("sample","numPairedReads","numReadFragments")]
+colnames(forPrint) = c("sample","Number of Paired-End Reads","Number of Read Fragments")
+```
+
+Raw Reads/Read Fragments
+---------------------------
+
+```{r, results='asis',echo=FALSE}
+kable(forPrint,align=rep("c",ncol(forPrint)))
+```
+
+Total Number of Paired End Reads: `r prettyNum(sum(rawCounts$rawReads),big.mark=",",scientific=FALSE)`  
+Total Number of Read Fragments:  `r prettyNum(sum(rawCounts$rawReads*2),big.mark=",",scientific=FALSE)`  
+Average Number of Paired End Reads Per Sample: `r prettyNum(sum(rawCounts$rawReads)/length(unique(rawCounts$sample)),big.mark=",",scientific=FALSE)`  
+
+3. Trim reads for adaptors and for quality - DONE
+---------------
+```
+/hi-seq/RI.Brain.totalRNA.09Jun15/programs/trimReads.brain.batch4.sh & 
+```
+
+4. Characterize Trimmed Reads - RUNNING
+---------------
+```
+/hi-seq/RI.Brain.totalRNA.09Jun15/programs/countTrimmedReads.batch4.sh &
+```
+
+```{r,echo=FALSE}
+options(stringsAsFactors=FALSE)
+setwd("~/Documents/NextGenSeq/Rat.RI.Brain.totalRNA.batch3/")
+
+trimmed = read.table(file="data/trimmedReadCounts.10Feb15.txt",sep="",header=FALSE)
+trimmed$file = unlist(lapply(strsplit(trimmed$V1,split="/",fixed=TRUE),function(a) a[6]))
+trimmed$sample = unlist(lapply(strsplit(trimmed$file,split="_",fixed=TRUE),function(a) gsub("brain","",paste(a[1],a[2],sep="_"))))
+trimmed$read = unlist(lapply(strsplit(trimmed$file,split="_",fixed=TRUE),function(a) a[5]))
+trimmed$lane = unlist(lapply(strsplit(trimmed$file,split="_",fixed=TRUE),function(a) a[4]))
+
+bySample = merge(trimmed[trimmed$read=="R1",c("sample","lane","V2","V3")],trimmed[trimmed$read=="R2",c("sample","lane","V2")],by=c("sample","lane"))
+bySample$numReadFrag = bySample$V3*2
+colnames(bySample) = c("sample","lane","avgFragLength.R1","numReads","avgFragLength.R2","numReadFrag")
+
+rawCounts$lane = unlist(lapply(strsplit(rawCounts$file,split="_",fixed=TRUE),function(a) a[4])) 
+rawCounts = rawCounts[grep("_R1",rawCounts$file),]
+
+bySample = merge(rawCounts,bySample,by=c("sample","lane"))
+bySample$pctReadsAfterTrim = paste(sprintf("%.1f",round(100*bySample$numReads/bySample$rawReads,1)),"%",sep="")
+
+bySample$numPairedReads = bySample$rawReads
+bySample$numReadFragments = bySample$rawReads*2
+
+forPrint2 = bySample[,c("sample","lane","numPairedReads","numReadFragments","avgFragLength.R1","avgFragLength.R2","numReadFrag","pctReadsAfterTrim")]
+forPrint2$avgFragLength.R1 = sprintf("%.1f",round(forPrint2$avgFragLength.R1,1))
+forPrint2$avgFragLength.R2 = sprintf("%.1f",round(forPrint2$avgFragLength.R2,1))
+forPrint2$numReadFrag = prettyNum(forPrint2$numReadFrag,big.mark=",",scientific=FALSE)
+forPrint2$numPairedReads = prettyNum(forPrint2$numPairedReads,big.mark=",",scientific=FALSE)
+forPrint2$numReadFragments = prettyNum(forPrint2$numReadFragments,big.mark=",",scientific=FALSE)
+
+
+colnames(forPrint2) = c("sample","lane","Number of Paired-End Reads","Number of Read Fragments","Average Read Fragment Length After Trimming (first read fragment)","Average Read Fragment Length After Trimming (second read fragment)","Number of Read Fragments After Trimming","Percent of Read Fragments That Remained After Trimming")
+```
+
+Trimmed Reads/Read Fragments
+---------------------------
+
+```{r, results='asis',echo=FALSE}
+kable(forPrint2,align=rep("c",ncol(forPrint2)))
+```
+
+Total Number of Paired End Reads After Trimming: `r prettyNum(sum(as.numeric(bySample$numReads)),big.mark=",",scientific=FALSE)`  
+Total Number of Read Fragments After Trimming:  `r prettyNum(sum(bySample$numReadFrag),big.mark=",",scientific=FALSE)`  
+Average Number of Paired End Reads Per Sample After Trimming: `r prettyNum(2*mean(bySample$numReads),big.mark=",",scientific=FALSE)`  
+
+5. Align to ribosomal RNA - DONE
+---------------------------
+```
+/hi-seq/RI.Brain.totalRNA.09Jun15/programs/alignTo.rRNA.brain.totalRNA.batch4.sh &
+```
+
+**move files**
+```{r,echo=FALSE,eval=FALSE}
+## NOT R code, but don't want in Md file
+get BNLx_3.rRNA/align_summary.txt rRNA.summary.BNLx_3.txt
+get SHR_1.rRNA/align_summary.txt rRNA.summary.SHR_1.txt
+get SHR_3.rRNA/align_summary.txt rRNA.summary.SHR_3.txt
+```
+
+Proportion of Reads Aligned to rRNA
+-----------------------------------
+This batch was subjected to 2 washes with riboZero.  
+
+```{r,echo=FALSE,eval=TRUE}
+#rm(list=ls())
+setwd("~/Documents/NextGenSeq/Rat.RI.Brain.totalRNA.batch4/data")
+options(stringsAsFactors=FALSE)
+
+sampleList = c("BNLx_3","SHR_1","SHR_3")
+
+rStats = c()
+for(i in sampleList){
+  x = read.table(file=paste("rRNA.summary.",i,".txt",sep=""),sep="\t",header=FALSE)
+  sample = i
+  numReads = as.numeric(gsub(":","",gsub("Input","",x[2,1])))       
+  mappedLeft = as.numeric(gsub(":","",gsub("Mapped","",unlist(lapply(strsplit(x[3,1],split="(",fixed=TRUE),function(a) a[1])))))
+  mappedRight = as.numeric(gsub(":","",gsub("Mapped","",unlist(lapply(strsplit(x[7,1],split="(",fixed=TRUE),function(a) a[1])))))
+  mappedPairs = as.numeric(gsub("Aligned pairs: ","",x[10,1]))  
+  rStats = rbind(rStats,data.frame(sample,numReads,mappedLeft,mappedRight,mappedPairs))
+}
+
+rStats$numReadFrag = (rStats$mappedLeft + rStats$mappedRight)
+rStats$numDeletedPairedReads = (rStats$mappedLeft + rStats$mappedRight - rStats$mappedPairs)
+rStats$sample = gsub(".v1","",rStats$sample)
+
+rStats = rStats[,c("sample","numReads","numReadFrag","mappedPairs","numDeletedPairedReads")]
+
+rTable = data.frame(sample=rStats$sample,numTrimmedReads=prettyNum(rStats$numReads,big.mark=",",scientific=FALSE),numDeleted=prettyNum(rStats$numDeletedPairedReads,big.mark=",",scientific=FALSE),pctRiboReads=as.numeric(rStats$numDeletedPairedReads)/as.numeric(rStats$numReads),numRemaining=prettyNum(rStats$numReads-rStats$numDeletedPairedReads,big.mark=",",scientific=FALSE))
+
+rTable$pctRiboReads = paste(sprintf("%.1f",round(100*rTable$pctRiboReads,1)),"%",sep="")
+colnames(rTable) = c("Sample","Number of Paired-End Reads After Trimming","Number of Paired-End Reads with at Least One Fragment Aligned to rRNA","Percent of Paired-End Reads Aligned to rRNA","Number of Paired-End Reads NOT Aligned to rRNA")
+```
+
+```{r, results='asis',echo=FALSE}
+kable(rTable,align=rep("c",ncol(rTable)))
+```
+
+
+6. Convert to fastq files
+---------------------------
+```
+/hi-seq/sharedPrograms/bamToFastQ_py.phenogen.sh /hi-seq/RI.Brain.totalRNA.09Jun15/alignedReads/BNLx_3.rRNA &
+/hi-seq/sharedPrograms/bamToFastQ_py.phenogen.sh /hi-seq/RI.Brain.totalRNA.09Jun15/alignedReads/SHR_1.rRNA &
+/hi-seq/sharedPrograms/bamToFastQ_py.phenogen.sh /hi-seq/RI.Brain.totalRNA.09Jun15/alignedReads/SHR_3.rRNA &
+```
+
+```{r,echo=FALSE,eval=FALSE}
+## NOT R code, but don't want in Md file
+# move files to cleanedReads folder
+cd /hi-seq/RI.Brain.totalRNA.09Jun15
+mv ./alignedReads/BNLx_3.rRNA/unmapped.end1.fq ./cleanedReads/BNLx_3.no_rRNA.end1.fq
+mv ./alignedReads/SHR_3.rRNA/unmapped.end1.fq ./cleanedReads/SHR_3.no_rRNA.end1.fq
+mv ./alignedReads/SHR_1.rRNA/unmapped.end1.fq ./cleanedReads/SHR_1.no_rRNA.end1.fq
+
+mv ./alignedReads/BNLx_3.rRNA/unmapped.end2.fq ./cleanedReads/BNLx_3.no_rRNA.end2.fq
+mv ./alignedReads/SHR_3.rRNA/unmapped.end2.fq ./cleanedReads/SHR_3.no_rRNA.end2.fq
+mv ./alignedReads/SHR_1.rRNA/unmapped.end2.fq ./cleanedReads/SHR_1.no_rRNA.end2.fq
+
+```
+
+```{r,echo=FALSE,eval=FALSE}
+## NOT R code, but don't want in Md file
+get BNLx_3.rRNA/numUnmappedFQ.txt unmappedFQ.summary.BNLx_3.txt
+get SHR_3.rRNA/numUnmappedFQ.txt unmappedFQ.summary.SHR_3.txt
+get SHR_1.rRNA/numUnmappedFQ.txt unmappedFQ.summary.SHR_1.txt
+```
+
+
+```{r,echo=FALSE,eval=TRUE}
+setwd("~/Documents/NextGenSeq/Rat.RI.Brain.totalRNA.batch4/data")
+options(stringsAsFactors=FALSE)
+
+sampleList = gsub(".v1","",sampleList)
+
+unmappedStats = c()
+for(i in sampleList){
+  x = read.table(file=paste("unmappedFQ.summary.",i,".txt",sep=""),sep=" ",header=FALSE,fill=TRUE)
+  sample = i
+  numReads = as.numeric(x[1,3])/4
+  unmappedStats = rbind(unmappedStats,data.frame(sample,numReads))
+}
+
+rownames(unmappedStats) = unmappedStats$sample
+
+numCorrect = sum(as.numeric(gsub(",","",rTable[,"Number of Paired-End Reads NOT Aligned to rRNA"],fixed=TRUE))==unmappedStats[rTable$Sample,2])
+
+numSamples = nrow(unmappedStats)
+```
+
+`r numCorrect` out of `r numSamples` of the fastq files were created correctly.
+
+
+7.  Quantitate using RSEM and Ensembl Transcripts 
+------------------------------------------------------
+```
+/data2/saba/BxH.HxB.Rats/RNA-Seq/programs/quantRSEM.batch4.phenogen.sh BNLx_3 654129 & 
+/data2/saba/BxH.HxB.Rats/RNA-Seq/programs/quantRSEM.batch4.phenogen.sh SHR_3 65464 & 
+/data2/saba/BxH.HxB.Rats/RNA-Seq/programs/quantRSEM.batch4.phenogen.sh SHR_1 65466 & 
+```
+
+8. Align to strain-specific genomes - BNLx and SHR only
+---------------
+```
+/hi-seq/RI.Brain.totalRNA.09Jun15/programs/tophatAlign.brain.batch4.strainSpecific.sh &
+```
+
+
+

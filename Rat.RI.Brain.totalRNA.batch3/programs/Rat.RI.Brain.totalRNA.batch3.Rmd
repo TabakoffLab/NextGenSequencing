@@ -337,5 +337,11 @@ qsub -q compute -N quant10 -l nodes=1:ppn=12 -V --  /storage/saba/Rat.RI.Brain.t
 
 ```
 
+8. Align to strain-specific genomes - BNLx and SHR only
+---------------
+```
+qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch3/programs/tophatAlign.brain.batch3.strainSpecific.sh
+```
+
 
 

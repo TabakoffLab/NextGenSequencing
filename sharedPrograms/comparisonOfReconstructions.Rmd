@@ -1,0 +1,67 @@
+Summarize Transcriptome Reconstructions
+========================================================
+
+```{r}
+rm(list=ls())
+options(stringsAsFactors=FALSE)
+
+#######################
+##  local functions  ##
+#######################
+
+# format GTF files to include transcript ids, gene ids, and fpkm values
+gtfFormat = function(data,FPKM=TRUE){
+  data$transcript_id = unlist(lapply(strsplit(data$V9,split=";",fixed=TRUE),function(a) gsub(" transcript_id ","",a[grep("transcript",a)]))) 
+  data$gene_id = unlist(lapply(strsplit(data$V9,split=";",fixed=TRUE),function(a) gsub("gene_id ","",a[grep("gene",a)]))) 
+  if(FPKM) data$fpkm = as.numeric(unlist(lapply(strsplit(data$V9,split=";",fixed=TRUE),function(a) gsub(" FPKM ","",a[grep("FPKM",a)]))))
+  return(data)
+}
+
+```
+
+```{r}
+base.path = "/Volumes/saba/BNLx.SHR/"
+
+heart = gtfFormat(read.table(file=paste(base.path,"RNA-Seq.Heart/totalRNA/reconstruction/reconstruct.total.heart.07Oct14.FINAL.gtf",sep=""),sep="\t",header=FALSE),FPKM=FALSE)
+heart.transcripts = heart[!duplicated(heart$transcript_id,heart$gene_id),c("transcript_id","gene_id")]
+length(unique(heart$transcript_id))
+length(unique(heart$gene_id))
+
+prefix = unlist(lapply(strsplit(heart.transcripts$transcript_id,split=".",fixed=TRUE),function(a) a[1]))
+prefix[grep("ENSRNOT",prefix)]="ENSRNOT"
+
+ensemblGenes = unique(heart.transcripts$gene_id[grep("ENS",heart.transcripts$transcript_id)])
+length(unique(heart.transcripts$gene_id))
+table(prefix[heart.transcripts$gene_id %in% ensemblGenes])
+
+liver = gtfFormat(read.table(file=paste(base.path,"RNA-Seq.Liver/totalRNA.UCD/reconstruction/reconstruct.liver.07Oct14.FINAL.gtf",sep=""),sep="\t",header=FALSE),FPKM=FALSE)
+liver.transcripts = liver[!duplicated(liver$transcript_id,liver$gene_id),c("transcript_id","gene_id")]
+
+prefix = unlist(lapply(strsplit(liver.transcripts$transcript_id,split=".",fixed=TRUE),function(a) a[1]))
+prefix[grep("ENSRNOT",prefix)]="ENSRNOT"
+table(prefix)
+
+ensemblGenes = unique(liver.transcripts$gene_id[grep("ENS",liver.transcripts$transcript_id)])
+length(unique(liver.transcripts$gene_id))
+table(prefix[liver.transcripts$gene_id %in% ensemblGenes])
+
+
+brain1 = gtfFormat(read.table(file=paste(base.path,"RNA-Seq.Brain/reconstruction/reconstruct.brain.polya.26Feb15.gtf",sep=""),sep="\t",header=FALSE),FPKM=FALSE)
+brain2 = gtfFormat(read.table(file=paste(base.path,"RNA-Seq.Brain/reconstruction/reconstruct.brain.nonpolya.26Feb15.gtf",sep=""),sep="\t",header=FALSE),FPKM=FALSE)
+
+brain = rbind(brain1,brain2)
+
+brain.transcripts = brain[!duplicated(brain$transcript_id,brain$gene_id),c("transcript_id","gene_id")]
+
+prefix = unlist(lapply(strsplit(brain.transcripts$transcript_id,split=".",fixed=TRUE),function(a) a[1]))
+prefix[grep("ENSRNOT",prefix)]="ENSRNOT"
+table(prefix)
+
+ensemblGenes = unique(brain.transcripts$gene_id[grep("ENS",brain.transcripts$transcript_id)])
+length(unique(brain.transcripts$gene_id))
+table(prefix[brain.transcripts$gene_id %in% ensemblGenes])
+
+
+
+```
+
