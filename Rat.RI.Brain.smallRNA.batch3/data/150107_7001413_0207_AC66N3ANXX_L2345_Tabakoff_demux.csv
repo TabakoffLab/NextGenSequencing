@@ -1,0 +1,25 @@
+Flowcell: C66N3ANXX 1x51 L2345-Tabakoff rat smallRNA ,,,,,,,,,,,,,,
+/illumina/runs/150107_7001413_0207_AC66N3ANXX/Data/Intensities/BaseCalls/Unaligned_L1-5/,,,,,,,,,,,,,,
+Barcode lane statistics,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
+Lane,Sample ID,Sample Ref,Index,Description,Control,Project,Yield (Mbases),% PF,# Reads,% of raw clusters per lane,% Perfect Index Reads,% One Mismatch Reads (Index),% of >= Q30 Bases (PF),Mean Quality Score (PF)
+2,BXH10_1BRAIN,Rat Brain,CGATGT,BorrisTabakoff_smallRNA_01_08_15_smallRNASEQ1x50v4,N,Tabakoff,"2,194",100,"43,019,242",26.04,99.28,0.72,96.71,35.88
+2,BXH3_1BRAIN,Rat Brain,ATCACG,BorrisTabakoff_smallRNA_01_08_15_smallRNASEQ1x50v4,N,Tabakoff,"1,132",100,"22,188,392",13.43,98.78,1.22,96.13,35.74
+2,BXH5_1BRAIN,Rat Brain,TTAGGC,BorrisTabakoff_smallRNA_01_08_15_smallRNASEQ1x50v4,N,Tabakoff,"3,516",100,"68,937,683",41.73,99.26,0.74,96.52,35.84
+2,BXH6_1BRAIN,Rat Brain,TGACCA,BorrisTabakoff_smallRNA_01_08_15_smallRNASEQ1x50v4,N,Tabakoff,"1,481",100,"29,046,012",17.58,98.43,1.57,96.36,35.79
+2,lane2,unknown,Undetermined,Clusters with unmatched barcodes for lane 2,N,Undetermined_indices,103,100,"2,010,258",1.22,0,0,88.89,33.47
+3,BNLX_1BRAIN,Rat Brain,ACTTGA,BorrisTabakoff_smallRNA_01_08_15_smallRNASEQ1x50v4,N,Tabakoff,"3,584",100,"70,265,084",32.78,98.64,1.36,95.53,35.63
+3,BXH11_1BRAIN,Rat Brain,ACAGTG,BorrisTabakoff_smallRNA_01_08_15_smallRNASEQ1x50v4,N,Tabakoff,"4,053",100,"79,473,155",37.07,98.81,1.19,95.77,35.67
+3,BXH8_1BRAIN,Rat Brain,GCCAAT,BorrisTabakoff_smallRNA_01_08_15_smallRNASEQ1x50v4,N,Tabakoff,"1,495",100,"29,321,441",13.68,98.14,1.86,95.43,35.58
+3,BXH9_1BRAIN,Rat Brain,CAGATC,BorrisTabakoff_smallRNA_01_08_15_smallRNASEQ1x50v4,N,Tabakoff,"1,614",100,"31,656,431",14.77,98.99,1.01,95.74,35.67
+3,lane3,unknown,Undetermined,Clusters with unmatched barcodes for lane 3,N,Undetermined_indices,186,100,"3,650,904",1.7,0,0,87.01,33
+4,BXH10_2BRAIN,Rat Brain,CTTGTA,BorrisTabakoff_smallRNA_01_08_15_smallRNASEQ1x50v4,N,Tabakoff,"2,431",100,"47,670,815",18.32,98.07,1.93,92.6,34.98
+4,BXH3_2BRAIN,Rat Brain,GATCAG,BorrisTabakoff_smallRNA_01_08_15_smallRNASEQ1x50v4,N,Tabakoff,"4,380",100,"85,888,891",33.01,97.82,2.18,92.82,35.06
+4,BXH6_2BRAIN,Rat Brain,GGCTAC,BorrisTabakoff_smallRNA_01_08_15_smallRNASEQ1x50v4,N,Tabakoff,"3,682",100,"72,204,207",27.75,97.7,2.3,92.78,35.05
+4,BXh11_2BRAIN,Rat Brain,TAGCTT,BorrisTabakoff_smallRNA_01_08_15_smallRNASEQ1x50v4,N,Tabakoff,"2,432",100,"47,694,651",18.33,97.81,2.19,92.44,34.95
+4,lane4,unknown,Undetermined,Clusters with unmatched barcodes for lane 4,N,Undetermined_indices,345,100,"6,759,332",2.6,0,0,55.1,22.24
+5,BNLX_2BRAIN,Rat Brain,CTCAGA,BorrisTabakoff_smallRNA_01_08_15_smallRNASEQ1x50v4,N,Tabakoff,"3,565",100,"69,900,589",27.59,98.7,1.3,94.31,35.37
+5,BXH13_1BRAIN,Rat Brain,CGGAAT,BorrisTabakoff_smallRNA_01_08_15_smallRNASEQ1x50v4,N,Tabakoff,"2,611",100,"51,198,339",20.21,98.58,1.42,95.14,35.55
+5,BXH9_2BRAIN,Rat Brain,CTAGCT,BorrisTabakoff_smallRNA_01_08_15_smallRNASEQ1x50v4,N,Tabakoff,"2,444",100,"47,920,713",18.92,98.85,1.15,95.03,35.52
+5,SHR_1BRAIN,Rat Brain,CTATAC,BorrisTabakoff_smallRNA_01_08_15_smallRNASEQ1x50v4,N,Tabakoff,"4,134",100,"81,068,255",32,98.58,1.42,94.99,35.52
+5,lane5,unknown,Undetermined,Clusters with unmatched barcodes for lane 5,N,Undetermined_indices,165,100,"3,237,878",1.28,0,0,74.23,28.61

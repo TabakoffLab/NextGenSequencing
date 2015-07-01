@@ -1,0 +1,394 @@
+RI Panel - Batch 1 (Brain) Total RNA RNA-Seq
+========================================================
+
+* 2 samples per strain (SHR, BXH12, HXB13, HXB17, HXB2, HXB25, HXB27, HXB7)
+* tissues received from Dr. Michal Pravenec at Academy of Sciences of the Czech Republic, Prague, Czech Republic
+* ribosomal RNA depleted total RNA
+* 2X100 reads using the stranded protocol
+* sequencing done by Beckman Coulter Genomics - received June 5, 2015
+* synthetic spike-in were added to each sample 
+  * SHR_1, BXH12_1, HXB13_1, HXB17_1, HXB2_1, HXB25_1, HXB27_1, and HXB7_1 have mix 1; SHR_2, BXH12_2, HXB13_2, HXB17_2, HXB2_2, HXB25_2, HXB27_2, and HXB7_2 have mix 2
+  * 4 mL of 1:100 diluted spikes were added after RNA extraction but before rRNA-depletion
+  * Information regarding the spike-ins can be found here: http://products.invitrogen.com/ivgn/product/4456739
+
+1. Unzip Files - 
+---------------
+```
+qsub -q smp -N liver.batch1 /storage/saba/Rat.RI.Liver.totalRNA.batch1/programs/unzip.yucca.sh
+```
+
+2. Determine number of reads sent for each sample - 
+-------------------------------------------------
+```
+qsub -q smp -N cntRaw /storage/saba/Rat.RI.Liver.totalRNA.batch1/programs/countRawReads.liver.batch1.sh
+```
+
+```{r,echo=FALSE}
+rm(list=ls())
+options(stringsAsFactors=FALSE)
+setwd("~/Documents/NextGenSeq/Rat.RI.Brain.totalRNA.batch1/")
+rawCounts = read.table(file="data/rawReadCounts.10Sep14.txt",sep=" ",header=FALSE,fill=TRUE)
+
+rawCounts$readFrag = as.numeric(rawCounts$V3)
+rawCounts$file = unlist(lapply(strsplit(rawCounts$V1,split="/",fixed=TRUE),function(a) a[length(a)]))
+rawCounts$strain = unlist(lapply(strsplit(rawCounts$file,split="_",fixed=TRUE),function(a) a[1]))
+rawCounts$sampleNum = unlist(lapply(strsplit(rawCounts$file,split="_",fixed=TRUE),function(a) a[2]))
+rawCounts$sample = paste(rawCounts$strain,rawCounts$sampleNum,sep="_")
+
+readFragments = aggregate(rawCounts$readFrag,by=list(sample=rawCounts$sample),sum)
+readFragments$numPairedReads = prettyNum(readFragments$x/2,big.mark=",",scientific=FALSE)
+readFragments$numReadFragments = prettyNum(readFragments$x,big.mark=",",scientific=FALSE)
+
+readFragments=readFragments[,colnames(readFragments)!="x"]
+forPrint = readFragments[,c("sample","numPairedReads","numReadFragments")]
+colnames(forPrint) = c("sample","Number of Paired-End Reads","Number of Read Fragments")
+```
+
+Raw Reads/Read Fragments
+---------------------------
+
+```{r, results='asis',echo=FALSE}
+kable(forPrint,align=rep("c",ncol(readFragments)))
+```
+
+Total Number of Paired End Reads: `r prettyNum(sum(rawCounts$readFrag)/2,big.mark=",",scientific=FALSE)`  
+Total Number of Read Fragments:  `r prettyNum(sum(rawCounts$readFrag),big.mark=",",scientific=FALSE)`  
+Average Number of Paired End Reads Per Sample: `r prettyNum(sum(rawCounts$readFrag/2)/length(unique(rawCounts$sample)),big.mark=",",scientific=FALSE)`  
+
+3. Trim reads for adaptors and for quality - 
+---------------
+
+```
+qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/trimReads.brain.batch1.sh
+```
+
+Compress raw reads after trimmed reads become available
+```
+qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/compressRawReads.sh
+```
+
+
+
+4. Characterize Trimmed Reads - 
+---------------
+```
+qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/countTrimmedReads.sh
+```
+
+```{r,echo=FALSE}
+options(stringsAsFactors=FALSE)
+setwd("~/Documents/NextGenSeq/Rat.RI.Brain.totalRNA.batch1/")
+
+trimmed = read.table(file="data/trimmedReadCounts.18Sep14.txt",sep="",header=FALSE)
+trimmed$file = unlist(lapply(strsplit(trimmed$V1,split="/",fixed=TRUE),function(a) a[6]))
+trimmed$sample = unlist(lapply(strsplit(trimmed$file,split="_",fixed=TRUE),function(a) paste(a[1],a[2],sep="_")))
+trimmed$read = unlist(lapply(strsplit(trimmed$file,split="_",fixed=TRUE),function(a) a[9]))
+trimmed$lane = unlist(lapply(strsplit(trimmed$file,split="_",fixed=TRUE),function(a) a[8]))
+
+bySample = merge(trimmed[trimmed$read=="R1",c("sample","lane","V2","V3")],trimmed[trimmed$read=="R2",c("sample","lane","V2")],by=c("sample","lane"))
+bySample$numReadFrag = bySample$V3*2
+colnames(bySample) = c("sample","lane","avgFragLength.R1","numReads","avgFragLength.R2","numReadFrag")
+
+rawCounts$lane = unlist(lapply(strsplit(rawCounts$file,split="_",fixed=TRUE),function(a) a[8])) 
+rawCounts = rawCounts[grep("_R1",rawCounts$file),]
+
+bySample = merge(rawCounts,bySample,by=c("sample","lane"))
+bySample$pctReadsAfterTrim = paste(sprintf("%.1f",round(100*bySample$numReads/bySample$readFrag,1)),"%",sep="")
+
+bySample$numPairedReads = bySample$readFrag
+bySample$numReadFragments = bySample$readFrag*2
+
+forPrint2 = bySample[,c("sample","lane","numPairedReads","numReadFragments","avgFragLength.R1","avgFragLength.R2","numReadFrag","pctReadsAfterTrim")]
+forPrint2$avgFragLength.R1 = sprintf("%.1f",round(forPrint2$avgFragLength.R1,1))
+forPrint2$avgFragLength.R2 = sprintf("%.1f",round(forPrint2$avgFragLength.R2,1))
+forPrint2$numReadFrag = prettyNum(forPrint2$numReadFrag,big.mark=",",scientific=FALSE)
+forPrint2$numPairedReads = prettyNum(forPrint2$numPairedReads,big.mark=",",scientific=FALSE)
+forPrint2$numReadFragments = prettyNum(forPrint2$numReadFragments,big.mark=",",scientific=FALSE)
+
+
+colnames(forPrint2) = c("sample","lane","Number of Paired-End Reads","Number of Read Fragments","Average Read Fragment Length After Trimming (first read fragment)","Average Read Fragment Length After Trimming (second read fragment)","Number of Read Fragments After Trimming","Percent of Read Fragments That Remained After Trimming")
+```
+
+Trimmed Reads/Read Fragments
+---------------------------
+
+```{r, results='asis',echo=FALSE}
+kable(forPrint2,align=rep("c",ncol(forPrint2)))
+```
+
+Total Number of Paired End Reads After Trimming: `r prettyNum(sum(as.numeric(bySample$numReads)),big.mark=",",scientific=FALSE)`  
+Total Number of Read Fragments After Trimming:  `r prettyNum(sum(bySample$numReadFrag),big.mark=",",scientific=FALSE)`  
+Average Number of Paired End Reads Per Sample After Trimming: `r prettyNum(2*mean(bySample$numReads),big.mark=",",scientific=FALSE)`  
+
+5. Align to ribosomal RNA - 
+---------------------------
+```
+qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/alignTo.rRNA.batch1.10Oct14.sh
+qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/alignTo.rRNA.batch1.10Oct14.HXB27.sh
+qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/alignTo.rRNA.heart.30Sep14.BXH12_2.sh
+qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/alignTo.rRNA.batch1.13Oct14.HXB7_2.sh
+```
+
+**move files**
+```{r,echo=FALSE,eval=FALSE}
+## NOT R code, but don't want in Md file
+get BXH12_1.rRNA/align_summary.txt rRNA.summary.BXH12_1.txt
+get BXH12_2.rRNA.v1/align_summary.txt rRNA.summary.BXH12_2.v1.txt
+get BXH12_2.rRNA.v2/align_summary.txt rRNA.summary.BXH12_2.v2.txt
+get HXB13_1.rRNA/align_summary.txt rRNA.summary.HXB13_1.txt 
+get HXB13_2.rRNA/align_summary.txt rRNA.summary.HXB13_2.txt 
+get HXB17_1.rRNA/align_summary.txt rRNA.summary.HXB17_1.txt
+get HXB17_2.rRNA/align_summary.txt rRNA.summary.HXB17_2.txt 
+get HXB2_1.rRNA/align_summary.txt rRNA.summary.HXB2_1.txt 
+get HXB2_2.rRNA/align_summary.txt rRNA.summary.HXB2_2.txt
+get HXB25_1.rRNA/align_summary.txt rRNA.summary.HXB25_1.txt 
+get HXB25_2.rRNA/align_summary.txt rRNA.summary.HXB25_2.txt 
+get HXB27_1.rRNA/align_summary.txt rRNA.summary.HXB27_1.txt 
+get HXB27_2.rRNA/align_summary.txt rRNA.summary.HXB27_2.txt 
+get HXB7_1.rRNA/align_summary.txt rRNA.summary.HXB7_1.txt
+get HXB7_2.rRNA/align_summary.txt rRNA.summary.HXB7_2.txt
+get SHR_1.rRNA/align_summary.txt rRNA.summary.SHR_1.txt
+get SHR_2.rRNA/align_summary.txt rRNA.summary.SHR_2.txt
+```
+
+Proportion of Reads Aligned to rRNA
+-----------------------------------
+This batch was only subjected to 1 wash with riboZero.  The next batch received two washes.  
+```{r,echo=FALSE,eval=TRUE}
+#rm(list=ls())
+setwd("~/Documents/NextGenSeq/Rat.RI.Brain.totalRNA.batch1/data")
+options(stringsAsFactors=FALSE)
+
+sampleList = paste(rep(c("SHR", "BXH12", "HXB13", "HXB17", "HXB2", "HXB25", "HXB27", "HXB7"),each=2),c(1:2),sep="_")
+
+sampleList = gsub("BXH12_2","BXH12_2.v1",sampleList)
+sampleList = c(sampleList,"BXH12_2.v2")
+
+rStats = c()
+for(i in sampleList){
+  x = read.table(file=paste("rRNA.summary.",i,".txt",sep=""),sep="\t",header=FALSE)
+  sample = i
+  numReads = as.numeric(gsub(":","",gsub("Input","",x[2,1])))       
+  mappedLeft = as.numeric(gsub(":","",gsub("Mapped","",unlist(lapply(strsplit(x[3,1],split="(",fixed=TRUE),function(a) a[1])))))
+  mappedRight = as.numeric(gsub(":","",gsub("Mapped ","",unlist(lapply(strsplit(x[7,1],split="(",fixed=TRUE),function(a) a[1])))))
+  mappedPairs = as.numeric(gsub("Aligned pairs: ","",x[10,1]))  
+  rStats = rbind(rStats,data.frame(sample,numReads,mappedLeft,mappedRight,mappedPairs))
+}
+
+rStats$numReadFrag = (rStats$mappedLeft + rStats$mappedRight)
+rStats$numDeletedPairedReads = (rStats$mappedLeft + rStats$mappedRight - rStats$mappedPairs)
+
+rStats[rStats$sample=="BXH12_2.v1",-1]=colSums(rStats[grep("BXH12_2",rStats$sample),-1])
+rStats$sample = gsub(".v1","",rStats$sample)
+rStats = rStats[-grep(".v2",rStats$sample),]
+
+rStats = rStats[,c("sample","numReads","numReadFrag","mappedPairs","numDeletedPairedReads")]
+
+rTable = data.frame(sample=rStats$sample,numTrimmedReads=prettyNum(rStats$numReads,big.mark=",",scientific=FALSE),numDeleted=prettyNum(rStats$numDeletedPairedReads,big.mark=",",scientific=FALSE),pctRiboReads=as.numeric(rStats$numDeletedPairedReads)/as.numeric(rStats$numReads),numRemaining=prettyNum(rStats$numReads-rStats$numDeletedPairedReads,big.mark=",",scientific=FALSE))
+
+rTable$pctRiboReads = paste(sprintf("%.1f",round(100*rTable$pctRiboReads,1)),"%",sep="")
+colnames(rTable) = c("Sample","Number of Paired-End Reads After Trimming","Number of Paired-End Reads with at Least One Fragment Aligned to rRNA","Percent of Paired-End Reads Aligned to rRNA","Number of Paired-End Reads NOT Aligned to rRNA")
+```
+
+```{r, results='asis',echo=FALSE}
+kable(rTable,align=rep("c",ncol(rTable)))
+```
+
+6.  Convert unmapped.bam file into fastq files - 
+-----------------------------------------------
+```
+qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/convertToFastQ.batch1.sh
+
+## trying to reconvert HXB13_2 to see that is the problem with alignment to Ensembl transcriptome
+/data2/saba/sharedPrograms/bamToFastQ.buildup.phenogen.sh /hi-seq/RI.Brain.totalRNA.05Sep14/alignedReads/HXB13_2.rRNA
+
+```
+
+```{r,echo=FALSE,eval=FALSE}
+## NOT R code, but don't want in Md file
+get BXH12_1.rRNA/numUnmappedFQ.txt unmappedFQ.summary.BXH12_1.txt
+get BXH12_2.rRNA.v1/numUnmappedFQ.txt unmappedFQ.summary.BXH12_2.v1.txt
+get BXH12_2.rRNA.v2/numUnmappedFQ.txt unmappedFQ.summary.BXH12_2.v2.txt
+get HXB13_1.rRNA/numUnmappedFQ.txt unmappedFQ.summary.HXB13_1.txt 
+get HXB13_2.rRNA/numUnmappedFQ.txt unmappedFQ.summary.HXB13_2.txt 
+get HXB17_1.rRNA/numUnmappedFQ.txt unmappedFQ.summary.HXB17_1.txt
+get HXB17_2.rRNA/numUnmappedFQ.txt unmappedFQ.summary.HXB17_2.txt 
+get HXB2_1.rRNA/numUnmappedFQ.txt unmappedFQ.summary.HXB2_1.txt 
+get HXB2_2.rRNA/numUnmappedFQ.txt unmappedFQ.summary.HXB2_2.txt
+get HXB25_1.rRNA/numUnmappedFQ.txt unmappedFQ.summary.HXB25_1.txt 
+get HXB25_2.rRNA/numUnmappedFQ.txt unmappedFQ.summary.HXB25_2.txt 
+get HXB27_1.rRNA/numUnmappedFQ.txt unmappedFQ.summary.HXB27_1.txt 
+get HXB27_2.rRNA/numUnmappedFQ.txt unmappedFQ.summary.HXB27_2.txt 
+get HXB7_1.rRNA/numUnmappedFQ.txt unmappedFQ.summary.HXB7_1.txt
+get HXB7_2.rRNA/numUnmappedFQ.txt unmappedFQ.summary.HXB7_2.txt
+get SHR_1.rRNA/numUnmappedFQ.txt unmappedFQ.summary.SHR_1.txt
+get SHR_2.rRNA/numUnmappedFQ.txt unmappedFQ.summary.SHR_2.txt
+```
+
+```{r,echo=FALSE,eval=TRUE}
+setwd("~/Documents/NextGenSeq/Rat.RI.Brain.totalRNA.batch1/data")
+options(stringsAsFactors=FALSE)
+
+unmappedStats = c()
+for(i in sampleList){
+  x = read.table(file=paste("unmappedFQ.summary.",i,".txt",sep=""),sep=" ",header=FALSE,fill=TRUE)
+  sample = i
+  numReads = as.numeric(x[1,3])/4
+  unmappedStats = rbind(unmappedStats,data.frame(sample,numReads))
+}
+
+unmappedStats[unmappedStats=="BXH12_2.v1",2]=sum(unmappedStats[grep("BXH12_2",unmappedStats$sample),2])
+unmappedStats$sample = gsub(".v1","",unmappedStats$sample)
+unmappedStats = unmappedStats[-grep(".v2",unmappedStats$sample),]
+
+rownames(unmappedStats) = unmappedStats$sample
+
+numCorrect = sum(as.numeric(gsub(",","",rTable[,"Number of Paired-End Reads NOT Aligned to rRNA"],fixed=TRUE))==unmappedStats[rTable$Sample,2])
+
+numSamples = nrow(unmappedStats)
+```
+
+`r numCorrect` out of `r numSamples` of the fastq files were created correctly.
+
+```{r,echo=FALSE,eval=FALSE}
+## NOT R code, but don't want in Md file
+# move files to trimmedReads folder to conserve space
+cd /storage/saba/Rat.RI.Brain.totalRNA.batch1
+mv ./alignedReads/BXH12_1.rRNA/unmapped.end1.fq  ./trimmedReads/BXH12_1.no_rRNA.end1.fq    
+mv ./alignedReads/BXH12_1.rRNA/unmapped.end2.fq  ./trimmedReads/BXH12_1.no_rRNA.end2.fq    
+mv ./alignedReads/HXB13_1.rRNA/unmapped.end1.fq  ./trimmedReads/HXB13_1.no_rRNA.end1.fq    
+mv ./alignedReads/HXB13_1.rRNA/unmapped.end2.fq  ./trimmedReads/HXB13_1.no_rRNA.end2.fq    
+mv ./alignedReads/HXB13_2.rRNA/unmapped.end1.fq  ./trimmedReads/HXB13_2.no_rRNA.end1.fq    
+mv ./alignedReads/HXB13_2.rRNA/unmapped.end2.fq  ./trimmedReads/HXB13_2.no_rRNA.end2.fq    
+mv ./alignedReads/HXB17_1.rRNA/unmapped.end1.fq  ./trimmedReads/HXB17_1.no_rRNA.end1.fq    
+mv ./alignedReads/HXB17_1.rRNA/unmapped.end2.fq  ./trimmedReads/HXB17_1.no_rRNA.end2.fq    
+mv ./alignedReads/HXB17_2.rRNA/unmapped.end1.fq  ./trimmedReads/HXB17_2.no_rRNA.end1.fq    
+mv ./alignedReads/HXB17_2.rRNA/unmapped.end2.fq  ./trimmedReads/HXB17_2.no_rRNA.end2.fq    
+mv ./alignedReads/HXB2_1.rRNA/unmapped.end1.fq  ./trimmedReads/HXB2_1.no_rRNA.end1.fq    
+mv ./alignedReads/HXB2_1.rRNA/unmapped.end2.fq  ./trimmedReads/HXB2_1.no_rRNA.end2.fq    
+mv ./alignedReads/HXB2_2.rRNA/unmapped.end1.fq  ./trimmedReads/HXB2_2.no_rRNA.end1.fq    
+mv ./alignedReads/HXB2_2.rRNA/unmapped.end2.fq  ./trimmedReads/HXB2_2.no_rRNA.end2.fq    
+mv ./alignedReads/HXB25_1.rRNA/unmapped.end1.fq  ./trimmedReads/HXB25_1.no_rRNA.end1.fq    
+mv ./alignedReads/HXB25_1.rRNA/unmapped.end2.fq  ./trimmedReads/HXB25_1.no_rRNA.end2.fq    
+mv ./alignedReads/HXB25_2.rRNA/unmapped.end1.fq  ./trimmedReads/HXB25_2.no_rRNA.end1.fq    
+mv ./alignedReads/HXB25_2.rRNA/unmapped.end2.fq  ./trimmedReads/HXB25_2.no_rRNA.end2.fq    
+mv ./alignedReads/HXB27_1.rRNA/unmapped.end1.fq  ./trimmedReads/HXB27_1.no_rRNA.end1.fq    
+mv ./alignedReads/HXB27_1.rRNA/unmapped.end2.fq  ./trimmedReads/HXB27_1.no_rRNA.end2.fq    
+mv ./alignedReads/HXB27_2.rRNA/unmapped.end1.fq  ./trimmedReads/HXB27_2.no_rRNA.end1.fq    
+mv ./alignedReads/HXB27_2.rRNA/unmapped.end2.fq  ./trimmedReads/HXB27_2.no_rRNA.end2.fq    
+mv ./alignedReads/HXB7_1.rRNA/unmapped.end1.fq  ./trimmedReads/HXB7_1.no_rRNA.end1.fq    
+mv ./alignedReads/HXB7_1.rRNA/unmapped.end2.fq  ./trimmedReads/HXB7_1.no_rRNA.end2.fq    
+mv ./alignedReads/HXB7_2.rRNA/unmapped.end1.fq  ./trimmedReads/HXB7_2.no_rRNA.end1.fq    
+mv ./alignedReads/HXB7_2.rRNA/unmapped.end2.fq  ./trimmedReads/HXB7_2.no_rRNA.end2.fq    
+mv ./alignedReads/SHR_1.rRNA/unmapped.end1.fq  ./trimmedReads/SHR_1.no_rRNA.end1.fq    
+mv ./alignedReads/SHR_1.rRNA/unmapped.end2.fq  ./trimmedReads/SHR_1.no_rRNA.end2.fq    
+mv ./alignedReads/SHR_2.rRNA/unmapped.end1.fq  ./trimmedReads/SHR_2.no_rRNA.end1.fq    
+mv ./alignedReads/SHR_2.rRNA/unmapped.end2.fq  ./trimmedReads/SHR_2.no_rRNA.end2.fq    
+cat ./alignedReads/BXH12_2.rRNA.v1/unmapped.end1.fq ./alignedReads/BXH12_2.rRNA.v2/unmapped.end1.fq > ./trimmedReads/BXH12_2.no_rRNA.end1.fq
+cat ./alignedReads/BXH12_2.rRNA.v1/unmapped.end2.fq ./alignedReads/BXH12_2.rRNA.v2/unmapped.end2.fq > ./trimmedReads/BXH12_2.no_rRNA.end2.fq
+```
+
+Compress intermediate files
+```
+qsub -q smp /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/compress.rRNAalign.batch1.sh
+```
+
+
+
+7.  Quantitate using RSEM and Ensembl Transcripts - 
+------------------------------------------------------
+```
+export PATH=/usr/local/rsem/bin:$PATH
+
+rsem-prepare-reference --bowtie2 --gtf /data2/saba/NextGenSeq/source/ensemblGenes.RGSC5.0.rn5.CLEANED.gtf /data2/saba/index/rn5_wSpikes.fa /data2/saba/index/RSEM/rn5.ensembl.wSpikes &
+
+rsem-calculate-expression -p 5 --time --seed 2386 --bowtie2 --strand-specific --paired-end /hi-seq/RI.Brain.totalRNA.05Sep14/cleanedReads/BXH12_1.no_rRNA.end1.fq /hi-seq/RI.Brain.totalRNA.05Sep14/cleanedReads/BXH12_1.no_rRNA.end2.fq /data2/saba/index/RSEM/rn5.ensembl.wSpikes /data2/saba/BxH.HxB.Rats/RNA-Seq/quantitation/rsem.Ensembl/BXH12_1
+
+
+rsem-calculate-expression -p 10 --time --seed 7866 --bowtie2 --no-bam-output --forward-prob=0.0 --paired-end /hi-seq/RI.Brain.totalRNA.05Sep14/cleanedReads/BXH12_1.no_rRNA.end1.fq /hi-seq/RI.Brain.totalRNA.05Sep14/cleanedReads/BXH12_1.no_rRNA.end2.fq /data2/saba/index/RSEM/rn5.ensembl.wSpikes /data2/saba/BxH.HxB.Rats/RNA-Seq/quantitation/rsem.Ensembl/BXH12_1.neg & 
+
+
+```
+```
+qsub -q compute -N makeRSEM /storage/saba/sharedPrograms/createRSEMindex.sh
+
+##  DONE  ##
+qsub -q compute -N quantSHR2 -l nodes=1:ppn=12 -V --  /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/quantRSEM.batch1.sh SHR_2 4897
+qsub -q compute -N quantBXH121 -l nodes=1:ppn=12 -V --  /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/quantRSEM.batch1.sh BXH12_1 6468
+qsub -q compute -N quantBXH122 -l nodes=1:ppn=12 -V --  /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/quantRSEM.batch1.sh BXH12_2 9813
+qsub -q compute -N quantHXB131 -l nodes=1:ppn=12 -V --  /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/quantRSEM.batch1.sh HXB13_1 6157
+qsub -q compute -N quantHXB171 -l nodes=1:ppn=12 -V --  /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/quantRSEM.batch1.sh HXB17_1 5643
+qsub -q compute -N quantHXB22 -l nodes=1:ppn=12 -V --  /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/quantRSEM.batch1.sh HXB2_2 9843
+qsub -q compute -N quantHXB251 -l nodes=1:ppn=12 -V --  /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/quantRSEM.batch1.sh HXB25_1 1354
+qsub -q compute -N quantHXB172 -l nodes=1:ppn=12 -V --  /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/quantRSEM.batch1.sh HXB17_2 9871
+qsub -q compute -N quantHXB252 -l nodes=1:ppn=12 -V --  /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/quantRSEM.batch1.sh HXB25_2 6645
+qsub -q compute -N quantHXB21 -l nodes=1:ppn=12 -V --  /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/quantRSEM.batch1.sh HXB2_1 9243
+qsub -q compute -N quantHXB271 -l nodes=1:ppn=12 -V --  /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/quantRSEM.batch1.sh HXB27_1 3312
+qsub -q compute -N quantHXB272 -l nodes=1:ppn=12 -V --  /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/quantRSEM.batch1.sh HXB27_2 8852 
+qsub -q compute -N quantHXB71 -l nodes=1:ppn=12 -V --  /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/quantRSEM.batch1.sh HXB7_1 7741
+qsub -q compute -N quantHXB72 -l nodes=1:ppn=12 -V --  /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/quantRSEM.batch1.sh HXB7_2 1147
+qsub -q compute -N quantSHR1 -l nodes=1:ppn=12 -V --  /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/quantRSEM.batch1.sh SHR_1 2258
+qsub -q compute -N quantHXB132 -l nodes=1:ppn=12 -V --  /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/quantRSEM.batch1.sh HXB13_2 1198
+
+
+```
+
+
+```{r}
+options(stringsAsFactors=FALSE)
+count.path = "/Volumes/saba/BxH.HxB.Rats/RNA-Seq/quantitation/rsem.Ensembl/"
+
+sampleList = gsub(".v1","",sampleList[sampleList!="BXH12_2.v2"])
+
+for(i in sampleList){
+  y = read.table(file=paste(count.path,i,".b1.isoforms.results",sep=""),sep="\t",header=TRUE)
+  x = data.frame(sample=i,spikeCnt=sum(y$expected_count[grep("ERCC",y$transcript_id)]),totCnt=sum(y$expected_count))
+  if(i==sampleList[1]) spikeSummary=x
+  if(i!=sampleList[1]) spikeSummary=rbind(spikeSummary,x)
+  }
+
+spikeSummary$pctSpike = 100*(spikeSummary$spikeCnt/spikeSummary$totCnt)
+
+for(i in sampleList){
+  y = read.table(file=paste(count.path,i,".b1.isoforms.results",sep=""),sep="\t",header=TRUE)
+  y=y[,c("transcript_id","gene_id","length","TPM")]
+  colnames(y)[grep("TPM",colnames(y))]=paste(i,"TPM",sep=".")
+  if(i==sampleList[1]) TPM=y
+  if(i!=sampleList[1]) TPM=merge(TPM,y,by=c("transcript_id","gene_id","length"))
+  }
+
+present=TPM[rowSums(TPM[,grep("TPM",colnames(TPM))]>0)>0,]
+plot(hclust(as.dist(1-cor(present[,grep("TPM",colnames(TPM))],method="spearman"))))
+
+cleaned = present[,grep("TPM",colnames(TPM))]
+rownames(cleaned) = present$transcript_id
+cleaned = cleaned[,!(colnames(cleaned) %in% c("HXB13_2.TPM","BXH12_2.TPM","HXB27_1.TPM","HXB27_2.TPM"))]
+cleaned = cleaned[order(rowSums(cleaned),decreasing=TRUE),]
+plot(hclust(as.dist(1-cor(cleaned,method="spearman"))))
+
+
+for(i in sampleList){
+  y = read.table(file=paste(count.path,i,".b1.isoforms.results",sep=""),sep="\t",header=TRUE)
+  y=y[,c("transcript_id","gene_id","length","expected_count")]
+  colnames(y)[grep("count",colnames(y))]=paste(i,"cnt",sep=".")
+  if(i==sampleList[1]) counts=y
+  if(i!=sampleList[1]) counts=merge(counts,y,by=c("transcript_id","gene_id","length"))
+  }
+
+count = counts[,grep("cnt",colnames(counts))]
+rownames(count) = counts$transcript_id
+good = count[,!(colnames(count) %in% c("HXB13_2.cnt","BXH12_2.cnt","HXB27_1.cnt","HXB27_2.cnt"))]
+bad = count[,(colnames(count) %in% c("HXB13_2.cnt","BXH12_2.cnt","HXB27_1.cnt","HXB27_2.cnt"))]
+
+good = good[order(rowSums(good),decreasing=TRUE),]
+bad = bad[order(rowSums(bad),decreasing=TRUE),]
+
+plot(hclust(as.dist(1-cor(good,method="spearman"))))
+```
+
+8. Align to strain-specific genomes - 
+---------------
+```
+qsub -q smp -N batch1 /storage/saba/Rat.RI.Brain.totalRNA.batch1/programs/tophatAlign.brain.batch1.strainSpecific.sh
+```
+

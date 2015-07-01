@@ -1,0 +1,9 @@
+Flowcell: C6K0DANXX 1x51 L2-Tabakoff rat custom,,,,,,,,,,,,,,
+/illumina/runs/150508_7001413_0258_AC6K0DANXX/Data/Intensities/BaseCalls/Unaligned,,,,,,,,,,,,,,
+Barcode lane statistics,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
+Lane,Sample ID,Sample Ref,Index,Description,Control,Project,Yield (Mbases),% PF,# Reads,% of raw clusters per lane,% Perfect Index Reads,% One Mismatch Reads (Index),% of >= Q30 Bases (PF),Mean Quality Score (PF)
+2,BNLX_3,Rat,TTAGGC,BorrisTabakoff_custom_5_8_15_custom_1x50v4,N,Tabakoff,344,100,"6,741,889",10.83,99.32,0.68,97.65,36.11
+2,SHR_1,Rat,TGACCA,BorrisTabakoff_custom_5_8_15_custom_1x50v4,N,Tabakoff,"2,740",100,"53,716,123",86.31,99.02,0.98,98,36.19
+2,SHR_3,Rat,CGATGT,BorrisTabakoff_custom_5_8_15_custom_1x50v4,N,Tabakoff,53,100,"1,045,948",1.68,87.74,12.26,97.85,36.15
+2,lane2,unknown,Undetermined,Clusters with unmatched barcodes for lane 2,N,Undetermined_indices,37,100,"729,300",1.17,0,0,92.73,34.51

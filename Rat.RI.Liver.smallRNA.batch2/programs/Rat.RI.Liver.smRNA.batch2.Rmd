@@ -1,0 +1,60 @@
+---
+title: "RI Panel - Batch 2 (Liver) Small RNA RNA-Seq"
+author: "Laura Saba"
+date: "July 1, 2015"
+output:
+  md_document:
+    variant: markdown_github
+---
+
+RI Panel - Batch 2 (Liver) Small RNA RNA-Seq
+========================================================
+
+* 1 sample per strain (HXB23,HXB24,BXH2,HXB29,HXB10,HXB31,HXB1,HXB3,HXB18,HXB4,HXB20,HXB5,HXB21,HXB22,HXB15,SHR)
+* tissues received from Dr. Michal Pravenec at Academy of Sciences of the Czech Republic, Prague, Czech Republic
+* small RNA (<200 bp)
+* 1X50 reads using the unstranded protocol
+* sequencing done by UCD Genomics Core - received June 18, 2015
+  * labeled 150602_7001413_0268_BC6K12ANXX
+
+1. Unzip Files - 
+---------------
+```
+gzip -d /hi-seq/RI.Liver.smallRNA.18Jun15/rawReads/*.gz & 
+```
+
+2. Determine number of reads sent for each sample - 
+-------------------------------------------------
+```
+/hi-seq/RI.Liver.smallRNA.18Jun15/programs/countRawReads.liver.smRNA.batch2.sh &
+```
+```{r,echo=FALSE}
+rm(list=ls())
+options(stringsAsFactors=FALSE)
+library(knitr)
+setwd("~/Documents/NextGenSeq/Rat.RI.Liver.smallRNA.batch2/")
+rawCounts = read.table(file="data/rawReadCounts.01Jul15.txt",sep=" ",header=FALSE,fill=TRUE)
+
+rawCounts$reads = rawCounts$V3
+rawCounts$file = rawCounts$V1
+rawCounts$sample = unlist(lapply(strsplit(rawCounts$file,split="/",fixed=TRUE),function(x) x[length(x)]))
+rawCounts$sample = unlist(lapply(strsplit(rawCounts$sample,split="_",fixed=TRUE),function(x) gsub("LIVER","",paste(x[1:2],collapse="_"))))
+
+rawCounts$sample[rawCounts$sample=="HXB_1"]="HXB1_1"
+rawCounts$sample[rawCounts$sample=="XXB15_1"]="HXB15_1"
+
+forPrint = rawCounts[,c("sample","reads")]
+forPrint$reads = prettyNum(forPrint$reads,big.mark=",",scientific=FALSE)
+colnames(forPrint) = c("sample","Number of Reads")
+```
+
+Raw Reads/Read Fragments
+---------------------------
+
+```{r, results='asis',echo=FALSE}
+kable(forPrint,align=rep("c",ncol(forPrint)),row.names=FALSE)
+```
+
+Total Number of Reads:  `r prettyNum(sum(rawCounts$reads),big.mark=",",scientific=FALSE)`  
+Average Number of Reads Per Sample: `r prettyNum(sum(rawCounts$reads)/nrow(rawCounts),big.mark=",",scientific=FALSE)`  
+

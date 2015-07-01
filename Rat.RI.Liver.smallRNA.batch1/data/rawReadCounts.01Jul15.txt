@@ -1,0 +1,16 @@
+/hi-seq/RI.Liver.smallRNA.25Feb15/rawReads/bxh12_1_CTTGTA_L003_R1_001.fastq 51 43925935
+/hi-seq/RI.Liver.smallRNA.25Feb15/rawReads/bxh12_2_CTAGCT_L004_R1_001.fastq 51 10699001
+/hi-seq/RI.Liver.smallRNA.25Feb15/rawReads/HXB13_1_CTATAC_L004_R1_001.fastq 51 60804232
+/hi-seq/RI.Liver.smallRNA.25Feb15/rawReads/hxb13_2_GGCTAC_L003_R1_001.fastq 51 61654626
+/hi-seq/RI.Liver.smallRNA.25Feb15/rawReads/HXB17_1_GATCAG_L003_R1_001.fastq 51 55402758
+/hi-seq/RI.Liver.smallRNA.25Feb15/rawReads/HXB17_2_CTCAGA_L004_R1_001.fastq 51 53003869
+/hi-seq/RI.Liver.smallRNA.25Feb15/rawReads/hxb2_1_CGGAAT_L004_R1_001.fastq 51 50062103
+/hi-seq/RI.Liver.smallRNA.25Feb15/rawReads/HXB2_2_TAGCTT_L003_R1_001.fastq 51 42443871
+/hi-seq/RI.Liver.smallRNA.25Feb15/rawReads/HXB25_1_GCCAAT_L002_R1_001.fastq 51 53411290
+/hi-seq/RI.Liver.smallRNA.25Feb15/rawReads/HXB25_2_ACAGTG_L002_R1_001.fastq 51 58150555
+/hi-seq/RI.Liver.smallRNA.25Feb15/rawReads/HXB27_1_ATCACG_L001_R1_001.fastq 51 56757256
+/hi-seq/RI.Liver.smallRNA.25Feb15/rawReads/HXB27_2_ACTTGA_L002_R1_001.fastq 51 47770314
+/hi-seq/RI.Liver.smallRNA.25Feb15/rawReads/HXB7_1_TTAGGC_L001_R1_001.fastq 51 40635331
+/hi-seq/RI.Liver.smallRNA.25Feb15/rawReads/HXB7_2_CAGATC_L002_R1_001.fastq 51 54117572
+/hi-seq/RI.Liver.smallRNA.25Feb15/rawReads/SHR_1_CGATGT_L001_R1_001.fastq 51 58886985
+/hi-seq/RI.Liver.smallRNA.25Feb15/rawReads/SHR_2_TGACCA_L001_R1_001.fastq 51 50428076

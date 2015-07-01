@@ -1,0 +1,25 @@
+Flowcell: C6G34ANXX 1x51 L1234-Tabakoff rat smallRNA,,,,,,,,,,,,,,
+/illumina/runs/150219_7001413_0222_AC6G34ANXX/Data/Intensities/BaseCalls/Unaligned,,,,,,,,,,,,,,
+Barcode lane statistics,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
+Lane,Sample ID,Sample Ref,Index,Description,Control,Project,Yield (Mbases),% PF,# Reads,% of raw clusters per lane,% Perfect Index Reads,% One Mismatch Reads (Index),% of >= Q30 Bases (PF),Mean Quality Score (PF)
+1,HXB27_1,Rat,ATCACG,BorrisTabakoff_SmallRNASEQ_2_19_15_SmallRNASEQ_1x50v4,N,Tabakoff,"2,895",100,"56,757,256",27.11,98.91,1.09,95.79,35.67
+1,HXB7_1,Rat,TTAGGC,BorrisTabakoff_SmallRNASEQ_2_19_15_SmallRNASEQ_1x50v4,N,Tabakoff,"2,072",100,"40,635,331",19.41,98.86,1.14,95.39,35.56
+1,SHR_1,Rat,CGATGT,BorrisTabakoff_SmallRNASEQ_2_19_15_SmallRNASEQ_1x50v4,N,Tabakoff,"3,003",100,"58,886,985",28.13,98.92,1.08,95.77,35.66
+1,SHR_2,Rat,TGACCA,BorrisTabakoff_SmallRNASEQ_2_19_15_SmallRNASEQ_1x50v4,N,Tabakoff,"2,572",100,"50,428,076",24.09,98.63,1.37,95.63,35.64
+1,lane1,unknown,Undetermined,Clusters with unmatched barcodes for lane 1,N,Undetermined_indices,134,100,"2,621,356",1.25,0,0,79.52,30.57
+2,HXB25_1,Rat,GCCAAT,BorrisTabakoff_SmallRNASEQ_2_19_15_SmallRNASEQ_1x50v4,N,Tabakoff,"2,724",100,"53,411,290",24.68,98.94,1.06,95.57,35.61
+2,HXB25_2,Rat,ACAGTG,BorrisTabakoff_SmallRNASEQ_2_19_15_SmallRNASEQ_1x50v4,N,Tabakoff,"2,966",100,"58,150,555",26.87,98.92,1.08,95.94,35.7
+2,HXB27_2,Rat,ACTTGA,BorrisTabakoff_SmallRNASEQ_2_19_15_SmallRNASEQ_1x50v4,N,Tabakoff,"2,436",100,"47,770,314",22.07,98.69,1.31,95.64,35.63
+2,HXB7_2,Rat,CAGATC,BorrisTabakoff_SmallRNASEQ_2_19_15_SmallRNASEQ_1x50v4,N,Tabakoff,"2,760",100,"54,117,572",25.01,98.92,1.08,95.79,35.67
+2,lane2,unknown,Undetermined,Clusters with unmatched barcodes for lane 2,N,Undetermined_indices,151,100,"2,970,214",1.37,0,0,82.46,31.38
+3,HXB17_1,Rat,GATCAG,BorrisTabakoff_SmallRNASEQ_2_19_15_SmallRNASEQ_1x50v4,N,Tabakoff,"2,826",100,"55,402,758",26.82,98.74,1.26,95.55,35.61
+3,HXB2_2,Rat,TAGCTT,BorrisTabakoff_SmallRNASEQ_2_19_15_SmallRNASEQ_1x50v4,N,Tabakoff,"2,165",100,"42,443,871",20.55,98.91,1.09,95.81,35.67
+3,bxh12_1,Rat,CTTGTA,BorrisTabakoff_SmallRNASEQ_2_19_15_SmallRNASEQ_1x50v4,N,Tabakoff,"2,240",100,"43,925,935",21.27,98.85,1.15,95.68,35.64
+3,hxb13_2,Rat,GGCTAC,BorrisTabakoff_SmallRNASEQ_2_19_15_SmallRNASEQ_1x50v4,N,Tabakoff,"3,144",100,"61,654,626",29.85,98.45,1.55,95.54,35.6
+3,lane3,unknown,Undetermined,Clusters with unmatched barcodes for lane 3,N,Undetermined_indices,159,100,"3,120,324",1.51,0,0,80.14,30.55
+4,HXB13_1,Rat,CTATAC,BorrisTabakoff_SmallRNASEQ_2_19_15_SmallRNASEQ_1x50v4,N,Tabakoff,"3,101",100,"60,804,232",34.29,98.98,1.02,96.38,35.78
+4,HXB17_2,Rat,CTCAGA,BorrisTabakoff_SmallRNASEQ_2_19_15_SmallRNASEQ_1x50v4,N,Tabakoff,"2,703",100,"53,003,869",29.89,98.97,1.03,96.09,35.73
+4,bxh12_2,Rat,CTAGCT,BorrisTabakoff_SmallRNASEQ_2_19_15_SmallRNASEQ_1x50v4,N,Tabakoff,546,100,"10,699,001",6.03,98.96,1.04,95.98,35.68
+4,hxb2_1,Rat,CGGAAT,BorrisTabakoff_SmallRNASEQ_2_19_15_SmallRNASEQ_1x50v4,N,Tabakoff,"2,553",100,"50,062,103",28.24,98.94,1.06,96.49,35.81
+4,lane4,unknown,Undetermined,Clusters with unmatched barcodes for lane 4,N,Undetermined_indices,139,100,"2,732,920",1.54,0,0,88.33,33.13

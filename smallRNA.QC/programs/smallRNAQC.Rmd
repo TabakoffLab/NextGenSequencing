@@ -1,0 +1,56 @@
+---
+title: "Comparison of smRNA yields"
+author: "Laura Saba"
+date: "July 1, 2015"
+output: pdf_document
+---
+
+
+```{r}
+rm(list=ls())
+options(stringsAsFactors=FALSE)
+library(knitr)
+
+base.folder="~/Documents/NextGenSeq/"
+
+tissue = "Liver"
+batch = 2
+file = "150602_7001413_0268_BC6K12ANXX_L4678_Tabakoff_demux.csv"
+
+importQC = function(tissue,batch,file,date){
+  x = read.table(file=paste(base.folder,"Rat.RI.",tissue,".smallRNA.batch",batch,"/data/",file,sep=""),skip=5,sep=",")
+  colnames(x) = c("Lane","SampleID","SampleRef","Index","Description","Control","Project","Yield.Mbases","pctPF","numReads","pctRawClustPerLane","pctPerfectIndexReads","pctOneMismatchIndexReads","pctGrtQ30","MeanQualityScore")
+  x$tissue = tissue
+  x$batch = batch
+  x$date = date
+  return(x)
+}
+
+liverQC = rbind(importQC(tissue="Liver",batch=1,file="150219_7001413_0222_AC6G34ANXX_L1234_Tabakoff_demux.csv",date='25Feb15'),importQC(tissue="Liver",batch=2,file="150602_7001413_0268_BC6K12ANXX_L4678_Tabakoff_demux.csv",date='18Jun15'))
+
+brainQC=rbind(importQC(tissue="Brain",batch=1,file="140702_7001413_0149_BC54PHACXX_L5678_Tabakoff_demux.csv",date='21Jul14'),importQC(tissue="Brain",batch=2,file="140918_SN634_0254_AC56FUACXX_L4567_Tabakoff_demux.csv",date='24Sep14'),importQC(tissue="Brain",batch=3,file="150107_7001413_0207_AC66N3ANXX_L2345_Tabakoff_demux.csv",date='16Jan15'),importQC(tissue="Brain",batch=4,file="150508_7001413_0258_AC6K0DANXX_L2_Tabakoff_demux.csv",date='14May15'))
+
+totalQC = rbind(liverQC,brainQC)
+totalQC = totalQC[totalQC$SampleRef!="unknown",]
+totalQC$reads = as.numeric(gsub(",","",totalQC$numReads,fixed=TRUE))
+
+boxplot(as.numeric(gsub(",","",totalQC$numReads,fixed=TRUE)) ~ totalQC$tissue*totalQC$batch)
+```
+
+By Batch Summary
+```{r}
+batchSummary = data.frame(aggregate(totalQC$reads,by=list(date=totalQC$date,batch=totalQC$batch,tissue=totalQC$tissue),min),numSamples =aggregate(totalQC$reads,by=list(date=totalQC$date,batch=totalQC$batch,tissue=totalQC$tissue),length)$x,numUnusable=aggregate(totalQC$reads,by=list(date=totalQC$date,batch=totalQC$batch,tissue=totalQC$tissue),function(a) sum(a<10000000))$x)
+
+batchSummary$date = as.Date(batchSummary$date,"%d%b%y")
+
+batchSummary[order(batchSummary$date),]
+```
+
+By Lane Summary
+```{r}
+laneSummary = data.frame(aggregate(totalQC$reads,by=list(lane=totalQC$Lane,date=totalQC$date,batch=totalQC$batch,tissue=totalQC$tissue),min),totalReads=prettyNum(aggregate(totalQC$reads,by=list(lane=totalQC$Lane,date=totalQC$date,batch=totalQC$batch,tissue=totalQC$tissue),sum)$x,big.mark=","))
+
+laneSummary$date = as.Date(laneSummary$date,"%d%b%y")
+laneSummary[order(laneSummary$date),]
+
+

@@ -1,0 +1,17 @@
+FCID,Lane,SampleID,SampleRef,Index,Description,Control,Recipe,Operator,SampleProject
+C56FUACXX,4,1,Rat,ATCACG,BorisTabakoff_SmallRNA_09_17_14_SmallRNA1x50v3,N,SmallRNA,KMD,Tabakoff
+C56FUACXX,4,3,Rat,CGATGT,BorisTabakoff_SmallRNA_09_17_14_SmallRNA1x50v3,N,SmallRNA,KMD,Tabakoff
+C56FUACXX,4,4,Rat,TTAGGC,BorisTabakoff_SmallRNA_09_17_14_SmallRNA1x50v3,N,SmallRNA,KMD,Tabakoff
+C56FUACXX,4,5,Rat,TGACCA,BorisTabakoff_SmallRNA_09_17_14_SmallRNA1x50v3,N,SmallRNA,KMD,Tabakoff
+C56FUACXX,5,10,Rat,ACAGTG,BorisTabakoff_SmallRNA_09_17_14_SmallRNA1x50v3,N,SmallRNA,KMD,Tabakoff
+C56FUACXX,5,15,Rat,GCCAAT,BorisTabakoff_SmallRNA_09_17_14_SmallRNA1x50v3,N,SmallRNA,KMD,Tabakoff
+C56FUACXX,5,18,Rat,CAGATC,BorisTabakoff_SmallRNA_09_17_14_SmallRNA1x50v3,N,SmallRNA,KMD,Tabakoff
+C56FUACXX,5,20,Rat,ACTTGA,BorisTabakoff_SmallRNA_09_17_14_SmallRNA1x50v3,N,SmallRNA,KMD,Tabakoff
+C56FUACXX,6,shr_1,Rat,GATCAG,BorisTabakoff_SmallRNA_09_17_14_SmallRNA1x50v3,N,SmallRNA,KMD,Tabakoff
+C56FUACXX,6,21,Rat,TAGCTT,BorisTabakoff_SmallRNA_09_17_14_SmallRNA1x50v3,N,SmallRNA,KMD,Tabakoff
+C56FUACXX,6,22,Rat,GGCTAC,BorisTabakoff_SmallRNA_09_17_14_SmallRNA1x50v3,N,SmallRNA,KMD,Tabakoff
+C56FUACXX,6,23,Rat,CTTGTA,BorisTabakoff_SmallRNA_09_17_14_SmallRNA1x50v3,N,SmallRNA,KMD,Tabakoff
+C56FUACXX,7,24,Rat,CGGAAT,BorisTabakoff_SmallRNA_09_17_14_SmallRNA1x50v3,N,SmallRNA,KMD,Tabakoff
+C56FUACXX,7,29,Rat,CTAGCT,BorisTabakoff_SmallRNA_09_17_14_SmallRNA1x50v3,N,SmallRNA,KMD,Tabakoff
+C56FUACXX,7,31,Rat,CTATAC,BorisTabakoff_SmallRNA_09_17_14_SmallRNA1x50v3,N,SmallRNA,KMD,Tabakoff
+C56FUACXX,7,2,Rat,CTCAGA,BorisTabakoff_SmallRNA_09_17_14_SmallRNA1x50v3,N,SmallRNA,KMD,Tabakoff

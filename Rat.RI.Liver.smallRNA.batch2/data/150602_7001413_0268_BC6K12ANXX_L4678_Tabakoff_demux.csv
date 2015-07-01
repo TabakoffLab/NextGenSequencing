@@ -1,0 +1,25 @@
+Flowcell: C6K12ANXX 1x51 L4678-Tabakoff rat custom,,,,,,,,,,,,,,
+/illumina/runs/150602_7001413_0268_BC6K12ANXX/Data/Intensities/BaseCalls/Unaligned,,,,,,,,,,,,,,
+Barcode lane statistics,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,
+Lane,Sample ID,Sample Ref,Index,Description,Control,Project,Yield (Mbases),% PF,# Reads,% of raw clusters per lane,% Perfect Index Reads,% One Mismatch Reads (Index),% of >= Q30 Bases (PF),Mean Quality Score (PF)
+4,HXB3_1LIVER,Rat,CGATGT,BorrisTabakoff_Custom_6_2_15_Custom_1x50v4,N,Tabakoff,"3,936",100,"77,170,326",70.16,99.41,0.59,98.31,36.22
+4,HXB4_1LIVER,Rat,TTAGGC,BorrisTabakoff_Custom_6_2_15_Custom_1x50v4,N,Tabakoff,877,100,"17,198,733",15.64,98.99,1.01,98.37,36.24
+4,HXB5_1LIVER,Rat,TGACCA,BorrisTabakoff_Custom_6_2_15_Custom_1x50v4,N,Tabakoff,491,100,"9,632,673",8.76,85.4,14.6,97.98,36.14
+4,HXB_1_1LIVER,Rat,ATCACG,BorrisTabakoff_Custom_6_2_15_Custom_1x50v4,N,Tabakoff,255,100,"4,997,005",4.54,99.19,0.81,97.79,36.1
+4,lane4,unknown,Undetermined,Clusters with unmatched barcodes for lane 4,N,Undetermined_indices,50,100,"988,784",0.9,0,0,94.37,34.95
+6,HXB10_1LIVER,Rat,ACAGTG,BorrisTabakoff_Custom_6_2_15_Custom_1x50v4,N,Tabakoff,563,100,"11,044,349",13.02,99,1,98.16,36.21
+6,HXB18_1LIVER,Rat,CAGATC,BorrisTabakoff_Custom_6_2_15_Custom_1x50v4,N,Tabakoff,369,100,"7,230,254",8.52,89.88,10.12,98.13,36.2
+6,HXB20_1LIVER,Rat,ACTTGA,BorrisTabakoff_Custom_6_2_15_Custom_1x50v4,N,Tabakoff,"3,216",100,"63,065,606",74.35,98.58,1.42,98.13,36.2
+6,XXB15_1LIVER,Rat,GCCAAT,BorrisTabakoff_Custom_6_2_15_Custom_1x50v4,N,Tabakoff,126,100,"2,476,091",2.92,97.52,2.48,98.1,36.2
+6,lane6,unknown,Undetermined,Clusters with unmatched barcodes for lane 6,N,Undetermined_indices,51,100,"1,007,184",1.19,0,0,94.85,35.16
+7,HXB21_1LIVER,Rat,GATCAG,BorrisTabakoff_Custom_6_2_15_Custom_1x50v4,N,Tabakoff,89,100,"1,748,843",2.68,98.79,1.21,97.83,36.15
+7,HXB22_1LIVER,Rat,TAGCTT,BorrisTabakoff_Custom_6_2_15_Custom_1x50v4,N,Tabakoff,"1,133",100,"22,223,509",34.02,98.79,1.21,97.99,36.18
+7,HXB23_1LIVER,Rat,GGCTAC,BorrisTabakoff_Custom_6_2_15_Custom_1x50v4,N,Tabakoff,863,100,"16,920,548",25.9,98.6,1.4,98.22,36.23
+7,HXB24_1LIVER,Rat,CTTGTA,BorrisTabakoff_Custom_6_2_15_Custom_1x50v4,N,Tabakoff,"1,168",100,"22,911,600",35.07,99,1,98.08,36.2
+7,lane7,unknown,Undetermined,Clusters with unmatched barcodes for lane 7,N,Undetermined_indices,78,100,"1,527,456",2.34,0,0,96.78,35.79
+8,BXH2_1LIVER,Rat,GACGAC,BorrisTabakoff_Custom_6_2_15_Custom_1x50v4,N,Tabakoff,146,100,"2,864,385",20.66,89.05,10.95,87.09,33.73
+8,HXB29_1LIVER,Rat,CGGAAT,BorrisTabakoff_Custom_6_2_15_Custom_1x50v4,N,Tabakoff,233,100,"4,577,185",33.02,88.63,11.37,87.61,33.78
+8,HXB31_1LIVER,Rat,TCGGCA,BorrisTabakoff_Custom_6_2_15_Custom_1x50v4,N,Tabakoff,183,100,"3,588,447",25.89,90.06,9.94,87.12,33.72
+8,SHR_1LIVER,Rat,TAATCG,BorrisTabakoff_Custom_6_2_15_Custom_1x50v4,N,Tabakoff,106,100,"2,078,737",15,88.07,11.93,87.2,33.74
+8,lane8,unknown,Undetermined,Clusters with unmatched barcodes for lane 8,N,Undetermined_indices,38,100,"752,467",5.43,0,0,59.49,26.81

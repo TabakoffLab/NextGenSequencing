@@ -1,0 +1,29 @@
+FCID,Lane,SampleID,SampleRef,Index,Description,Control,Recipe,Operator,SampleProject
+C66N3ANXX,1,CENPA345Zygote4,Unknown,TTGACT,RichardDavis_Custom_01_08_15_CustomSEQ1x50v4,N,Custom,KMD,Davis
+C66N3ANXX,1,H3K9ME3Zygote4,Unknown,TGACAT,RichardDavis_Custom_01_08_15_CustomSEQ1x50v4,N,Custom,KMD,Davis
+C66N3ANXX,1,H3K9ME3femalerep,Unknown,CGTGAT,RichardDavis_Custom_01_08_15_CustomSEQ1x50v4,N,Custom,KMD,Davis
+C66N3ANXX,1,H3K9ME2malerep,Unknown,TGGTCA,RichardDavis_Custom_01_08_15_CustomSEQ1x50v4,N,Custom,KMD,Davis
+C66N3ANXX,1,Zgote4input,Unknown,AATGGC,RichardDavis_Custom_01_08_15_CustomSEQ1x50v4,N,Custom,KMD,Davis
+C66N3ANXX,1,CENPA345ovary1_111214,Unknown,TCAAGT,RichardDavis_Custom_01_08_15_CustomSEQ1x50v4,N,Custom,KMD,Davis
+C66N3ANXX,1,CENPA345ovary3_111214,Unknown,GGAACT,RichardDavis_Custom_01_08_15_CustomSEQ1x50v4,N,Custom,KMD,Davis
+C66N3ANXX,1,CENPA345Testis1_111214,Unknown,GGACGG,RichardDavis_Custom_01_08_15_CustomSEQ1x50v4,N,Custom,KMD,Davis
+C66N3ANXX,1,CENPA345Testis2_111214,Unknown,GCGGAC,RichardDavis_Custom_01_08_15_CustomSEQ1x50v4,N,Custom,KMD,Davis
+C66N3ANXX,1,InputOvary1_111214,Unknown,GGCCAC,RichardDavis_Custom_01_08_15_CustomSEQ1x50v4,N,Custom,KMD,Davis
+C66N3ANXX,1,InputOvary3_111214,Unknown,GCCTAA,RichardDavis_Custom_01_08_15_CustomSEQ1x50v4,N,Custom,KMD,Davis
+C66N3ANXX,1,InputTestis1_111214,Unknown,TACAAG,RichardDavis_Custom_01_08_15_CustomSEQ1x50v4,N,Custom,KMD,Davis
+C66N3ANXX,2,BXH3_1BRAIN,Rat Brain,ATCACG,BorrisTabakoff_smallRNA_01_08_15_smallRNASEQ1x50v4,N,smallRNA,KMD,Tabakoff
+C66N3ANXX,2,BXH10_1BRAIN,Rat Brain,CGATGT,BorrisTabakoff_smallRNA_01_08_15_smallRNASEQ1x50v4,N,smallRNA,KMD,Tabakoff
+C66N3ANXX,2,BXH5_1BRAIN,Rat Brain,TTAGGC,BorrisTabakoff_smallRNA_01_08_15_smallRNASEQ1x50v4,N,smallRNA,KMD,Tabakoff
+C66N3ANXX,2,BXH6_1BRAIN,Rat Brain,TGACCA,BorrisTabakoff_smallRNA_01_08_15_smallRNASEQ1x50v4,N,smallRNA,KMD,Tabakoff
+C66N3ANXX,3,BXH11_1BRAIN,Rat Brain,ACAGTG,BorrisTabakoff_smallRNA_01_08_15_smallRNASEQ1x50v4,N,smallRNA,KMD,Tabakoff
+C66N3ANXX,3,BXH8_1BRAIN,Rat Brain,GCCAAT,BorrisTabakoff_smallRNA_01_08_15_smallRNASEQ1x50v4,N,smallRNA,KMD,Tabakoff
+C66N3ANXX,3,BXH9_1BRAIN,Rat Brain,CAGATC,BorrisTabakoff_smallRNA_01_08_15_smallRNASEQ1x50v4,N,smallRNA,KMD,Tabakoff
+C66N3ANXX,3,BNLX_1BRAIN,Rat Brain,ACTTGA,BorrisTabakoff_smallRNA_01_08_15_smallRNASEQ1x50v4,N,smallRNA,KMD,Tabakoff
+C66N3ANXX,4,BXH3_2BRAIN,Rat Brain,GATCAG,BorrisTabakoff_smallRNA_01_08_15_smallRNASEQ1x50v4,N,smallRNA,KMD,Tabakoff
+C66N3ANXX,4,BXh11_2BRAIN,Rat Brain,TAGCTT,BorrisTabakoff_smallRNA_01_08_15_smallRNASEQ1x50v4,N,smallRNA,KMD,Tabakoff
+C66N3ANXX,4,BXH6_2BRAIN,Rat Brain,GGCTAC,BorrisTabakoff_smallRNA_01_08_15_smallRNASEQ1x50v4,N,smallRNA,KMD,Tabakoff
+C66N3ANXX,4,BXH10_2BRAIN,Rat Brain,CTTGTA,BorrisTabakoff_smallRNA_01_08_15_smallRNASEQ1x50v4,N,smallRNA,KMD,Tabakoff
+C66N3ANXX,5,BXH13_1BRAIN,Rat Brain,CGGAAT,BorrisTabakoff_smallRNA_01_08_15_smallRNASEQ1x50v4,N,smallRNA,KMD,Tabakoff
+C66N3ANXX,5,BXH9_2BRAIN,Rat Brain,CTAGCT,BorrisTabakoff_smallRNA_01_08_15_smallRNASEQ1x50v4,N,smallRNA,KMD,Tabakoff
+C66N3ANXX,5,SHR_1BRAIN,Rat Brain,CTATAC,BorrisTabakoff_smallRNA_01_08_15_smallRNASEQ1x50v4,N,smallRNA,KMD,Tabakoff
+C66N3ANXX,5,BNLX_2BRAIN,Rat Brain,CTCAGA,BorrisTabakoff_smallRNA_01_08_15_smallRNASEQ1x50v4,N,smallRNA,KMD,Tabakoff

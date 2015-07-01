@@ -1,0 +1,3 @@
+/hi-seq/RI.Brain.smallRNA.14May15/rawReads/BNLX_3_TTAGGC_L002_R1_001.fastq 51 6741889
+/hi-seq/RI.Brain.smallRNA.14May15/rawReads/SHR_1_TGACCA_L002_R1_001.fastq 51 53716123
+/hi-seq/RI.Brain.smallRNA.14May15/rawReads/SHR_3_CGATGT_L002_R1_001.fastq 51 1045948
