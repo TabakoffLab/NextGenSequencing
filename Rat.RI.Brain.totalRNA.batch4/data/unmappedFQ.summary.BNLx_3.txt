@@ -1,0 +1,3 @@
+  429709548 /hi-seq/RI.Brain.totalRNA.09Jun15/alignedReads/BNLx_3.rRNA/unmapped.end1.fq
+  429709548 /hi-seq/RI.Brain.totalRNA.09Jun15/alignedReads/BNLx_3.rRNA/unmapped.end2.fq
+  859419096 total

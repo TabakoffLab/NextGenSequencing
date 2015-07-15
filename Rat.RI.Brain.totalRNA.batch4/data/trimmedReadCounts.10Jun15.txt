@@ -1,0 +1,6 @@
+/hi-seq/RI.Brain.totalRNA.09Jun15/trimmedReads/BNLx_3_brain_CAGATC_L005_R1_val_1.fq 96.8979 110805279
+/hi-seq/RI.Brain.totalRNA.09Jun15/trimmedReads/BNLx_3_brain_CAGATC_L005_R2_val_2.fq 96.571 110805279
+/hi-seq/RI.Brain.totalRNA.09Jun15/trimmedReads/SHR_1_brain_GTGAAA_L005_R1_val_1.fq 96.3636 85240776
+/hi-seq/RI.Brain.totalRNA.09Jun15/trimmedReads/SHR_1_brain_GTGAAA_L005_R2_val_2.fq 95.9426 85240776
+/hi-seq/RI.Brain.totalRNA.09Jun15/trimmedReads/SHR_3_brain_CGATGT_L005_R1_val_1.fq 97.2555 99087180
+/hi-seq/RI.Brain.totalRNA.09Jun15/trimmedReads/SHR_3_brain_CGATGT_L005_R2_val_2.fq 96.4395 99087180

@@ -1,5 +1,13 @@
+---
+title: "RI Panel - Batch  4 (Brain) Total RNA RNA-Seq"
+author: "Laura Saba"
+date: "July 15, 2015"
+output:
+  md_document:
+    variant: markdown_github
+---
 
-RI Panel - Batch 3 (Brain) Total RNA RNA-Seq
+RI Panel - Batch  4 (Brain) Total RNA RNA-Seq
 ========================================================
 
 * 1 sample per strain (BNLx)
@@ -10,8 +18,8 @@ RI Panel - Batch 3 (Brain) Total RNA RNA-Seq
 * sequencing done by Beckman Coulter Genomics - received June 9, 2015
   * labeled 'HXB parental brain total RNA' by Beckman
 * synthetic spike-in were added to each sample 
-  * BXH3_1, BXH3_2, BXH5_1, BXH8_1, BXH10_1, BXH11_2, BXH13_1, and SHR_1 have mix 1
-  * BXH6_1, BXH6_2, BXH9_1, BXH9_2, BXH10_2, BXH11_1, BNLx_1, and BNLx_2 have mix 2
+  * BNLx_3 & SHR_1 have mix 1 (need to double check)
+  * SHR_3 has mix 2 (need to double check)
   * 4 mL of 1:100 diluted spikes were added after RNA extraction but before rRNA-depletion
   * Information regarding the spike-ins can be found here: http://products.invitrogen.com/ivgn/product/4456739
 
@@ -32,6 +40,7 @@ gzip -d /hi-seq/RI.Brain.totalRNA.09Jun15/rawReads/*.gz
 rm(list=ls())
 options(stringsAsFactors=FALSE)
 setwd("~/Documents/NextGenSeq/Rat.RI.Brain.totalRNA.batch4/")
+library(knitr)
 rawCounts = read.table(file="data/rawReadCounts.09Jun15.txt",sep=" ",header=FALSE,fill=TRUE)
 
 rawCounts$rawReads = as.numeric(rawCounts$V3)
@@ -64,7 +73,7 @@ Average Number of Paired End Reads Per Sample: `r prettyNum(sum(rawCounts$rawRea
 /hi-seq/RI.Brain.totalRNA.09Jun15/programs/trimReads.brain.batch4.sh & 
 ```
 
-4. Characterize Trimmed Reads - RUNNING
+4. Characterize Trimmed Reads - DONE
 ---------------
 ```
 /hi-seq/RI.Brain.totalRNA.09Jun15/programs/countTrimmedReads.batch4.sh &
@@ -72,19 +81,19 @@ Average Number of Paired End Reads Per Sample: `r prettyNum(sum(rawCounts$rawRea
 
 ```{r,echo=FALSE}
 options(stringsAsFactors=FALSE)
-setwd("~/Documents/NextGenSeq/Rat.RI.Brain.totalRNA.batch3/")
+setwd("~/Documents/NextGenSeq/Rat.RI.Brain.totalRNA.batch4/")
 
-trimmed = read.table(file="data/trimmedReadCounts.10Feb15.txt",sep="",header=FALSE)
-trimmed$file = unlist(lapply(strsplit(trimmed$V1,split="/",fixed=TRUE),function(a) a[6]))
+trimmed = read.table(file="data/trimmedReadCounts.10Jun15.txt",sep="",header=FALSE)
+trimmed$file = unlist(lapply(strsplit(trimmed$V1,split="/",fixed=TRUE),function(a) a[length(a)]))
 trimmed$sample = unlist(lapply(strsplit(trimmed$file,split="_",fixed=TRUE),function(a) gsub("brain","",paste(a[1],a[2],sep="_"))))
-trimmed$read = unlist(lapply(strsplit(trimmed$file,split="_",fixed=TRUE),function(a) a[5]))
-trimmed$lane = unlist(lapply(strsplit(trimmed$file,split="_",fixed=TRUE),function(a) a[4]))
+trimmed$read = unlist(lapply(strsplit(trimmed$file,split="_",fixed=TRUE),function(a) a[6]))
+trimmed$lane = unlist(lapply(strsplit(trimmed$file,split="_",fixed=TRUE),function(a) a[5]))
 
 bySample = merge(trimmed[trimmed$read=="R1",c("sample","lane","V2","V3")],trimmed[trimmed$read=="R2",c("sample","lane","V2")],by=c("sample","lane"))
 bySample$numReadFrag = bySample$V3*2
 colnames(bySample) = c("sample","lane","avgFragLength.R1","numReads","avgFragLength.R2","numReadFrag")
 
-rawCounts$lane = unlist(lapply(strsplit(rawCounts$file,split="_",fixed=TRUE),function(a) a[4])) 
+rawCounts$lane = unlist(lapply(strsplit(rawCounts$file,split="_",fixed=TRUE),function(a) a[5])) 
 rawCounts = rawCounts[grep("_R1",rawCounts$file),]
 
 bySample = merge(rawCounts,bySample,by=c("sample","lane"))
@@ -201,8 +210,6 @@ get SHR_1.rRNA/numUnmappedFQ.txt unmappedFQ.summary.SHR_1.txt
 ```{r,echo=FALSE,eval=TRUE}
 setwd("~/Documents/NextGenSeq/Rat.RI.Brain.totalRNA.batch4/data")
 options(stringsAsFactors=FALSE)
-
-sampleList = gsub(".v1","",sampleList)
 
 unmappedStats = c()
 for(i in sampleList){

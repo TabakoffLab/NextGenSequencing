@@ -1,0 +1,3 @@
+  331906248 /hi-seq/RI.Brain.totalRNA.09Jun15/alignedReads/SHR_1.rRNA/unmapped.end1.fq
+  331906248 /hi-seq/RI.Brain.totalRNA.09Jun15/alignedReads/SHR_1.rRNA/unmapped.end2.fq
+  663812496 total
