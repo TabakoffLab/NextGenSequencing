@@ -1,0 +1,16 @@
+/storage/saba/Rat.RI.Liver.totalRNA.batch2/rawReads/BXH2_1liver_ATTCAGAA_L001_R1.fastq 100 42903025
+/storage/saba/Rat.RI.Liver.totalRNA.batch2/rawReads/HXB10_1liver_GAATTCGT_L002_R1.fastq 100 47121630
+/storage/saba/Rat.RI.Liver.totalRNA.batch2/rawReads/HXB1_1liver_TCCGGAGA_L001_R1.fastq 100 42944312
+/storage/saba/Rat.RI.Liver.totalRNA.batch2/rawReads/HXB15_1liver_CTGAAGCT_L002_R1.fastq 100 53558009
+/storage/saba/Rat.RI.Liver.totalRNA.batch2/rawReads/HXB18_1liver_TAATGCGC_L002_R1.fastq 100 38623372
+/storage/saba/Rat.RI.Liver.totalRNA.batch2/rawReads/HXB20_1liver_CGGCTATG_L003_R1.fastq 100 53698856
+/storage/saba/Rat.RI.Liver.totalRNA.batch2/rawReads/HXB21_1liver_TCTCGCGC_L003_R1.fastq 100 46122637
+/storage/saba/Rat.RI.Liver.totalRNA.batch2/rawReads/HXB22_1liver_AGCGATAG_L003_R1.fastq 100 38836500
+/storage/saba/Rat.RI.Liver.totalRNA.batch2/rawReads/HXB23_1liver_ATTACTCG_L004_R1.fastq 100 54376269
+/storage/saba/Rat.RI.Liver.totalRNA.batch2/rawReads/HXB24_1liver_TCCGGAGA_L004_R1.fastq 100 48470543
+/storage/saba/Rat.RI.Liver.totalRNA.batch2/rawReads/HXB29_1liver_CGCTCATT_L004_R1.fastq 100 44560164
+/storage/saba/Rat.RI.Liver.totalRNA.batch2/rawReads/HXB31_1liver_GAGATTCC_L004_R1.fastq 100 47936946
+/storage/saba/Rat.RI.Liver.totalRNA.batch2/rawReads/HXB3_1liver_CGCTCATT_L001_R1.fastq 100 40526076
+/storage/saba/Rat.RI.Liver.totalRNA.batch2/rawReads/HXB4_1liver_GAGATTCC_L001_R1.fastq 100 43726307
+/storage/saba/Rat.RI.Liver.totalRNA.batch2/rawReads/HXB5_1liver_ATTCAGAA_L002_R1.fastq 100 49348173
+/storage/saba/Rat.RI.Liver.totalRNA.batch2/rawReads/SHR_1liver_TCCGCGAA_L003_R1.fastq 100 47027334

@@ -21,13 +21,13 @@ wait $SAML
 #ls -alh $1
 echo "run python:"
 
-PYSCRPT=$SCRIPTS"filterUnpaired.py"
+PYSCRPT=$SCRIPTS"filterUnpaired.Sorted.py"
 
-python3 $PYSCRPT $1/left.test.sam $1/right.test.sam | samtools view -bu -t /data2/saba/index/SHR_rn5_wSpikesAndM.fa.fai - | bedtools bamtofastq -i - -fq $1/unmapped.end1.fq &
+python3 $PYSCRPT $1/left.test.sam $1/right.test.sam | samtools view -bu -t /data2/saba/index/SHR_rn5_wSpikesAndM.fa.fai - | bedtools bamtofastq -i - -fq /data2/saba/BNLx.SHR/RNA-Seq.Liver/totalRNA.UCD/tmp/unmapped.end1.LS.fq &
 
 AWKE1=$!
 
-python3 $PYSCRPT $1/right.test.sam $1/left.test.sam | samtools view -bu -t /data2/saba/index/SHR_rn5_wSpikesAndM.fa.fai - | bedtools bamtofastq -i - -fq $1/unmapped.end2.fq &
+python3 $PYSCRPT $1/right.test.sam $1/left.test.sam | samtools view -bu -t /data2/saba/index/SHR_rn5_wSpikesAndM.fa.fai - | bedtools bamtofastq -i - -fq /data2/saba/BNLx.SHR/RNA-Seq.Liver/totalRNA.UCD/tmp/unmapped.end2.LS.fq &
 AWKE2=$!
 
 wait $AWKE1

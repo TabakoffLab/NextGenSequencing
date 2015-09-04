@@ -1,35 +1,35 @@
 ---
-title: "RI Panel - Batch 1 (Liver) Total RNA RNA-Seq"
+title: "RI Panel - Batch 2 (Liver) Total RNA RNA-Seq"
 author: "Laura Saba"
-date: "July 15, 2015"
+date: "July 21, 2015"
 output:
   md_document:
     variant: markdown_github
 ---
 
-RI Panel - Batch 1 (Liver) Total RNA RNA-Seq
+RI Panel - Batch 2 (Liver) Total RNA RNA-Seq
 ========================================================
 
-* 2 samples per strain (SHR, BXH12, HXB13, HXB17, HXB2, HXB25, HXB27, HXB7)
+* 1 sample per strain (SHR,BXH2,HXB1,HXB3,HXB4,HXB5,HXB10,HXB15,HXB18,HXB20,HXB21,HXB22,HXB23,HXB24,HXB29,HXB31)
 * tissues received from Dr. Michal Pravenec at Academy of Sciences of the Czech Republic, Prague, Czech Republic
 * ribosomal RNA depleted total RNA
 * 2X100 reads using the stranded protocol
 * sequencing done by Beckman Coulter Genomics - received June 5, 2015
 * synthetic spike-in were added to each sample 
-  * SHR_1, BXH12_1, HXB13_1, HXB17_1, HXB2_1, HXB25_2, HXB27_1, and HXB7_1 have mix 1; SHR_2, BXH12_2, HXB13_2, HXB17_2, HXB2_2, HXB25_1, HXB27_2, and HXB7_2 have mix 2
+  * ?? have mix 1; ?? have mix 2
   * 4 mL of 1:100 diluted spikes were added after RNA extraction but before rRNA-depletion
   * Information regarding the spike-ins can be found here: http://products.invitrogen.com/ivgn/product/4456739
 
 1. Unzip Files - DONE
 ---------------
 ```
-qsub -q smp -N liver.batch1 /storage/saba/Rat.RI.Liver.totalRNA.batch1/programs/unzip.yucca.sh
+qsub -q smp -N liver.batch2 /storage/saba/Rat.RI.Liver.totalRNA.batch2/programs/unzip.yucca.sh
 ```
 
-2. Determine number of reads sent for each sample - DONE
+2. Determine number of reads sent for each sample - RUNNING
 -------------------------------------------------
 ```
-qsub -q smp -N cntRaw /storage/saba/Rat.RI.Liver.totalRNA.batch1/programs/countRawReads.liver.batch1.sh
+qsub -q smp -N cntRaw /storage/saba/Rat.RI.Liver.totalRNA.batch2/programs/countRawReads.liver.batch2.sh
 ```
 
 ```{r,echo=FALSE}
@@ -37,9 +37,9 @@ rm(list=ls())
 options(stringsAsFactors=FALSE)
 library(knitr)
 
-base.folder = "~/Documents/NextGenSeq/Rat.RI.Liver.totalRNA.batch1/"
+base.folder = "~/Documents/NextGenSeq/Rat.RI.Liver.totalRNA.batch2/"
 
-rawCounts = read.table(file=paste(base.folder,"data/rawReadCounts.01Jul15.txt",sep=""),sep=" ",header=FALSE,fill=TRUE)
+rawCounts = read.table(file=paste(base.folder,"data/rawReadCounts.22Jul15.txt",sep=""),sep=" ",header=FALSE,fill=TRUE)
 
 rawCounts$readFrag = as.numeric(rawCounts$V3)
 rawCounts$file = unlist(lapply(strsplit(rawCounts$V1,split="/",fixed=TRUE),function(a) a[length(a)]))
@@ -75,17 +75,17 @@ Average Number of Paired End Reads Per Sample: `r prettyNum(sum(rawCounts$readFr
 ---------------
 
 ```
-qsub -q smp -N trimBatch1 /storage/saba/Rat.RI.Liver.totalRNA.batch1/programs/trimReads.liver.batch1.sh
+qsub -q smp -N trimBatch2 /storage/saba/Rat.RI.Liver.totalRNA.batch2/programs/trimReads.liver.batch2.sh
 ```
 
-4. Characterize Trimmed Reads - DONE
+4. Characterize Trimmed Reads - RUNNING
 ---------------
 ```
-qsub -q smp -N cntTrimmed1 /storage/saba/Rat.RI.Liver.totalRNA.batch1/programs/countTrimmedReads.liver.batch1.sh
+qsub -q smp -N cntTrimmed2 /storage/saba/Rat.RI.Liver.totalRNA.batch2/programs/countTrimmedReads.liver.batch2.sh
 ```
 ```{r,echo=FALSE}
 options(stringsAsFactors=FALSE)
-setwd("~/Documents/NextGenSeq/Rat.RI.Liver.totalRNA.batch1/")
+setwd("~/Documents/NextGenSeq/Rat.RI.Liver.totalRNA.batch2/")
 
 trimmed = read.table(file="data/trimmedReadCounts.15Jul15.txt",sep="",header=FALSE)
 trimmed$file = unlist(lapply(strsplit(trimmed$V1,split="/",fixed=TRUE),function(a) a[length(a)]))
@@ -133,32 +133,32 @@ Total Number of Read Fragments After Trimming:  `r prettyNum(sum(bySample$numRea
 Average Number of Paired End Reads Per Sample After Trimming: `r prettyNum(mean(bySample$numReads),big.mark=",",scientific=FALSE)`  
 
 
-5. Align to ribosomal RNA - DONE
+5. Align to ribosomal RNA - 
 ---------------------------
 ```
-qsub -q smp -N rRNA1 /storage/saba/Rat.RI.Liver.totalRNA.batch1/programs/alignTo.rRNA.liver.totalRNA.batch1.sh
+qsub -q smp -N rRNA2 /storage/saba/Rat.RI.Liver.totalRNA.batch2/programs/alignTo.rRNA.liver.totalRNA.batch2.sh
 ```
 
 
 **move files**
 ```{r,echo=FALSE,eval=FALSE}
 ## NOT R code, but don't want in Md file
-get BXH12_1.rRNA/align_summary.txt rRNA.summary.BXH12_1.txt
-get BXH12_2.rRNA/align_summary.txt rRNA.summary.BXH12_2.txt
-get HXB13_1.rRNA/align_summary.txt rRNA.summary.HXB13_1.txt
-get HXB13_2.rRNA/align_summary.txt rRNA.summary.HXB13_2.txt
-get HXB17_1.rRNA/align_summary.txt rRNA.summary.HXB17_1.txt
-get HXB17_2.rRNA/align_summary.txt rRNA.summary.HXB17_2.txt
-get HXB2_1.rRNA/align_summary.txt rRNA.summary.HXB2_1.txt
-get HXB2_2.rRNA/align_summary.txt rRNA.summary.HXB2_2.txt
-get HXB25_1.rRNA/align_summary.txt rRNA.summary.HXB25_1.txt
-get HXB25_2.rRNA/align_summary.txt rRNA.summary.HXB25_2.txt
-get HXB27_1.rRNA/align_summary.txt rRNA.summary.HXB27_1.txt
-get HXB27_2.rRNA/align_summary.txt rRNA.summary.HXB27_2.txt
-get HXB7_1.rRNA/align_summary.txt rRNA.summary.HXB7_1.txt
-get HXB7_2.rRNA/align_summary.txt rRNA.summary.HXB7_2.txt
+get BXH2_1.rRNA/align_summary.txt rRNA.summary.BXH2_1.txt
+get HXB1_1.rRNA/align_summary.txt rRNA.summary.HXB1_1.txt
+get HXB3_1.rRNA/align_summary.txt rRNA.summary.HXB3_1.txt
+get HXB4_1.rRNA/align_summary.txt rRNA.summary.HXB4_1.txt
+get HXB5_1.rRNA/align_summary.txt rRNA.summary.HXB5_1.txt
+get HXB10_1.rRNA/align_summary.txt rRNA.summary.HXB10_1.txt
+get HXB15_1.rRNA/align_summary.txt rRNA.summary.HXB15_1.txt
+get HXB18_1.rRNA/align_summary.txt rRNA.summary.HXB18_1.txt
+get HXB20_1.rRNA/align_summary.txt rRNA.summary.HXB20_1.txt
+get HXB21_1.rRNA/align_summary.txt rRNA.summary.HXB21_1.txt
+get HXB22_1.rRNA/align_summary.txt rRNA.summary.HXB22_1.txt
+get HXB23_1.rRNA/align_summary.txt rRNA.summary.HXB23_1.txt
+get HXB24_1.rRNA/align_summary.txt rRNA.summary.HXB24_1.txt
+get HXB29_1.rRNA/align_summary.txt rRNA.summary.HXB29_1.txt
+get HXB31_1.rRNA/align_summary.txt rRNA.summary.HXB31_1.txt
 get SHR_1.rRNA/align_summary.txt rRNA.summary.SHR_1.txt
-get SHR_2.rRNA/align_summary.txt rRNA.summary.SHR_2.txt
 ```
 
 Proportion of Reads Aligned to rRNA
@@ -167,10 +167,10 @@ This batch was subjected to 2 washes with riboZero.
 
 ```{r,echo=FALSE,eval=TRUE}
 #rm(list=ls())
-data.folder="~/Documents/NextGenSeq/Rat.RI.Liver.totalRNA.batch1/data"
+data.folder="~/Documents/NextGenSeq/Rat.RI.Liver.totalRNA.batch2/data"
 options(stringsAsFactors=FALSE)
 
-sampleList = paste(rep(c("SHR", "BXH12", "HXB13", "HXB17", "HXB2", "HXB25", "HXB27", "HXB7"),each=2),c("_1","_2"),sep="")
+sampleList = rawCounts$sample
 
 rStats = c()
 for(i in sampleList){

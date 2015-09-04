@@ -1,0 +1,7 @@
+cutadapt -a AACCGGTT -o output.fastq.gz input.fastq.gz
+
+cutadapt -q 20 -m 20 -a AGATCGGAAGAGCACACGTCTGAACTCCAGTCACCCGTCCCGATCTCGTATGCCGTCTTCTGCTTG -A AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT -o trimmed.1.fastq -p trimmed.2.fastq BXH12_1_brain_total_RNA_cDNA_GTCCGC_L001_R1.fastq.gz BXH12_1_brain_total_RNA_cDNA_GTCCGC_L001_R2.fastq.gz &
+
+gzip -d *
+awk '/@HWI/ {getline; print length($0)}' trimmed.1.fastq | awk -v sample="trim1" '{sum+=$1} END {print sample,sum/NR,NR}'
+awk '/@HWI/ {getline; print length($0)}' trimmed.2.fastq | awk -v sample="trim1" '{sum+=$1} END {print sample,sum/NR,NR}'

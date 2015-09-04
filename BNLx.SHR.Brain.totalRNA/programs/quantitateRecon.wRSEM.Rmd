@@ -1,0 +1,80 @@
+---
+title: "Quantitate Rat Brain Reconstruction"
+author: "Laura Saba"
+date: "August 24, 2015"
+output: html_document
+---
+
+Need to create GTF that has a strand for each transcript
+```{r}
+rm(list=ls())
+options(stringsAsFactors=FALSE)
+
+base.folder = "/Volumes/saba/BNLx.SHR/RNA-Seq.Brain/reconstruction/"
+
+orig = read.table(file=paste(base.folder,"reconstruct.brain.COMBINED.26Feb15.gtf",sep=""),sep="\t",header=FALSE)
+
+plusStrand = orig[orig$V7==".",]
+plusStrand$V7 = "+"
+plusStrand$V9 = gsub(";","plus;",plusStrand$V9)
+
+minusStrand = orig[orig$V7==".",]
+minusStrand$V7 = "-"
+minusStrand$V9 = gsub(";","minus;",minusStrand$V9)
+
+update = rbind(orig[orig$V7!=".",],plusStrand,minusStrand)
+update$V9 = gsub("gene_id ",'gene_id "',update$V9)
+update$V9 = gsub("transcript_id ",'transcript_id "',update$V9)
+update$V9 = gsub("original ",'original "',update$V9)
+update$V9 = gsub(";",'";',update$V9)
+
+head(update)
+write.table(update,file=paste(base.folder,"reconstruct.brain.COMBINED.26Feb15.allStranded.gtf",sep=""),sep="\t",row.names=FALSE,col.names=FALSE,quote=FALSE)
+```
+
+```
+export PATH=/usr/local/rsem/bin:$PATH
+
+rsem-prepare-reference --gtf /data2/saba/BNLx.SHR/RNA-Seq.Brain/reconstruction/reconstruct.brain.COMBINED.26Feb15.allStranded.gtf /data2/saba/index/BNLx_rn5_wSpikesAndM.fa /data2/saba/index/RSEM.BrainRecon26Feb15.BNLx/rsem.brainRecon.BNLx & 
+bowtie2-build rsem.brainRecon.BNLx.transcripts.fa rsem.brainRecon.BNLx
+
+rsem-prepare-reference --gtf /data2/saba/BNLx.SHR/RNA-Seq.Brain/reconstruction/reconstruct.brain.COMBINED.26Feb15.allStranded.gtf /data2/saba/index/SHR_rn5_wSpikesAndM.fa /data2/saba/index/RSEM.BrainRecon26Feb15.SHR/rsem.brainRecon.SHR & 
+bowtie2-build /data2/saba/index/RSEM.BrainRecon26Feb15.SHR/rsem.brainRecon.SHR.transcripts.fa /data2/saba/index/RSEM.BrainRecon26Feb15.SHR/rsem.brainRecon.SHR &
+
+```
+
+```
+qsub /storage/saba/BNLx.SHR.Brain.totalRNA/programs/prepRSEMref.sh
+```
+
+move files around
+```
+get BNLx1.rRNA/unmapped.end1.fq BNLx1.end1.fq
+get BNLx1.rRNA/unmapped.end2.fq BNLx1.end2.fq
+get BNLx2.rRNA/unmapped.end1.fq BNLx2.end1.fq
+get BNLx2.rRNA/unmapped.end2.fq BNLx2.end2.fq
+get BNLx3.rRNA/unmapped.end1.fq BNLx3.end1.fq
+get BNLx3.rRNA/unmapped.end2.fq BNLx3.end2.fq
+
+get SHR1.rRNA/unmapped.end1.fq SHR1.end1.fq
+get SHR1.rRNA/unmapped.end2.fq SHR1.end2.fq
+get SHR2.rRNA/unmapped.end1.fq SHR2.end1.fq
+get SHR2.rRNA/unmapped.end2.fq SHR2.end2.fq
+get SHR3.rRNA/unmapped.end1.fq SHR3.end1.fq
+get SHR3.rRNA/unmapped.end2.fq SHR3.end2.fq
+```
+
+
+```
+export PATH=/usr/local/rsem/bin:$PATH
+
+sample="BNLx3"
+rsem-calculate-expression -p 10 --time --seed-length 20 --seed 564564 --bowtie2 --no-bam-output --forward-prob=0.0 --paired-end /hi-seq/BNLx.SHR.Brain-totalRNA-Jul2012/cleanedReads/$sample.end1.fq /hi-seq/BNLx.SHR.Brain-totalRNA-Jul2012/cleanedReads/$sample.end2.fq /data2/saba/index/RSEM.BrainRecon26Feb15.BNLx/rsem.brainRecon.BNLx /data2/saba/BNLx.SHR/RNA-Seq.Brain/quantitation/rsem.Recon/$sample
+
+
+sample="SHR3"
+rsem-calculate-expression -p 10 --time --seed-length 20 --seed 564564 --bowtie2 --no-bam-output --forward-prob=0.0 --paired-end /hi-seq/BNLx.SHR.Brain-totalRNA-Jul2012/cleanedReads/$sample.end1.fq /hi-seq/BNLx.SHR.Brain-totalRNA-Jul2012/cleanedReads/$sample.end2.fq /data2/saba/index/RSEM.BrainRecon26Feb15.SHR/rsem.brainRecon.SHR /data2/saba/BNLx.SHR/RNA-Seq.Brain/quantitation/rsem.Recon/$sample
+
+
+
+```
