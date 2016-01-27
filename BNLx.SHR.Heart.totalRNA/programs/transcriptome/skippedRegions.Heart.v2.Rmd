@@ -1,0 +1,89 @@
+---
+title: "Skipped Regions"
+author: "Laura Saba"
+date: "January 15, 2016"
+output: html_document
+---
+
+```{r}
+rm(list=ls())
+options(stringsAsFactors=FALSE)
+
+#######################
+##  local functions  ##
+#######################
+
+### format GTF files to include transcript ids, gene ids, and fpkm values  ###
+gtfFormat = function(data,FPKM=TRUE){
+  data$transcript_id = unlist(lapply(strsplit(data$V9,split=";",fixed=TRUE),function(a) gsub(" transcript_id ","",a[grep("transcript",a)]))) 
+  data$gene_id = unlist(lapply(strsplit(data$V9,split=";",fixed=TRUE),function(a) gsub("gene_id ","",a[grep("gene",a)]))) 
+  if(FPKM) data$fpkm = as.numeric(unlist(lapply(strsplit(data$V9,split=";",fixed=TRUE),function(a) gsub(" FPKM ","",a[grep("FPKM",a)]))))
+  return(data)
+}
+```
+
+```{r}
+base.folder = "/Volumes/sabal/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/"
+
+bnlx = gtfFormat(read.table(file=paste(base.folder,"BNLx.Heart.total.rn6.ensemblGuided/skipped.gtf",sep=""),sep="\t",header=FALSE),FPKM=FALSE)
+shr = gtfFormat(read.table(file=paste(base.folder,"SHR.Heart.total.rn6.ensemblGuided/skipped.gtf",sep=""),sep="\t",header=FALSE),FPKM=FALSE)
+
+total = rbind(bnlx,shr)
+
+total2 = merge(bnlx,shr,by=c("V1","V7"),all=TRUE)
+
+
+total2$overlap = (total2$V4.y<total2$V5.x & total2$V4.y>total2$V4.x) | (total2$V5.y<total2$V5.x & total2$V5.y>total2$V4.x) | (total2$V4.x>=total2$V4.y & total2$V5.x<=total2$V5.y)
+
+
+total3 = total2[is.na(total2$overlap) | total2$overlap,]
+
+nrow(bnlx)==sum(!is.na(total3$V4.x))
+nrow(shr)==sum(!is.na(total3$V4.y))
+
+total4 = total3[total3$V7=="+",]
+
+total4$start = apply(total4[,c("V4.x","V4.y")],1,min,na.rm=TRUE)
+total4$stop = apply(total4[,c("V5.x","V5.y")],1,max,na.rm=TRUE)
+total4 = total4[,c("V1","start","stop")]
+
+
+
+total4$combo = paste(total4$V1,":",total4$start,"..",total4$stop,sep="")
+paste(total4$combo,collapse=" -region ")
+```
+
+
+```
+bamtools filter -region MT:1..16313 -in accepted_hits.bam -out /data/home/sabal/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/chrM.bam & 
+
+bamtools filter -region MT:1..16313 -in /data/hi-seq/BNLx.SHR.Heart.totalRNA.02Jun14/alignedReads/rn6/SHR/accepted_hits.bam -out /data/home/sabal/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/chrM.SHR.bam &
+samtools view chrM.SHR.bam | wc -l
+samtools view chrM.SHR.bam | awk '{print $3}' | sort | uniq -c
+
+
+samtools index /data/hi-seq/BNLx.SHR.Heart.totalRNA.02Jun14/alignedReads/rn6/SHR/accepted_hits.bam
+samtools view -bh /data/hi-seq/BNLx.SHR.Heart.totalRNA.02Jun14/alignedReads/rn6/SHR/accepted_hits.bam MT >  /data/home/sabal/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/chrM.SHR.v2.bam &
+
+
+cufflinks -u --seed 658 -p 12 --library-type fr-firststrand -b /storage/saba/index/SHR.rn6.spikes.fa -g /storage/saba/index/rn6.ENS.spikes.gtf -o /storage/saba/BNLx.SHR.Heart.totalRNA/reconstruction/SHR.Heart.total.rn6.ensemblGuided.chrM /storage/saba/BNLx.SHR.Heart.totalRNA/alignedReads/SHR.heart.rn6.bam
+
+
+
+bamtools filter -script /data/home/sabal/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/filters.txt -in /data/hi-seq/BNLx.SHR.Heart.totalRNA.02Jun14/alignedReads/rn6/BNLx/accepted_hits.bam -out /data/home/sabal/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/skipped.BNLx.v2.bam &
+samtools view skipped.BNLx.v2.bam | awk '{print $3}' | sort | uniq -c
+
+
+,12:39420082..39641285,12:7110537..7550747,12:24796162..24796571,13:52645257..52689325,14:46329442..46688481,15:33563345..33766888,17:65522230..66185548,3:105504242..105528429,3:63520257..64024225,4:14001352..14267181,6:91410039..91701023,7:71472483..72272184,7:118100405..118610599,8:181057..182332,8:85387861..85490050,MT:1..16313,X:23464863..23469041} -in /data/hi-seq/BNLx.SHR.Heart.totalRNA.02Jun14/alignedReads/rn6/BNLx/accepted_hits.bam -out /data/home/sabal/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/skipped.BNLx.bam &
+
+cufflinks -u --seed 658 -p 12 –max-bundle-frags 100000000 --library-type fr-firststrand -b /storage/saba/index/BNLx.rn6.spikes.fa -g /storage/saba/index/rn6.ENS.spikes.gtf -o /storage/saba/BNLx.SHR.Heart.totalRNA/reconstruction/BNLx.Heart.total.rn6.ensemblGuided.skipped.chrX /storage/saba/BNLx.SHR.Heart.totalRNA/alignedReads/BNLx.heart.rn6.bam
+
+qsub -q smp -N BNLx.heart /storage/saba/BNLx.SHR.Heart.totalRNA/programs/test.reconSkipped.BNLx.heart.sh
+
+qsub -q smp -N BNLx.skipped /storage/saba/BNLx.SHR.Heart.totalRNA/programs/skippedAlignments.BNLx.sh
+
+
+qsub -q smp -N BNLx.skipped /storage/saba/BNLx.SHR.Heart.totalRNA/programs/reconSkipped.SHR.heart.sh
+qsub -q smp -N BNLx.recon /storage/saba/BNLx.SHR.Heart.totalRNA/programs/reconSkipped.BNLx.heart.sh
+
+```
