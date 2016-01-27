@@ -4,11 +4,11 @@ BNLx and SHR Brain Transcriptome Reconstruction
 rRNA-Depleted Total RNA Reconstruction
 --------------------
 
-###1.  Strain-Specific Transcriptome Reconstruction (Ensembl-Guided) - 
+###1.  Strain-Specific Transcriptome Reconstruction (unguided) - 
 
 ```
-qsub -q smp /storage/saba/BNLx.SHR.Brain.totalRNA/programs/reconBNLx.brain.sh
-qsub -q smp /storage/saba/BNLx.SHR.Brain.totalRNA/programs/reconSHR.brain.sh
+qsub -N BNLx.naive -q smp /storage/saba/BNLx.SHR.Brain.totalRNA/programs/reconBNLx.brain.naive.sh
+qsub -N SHR.naive -q smp /storage/saba/BNLx.SHR.Brain.totalRNA/programs/reconSHR.brain.naive.sh
 ```
 
 
@@ -16,7 +16,7 @@ qsub -q smp /storage/saba/BNLx.SHR.Brain.totalRNA/programs/reconSHR.brain.sh
 ```{r,echo=FALSE}
 rm(list=ls())
 options(stringsAsFactors=FALSE)
-setwd("/Volumes/saba/BNLx.SHR")
+setwd("~/Documents/BNLx.SHR/RNA-Seq.Brain/reconstruction")
 printNow=FALSE
 
 #######################
@@ -33,13 +33,10 @@ gtfFormat = function(data,FPKM=TRUE){
 ```
 
 ```{r,echo=FALSE}
-options(stringsAsFactors=FALSE)
-setwd("/Volumes/saba/BNLx.SHR")
-
-shr = read.table(file = "RNA-Seq.Brain.total/reconstruction/SHR.Brain.total.ensemblGuided/transcripts.gtf",sep="\t",header=FALSE)
+shr = read.table(file = "SHR.Brain.total.rn6.ensemblGuided/transcripts.gtf",sep="\t",header=FALSE)
 shr = gtfFormat(shr)
 
-bnlx = read.table(file = "RNA-Seq.Brain.total/reconstruction/BNLx.Brain.total.ensemblGuided/transcripts.gtf",sep="\t",header=FALSE)
+bnlx = read.table(file = "BNLx.Brain.total.rn6.ensemblGuided/transcripts.gtf",sep="\t",header=FALSE)
 bnlx = gtfFormat(bnlx)
 
 shr.transcripts = shr[shr$V3=="transcript",]
@@ -75,14 +72,14 @@ setwd("/Volumes/saba/BNLx.SHR")
 ###  Look For Overlap of High Confidence Transcripts  ###
 #########################################################
 
-shr.tracking = read.table(file = "RNA-Seq.Brain.total/reconstruction/SHR.Brain.total.ensemblGuided/isoforms.fpkm_tracking",sep="\t",header=TRUE)
-bnlx.tracking = read.table(file = "RNA-Seq.Brain.total/reconstruction/BNLx.Brain.total.ensemblGuided/isoforms.fpkm_tracking",sep="\t",header=TRUE)
+shr.tracking = read.table(file = "SHR.Brain.total.rn6.ensemblGuided/isoforms.fpkm_tracking",sep="\t",header=TRUE)
+bnlx.tracking = read.table(file = "BNLx.Brain.total.rn6.ensemblGuided/isoforms.fpkm_tracking",sep="\t",header=TRUE)
 
-high.bnlx = bnlx.tracking[bnlx.tracking$coverage>50,]
-high.bnlx = high.bnlx[high.bnlx$length>200,]
+high.bnlx = bnlx.tracking[bnlx.tracking$length>300,]
+high.bnlx = high.bnlx[high.bnlx$FPKM>0.1,]
 
-high.shr = shr.tracking[shr.tracking$coverage>50,]
-high.shr = high.shr[high.shr$length>200,]
+high.shr = shr.tracking[shr.tracking$length>300,]
+high.shr = high.shr[high.shr$FPKM>0.1,]
 
 high.bnlx$transcript_id = gsub("CUFF","BNLx",high.bnlx$tracking_id)
 high.shr$transcript_id = gsub("CUFF","SHR",high.shr$tracking_id)
@@ -99,7 +96,8 @@ high.shr = high.shr[order(high.shr$FPKM,decreasing=TRUE),]
 # top gene is Rmrp (Rattus norvegicus RNA component of mitochondrial RNA processing endoribonuclease (Rmrp), RNase MRP RNA)
 # second gene is Ubb (ubiquitin B)
 # third gene is only in repeat masker (scRNA)
-
+track type=bigWig name="HXB.Brain" description="HXB/BXH Brain - total RNA" bigDataUrl=http://ucsc:JU7etr5t@phenogen.ucdenver.edu/ucsc/BNLx.SHR.Brain.totalRNA.rn6.bw
+track type=bigWig name="HXB.Brain.polyA" description="HXB/BXH Brain - polyA RNA" bigDataUrl=http://ucsc:JU7etr5t@phenogen.ucdenver.edu/ucsc/BNLx.SHR.Brain.polyA.rn6.bw
 
 high.bnlx = high.bnlx[order(high.bnlx$FPKM,decreasing=TRUE),]
 # top gene is Rmrp (Rattus norvegicus RNA component of mitochondrial RNA processing endoribonuclease (Rmrp), RNase MRP RNA)
@@ -365,12 +363,13 @@ for(i in 1:nrow(overlap)){
 ##  identify genes with multiple transcripts and create gene identifier  ##
 library(igraph)
 library("ggm")
+library(RBGL)
 
-edges <- pairs
-graph.polyA <- graph.data.frame(edges)
-graph.polyA <- igraph.to.graphNEL(graph.polyA)
+edges1 <- pairs
+graph.polyA <- graph.data.frame(edges1)
+graph.polyA2 <- as_graphnel(graph.polyA)
 
-compList <- connectedComp(graph.polyA)
+compList <- connectedComp(graph.polyA2)
 
 geneNames = unlist(lapply(compList,function(a) paste(a[grep("ENS",a)],collapse="//")))
 geneNames[geneNames==""] = paste("GENE.",c(1:sum(geneNames=="")),sep="")

@@ -1,0 +1,2 @@
+#!/bin/bash
+cufflinks -u --seed 54648 -p 12 --library-type fr-firststrand -b /storage/saba/Kylie/index/SHR_rn5_wSpikesAndM.fa -g /storage/saba/Kylie/gtfFiles/ensGene.RGSC5.0.rn5.cleaned.gtf -M /storage/saba/Kylie/gtfFiles/chrM.ensGene.rn5.gtf -o /storage/saba/Kylie/BNLx.SHR.Liver.totalRNA/reconstructions/SHR.Liver.UCD.ensemblGuided /storage/saba/Kylie/BNLx.SHR.Liver.totalRNA/alignedReads/SHR.liver.bam

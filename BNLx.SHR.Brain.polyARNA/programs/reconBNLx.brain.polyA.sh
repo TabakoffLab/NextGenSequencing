@@ -1,3 +1,3 @@
 #!/bin/bash
 module add bio/cufflinks
-cufflinks -u --seed 645988 -p 25 --library-type fr-unstranded -b /home/saba/index/BNLx_rn5_wSpikesAndM.fa -g /home/saba/source/ensGene.RGSC5.0.rn5.cleaned.gtf -o /home/saba/reconstructions/BNLx.Brain.PolyA.ensemblGuided /home/data/saba/BNLx.SHR.Brain.polyARNA/alignedReads/BNLx.brain.polyA.bam
+cufflinks -u --seed 645988 -p 25 --library-type fr-unstranded -b /storage/saba/index/BNLx.rn6.spikes.fa -g /storage/saba/index/rn6.ENS.spikes.gtf -o /storage/saba/BNLx.SHR.Brain.polyARNA/reconstruction/BNLx.Brain.PolyA.ensemblGuided.rn6 /storage/saba/BNLx.SHR.Brain.polyARNA/alignedReads/BNLx.Brain.polyA.rn6.sorted.bam

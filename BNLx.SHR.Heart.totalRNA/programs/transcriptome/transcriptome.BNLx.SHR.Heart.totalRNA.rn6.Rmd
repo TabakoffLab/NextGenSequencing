@@ -1,0 +1,53 @@
+---
+title: "Heart Transcriptome Reconstruction"
+author: "Laura Saba"
+date: "September 20, 2015"
+output: html_document
+---
+
+rRNA-Depleted Total RNA Reconstruction
+--------------------
+
+###1.  Strain-Specific Transcriptome Reconstruction (Ensembl-Guided) - 
+
+```
+qsub -q smp -N BNLx.heart /storage/saba/BNLx.SHR.Heart.totalRNA/programs/reconBNLx.heart.sh
+qsub -q smp -N SHR.heart /storage/saba/BNLx.SHR.Heart.totalRNA/programs/reconSHR.heart.sh
+```
+
+```{r}
+rm(list=ls())
+options(stringsAsFactors=FALSE)
+
+#######################
+##  local functions  ##
+#######################
+
+### format GTF files to include transcript ids, gene ids, and fpkm values  ###
+gtfFormat = function(data,FPKM=TRUE){
+  data$transcript_id = unlist(lapply(strsplit(data$V9,split=";",fixed=TRUE),function(a) gsub(" transcript_id ","",a[grep("transcript",a)]))) 
+  data$gene_id = unlist(lapply(strsplit(data$V9,split=";",fixed=TRUE),function(a) gsub("gene_id ","",a[grep("gene",a)]))) 
+  if(FPKM) data$fpkm = as.numeric(unlist(lapply(strsplit(data$V9,split=";",fixed=TRUE),function(a) gsub(" FPKM ","",a[grep("FPKM",a)]))))
+  return(data)
+}
+```
+
+```{r}
+base.folder = "/Volumes/sabal/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/"
+
+bnlx = read.table(file=paste(base.folder,"BNLx.Heart.total.rn6.ensemblGuided/transcripts.gtf",sep=""),sep="\t",header=FALSE)
+bnlx = gtfFormat(bnlx)
+bnlx = bnlx[bnlx$V1 %in% c(1:20,"X","Y"),]
+bnlx = bnlx[bnlx$fpkm>0,]
+bnlx$V1 = paste("chr",bnlx$V1,sep="")
+bnlx$V9 = paste('gene_id "',bnlx$gene_id,'"; transcript_id "',bnlx$transcript_id,'";',sep="")
+write.table(bnlx[,paste("V",1:9,sep="")],paste(base.folder,"BNLx.Heart.total.rn6.ensemblGuided/transcripts.UCSC.gtf",sep=""),sep="\t",col.names=FALSE,row.names=FALSE,quote=FALSE)
+
+shr = read.table(file=paste(base.folder,"SHR.Heart.total.rn6.ensemblGuided/transcripts.gtf",sep=""),sep="\t",header=FALSE)
+shr = gtfFormat(shr)
+shr = shr[shr$V1 %in% c(1:20,"X","Y"),]
+shr = shr[shr$fpkm>0,]
+shr$V1 = paste("chr",shr$V1,sep="")
+shr$V9 = paste('gene_id "',shr$gene_id,'"; transcript_id "',shr$transcript_id,'";',sep="")
+write.table(shr[,paste("V",1:9,sep="")],paste(base.folder,"SHR.Heart.total.rn6.ensemblGuided/transcripts.UCSC.gtf",sep=""),sep="\t",col.names=FALSE,row.names=FALSE,quote=FALSE)
+

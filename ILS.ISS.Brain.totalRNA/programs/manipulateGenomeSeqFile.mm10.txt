@@ -8,7 +8,7 @@
 
 ## eliminate any chromosome that starts with 'JH' or 'GL' or 'MT'
 
-sed '/>JH/,/>/{//!d}' mm10.fa | sed '/>JH/d' | sed '/>GL/,/>/{//!d}' | sed '/>GL/d' | sed '/>MT/,/>/{//!d}' | sed '/>MT/d' > mm10.revised.fa
+sed '/>JH/,/>/{//!d}' mm10.fa | sed '/>JH/d' | sed '/>GL/,/>/{//!d}' | sed '/>GL/d'  > mm10.revised.fa
 
 export PATH=$HOME/bin:$PATH
 export PYTHONPATH=$HOME/bin:$PYTHONPATH
