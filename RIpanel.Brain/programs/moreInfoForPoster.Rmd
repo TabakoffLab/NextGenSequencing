@@ -1,0 +1,268 @@
+Cell-type markers in RNA-Seq WGCNA of Brain
+========================================================
+
+```{r}
+rm(list=ls())
+options(stringsAsFactors=FALSE)
+library(WGCNA)
+
+base.path="/Volumes/saba/BxH.HxB.Rats/RNA-Seq/"
+
+load(paste(base.path,"Rdata/HXBbrain.RNASeq.WGCNA.27Feb15.Rdata",sep=""))
+
+anno = read.table(file="/Volumes/saba/annotation/ensemblGenes.Rnor_5.0.08Jul14.txt",sep="\t",header=TRUE)
+anno = anno[!duplicated(anno$EnsemblGeneID),]
+
+allGenes = merge(anno,moduleMembership,by.x="EnsemblGeneID",by.y="TC")
+allGenes$GeneSymbol2 = toupper(allGenes$GeneSymbol)
+
+brainTest = userListEnrichment(geneR=allGenes$GeneSymbol2,labelR=allGenes$moduleColors,useBrainLists=TRUE)
+
+pValues = brainTest$pValues
+pValues = pValues[order(pValues$Pvalues),]
+
+sigResults = pValues[pValues$Pvalues<0.0001,]
+sigResults = sigResults[order(sigResults$InputCategories),]
+sigResults[grep("ABA",sigResults$UserDefinedCategories),]
+sigResults[grep("Cahoy",sigResults$UserDefinedCategories),]
+
+
+
+brainRegionTest = userListEnrichment(geneR=allGenes$GeneSymbol2,labelR=allGenes$moduleColors,useBrainRegionMarkers=TRUE)
+
+regions = brainRegionTest$pValues
+sig.regions = regions[regions$Pvalues<0.0001,]
+sig.regions = sig.regions[order(sig.regions$InputCategories),]
+local = sig.regions[-grep("global",sig.regions$UserDefinedCategories),c("InputCategories","UserDefinedCategories")]
+global = sig.regions[grep("global",sig.regions$UserDefinedCategories),c("InputCategories","UserDefinedCategories")]
+
+sum(allGenes$moduleColors=="magenta3")
+```
+
+
+module QTL graphic
+
+```{r}
+rm(list=ls())
+options(stringsAsFactors=FALSE)
+library(WGCNA)
+library(qtl)
+
+base.path="/Volumes/saba/BxH.HxB.Rats/RNA-Seq/"
+
+load(paste(base.path,"Rdata/mQTL.06Mar15.Rdata",sep=""))
+head(mQTL)
+
+mQTL$fdr = p.adjust(mQTL$pval,method="BH")
+
+sig.mQTL = mQTL[mQTL$fdr<0.05,]
+
+orig = read.cross(format="tidy",mapfile=paste(base.path,"mQTL/markerMap.txt",sep=""),genfile=paste(base.path,"mQTL/genotype.txt",sep=""),phefile=paste(base.path,"mQTL/phenotype.txt",sep=""),genotypes=c(1,2,3))
+
+for(i in sig.mQTL$module){
+  x = scanone(orig,pheno.col=i,method="mr")
+  if(i==sig.mQTL$module[1]) plot(x,col=gsub("ME","",i),ylim=c(0,max(sig.mQTL$lod)+1))
+  if(i!=sig.mQTL$module[1]) plot(x,col=gsub("ME","",i),add=TRUE)
+  }
+```
+
+General Module Information
+
+```{r}
+## load Module Information
+load(paste(base.path,"Rdata/HXBbrain.RNASeq.WGCNA.27Feb15.Rdata",sep=""))
+load(paste(base.path,"Rdata/strainEst.RUVs2.Rdata",sep=""))
+load(paste(base.path,"Rdata/strainEst.RUVs2.Rdata",sep=""))
+# limit to ensembl genes and recombinant inbred strains
+datExpr = t(strainEst[grep("ENS",rownames(strainEst)),grepl("BXH",colnames(strainEst)) | grepl("HXB",colnames(strainEst))])
+
+
+
+numGenes = aggregate(moduleMembership[,"moduleColors"],by=list(module=moduleMembership[,"moduleColors"]),length)
+colnames(numGenes)[2]="numGenes"
+
+mQTL$module=gsub("ME","",mQTL$module)
+
+modules = merge(mQTL,numGenes,by="module")
+
+##  bar chart for number of genes per module  ##
+#plot.numGenes = aggregate(modules$numGenes,by=list(numGenes=modules$numGenes),length)                         
+#barplot(plot.numGenes$x,names.arg=plot.numGenes$numGenes,cex.names=0.5)
+
+## distribution of proportion of variance explained by eigengene
+propVar = moduleEigengenes(datExpr,moduleColors,softPower=9)$varExplained
+
+## identify hub genes
+hubs=chooseTopHubInEachModule(datExpr,moduleColors,power=9,type="unsigned",corFnc="bicor",omitColors="grey")
+hubs=data.frame(module=names(hubs),hubGene=hubs)
+
+anno = read.table(file="/Volumes/saba/annotation/ensemblGenes.Rnor_5.0.08Jul14.txt",sep="\t",header=TRUE)
+anno = anno[!duplicated(anno$EnsemblGeneID),]
+
+allGenes = merge(anno,moduleMembership,by.x="EnsemblGeneID",by.y="TC")
+
+allGenes[allGenes$GeneSymbol %in% c("Gad1","Gad2"),]
+# Are modules with a significant eQTL more likely to have fewer genes?
+wilcox.test(modules$numGenes[modules$fdr<0.05],modules$numGenes[modules$fdr>=0.05])
+summary(modules$numGenes[modules$fdr<0.05])
+summary(modules$numGenes[modules$fdr>=0.05])
+
+# Heatmap of Eigengene Network
+
+MEs = moduleEigengenes(datExpr,moduleColors,softPower=9)$eigengenes
+
+rownames(MEs) = rownames(datExpr)
+heatmap(as.matrix(MEs),scale="column",labCol=FALSE)
+```
+
+```{r}
+## enrichment of GABA systems modules
+
+entrez=read.table(file="/Volumes/saba/annotation/ensemblGenes.Rnor_5.0.entrezIDs.11Mar2015.txt",sep="\t",header=TRUE)
+entrez=entrez[entrez$EntrezGeneID!="" & !is.na(entrez$EnsemblGeneID),]
+entrez=entrez[!duplicated(entrez$EnsemblGeneID),]
+
+allGenes=merge(allGenes,entrez,by="EnsemblGeneID",all.x=TRUE)
+allGenes$hubGene = as.logical(allGenes$EnsemblGeneID %in% hubs$hubGene)
+
+universe = unique(allGenes$EntrezGeneID[allGenes$EntrezGeneID!=""])
+orangered1 = unique(allGenes$EntrezGeneID[allGenes$EntrezGeneID!="" & allGenes$moduleColors=="orangered1"])
+
+library(rnu34.db)
+library(GOstats)
+params<-new("GOHyperGParams",geneIds=orangered1,universeGeneIds=universe,annotation="org.Rn.eg",ontology="BP",pvalueCutoff=0.05,conditional=TRUE,testDirection="over")
+
+results.bp=hyperGTest(params)
+summary.bp=summary(results.bp)
+summary.bp=summary.bp[summary.bp$Count>1 & summary.bp$Pvalue<0.01,]
+
+ontology(params) = "MF"
+results.mf=hyperGTest(params)
+summary.mf=summary(results.mf)
+summary.mf=summary.mf[summary.mf$Count>1 & summary.mf$Pvalue<0.01,]
+
+ontology(params) = "CC"
+results.cc=hyperGTest(params)
+summary.cc=summary(results.cc)
+summary.cc=summary.cc[summary.cc$Count>1 & summary.cc$Pvalue<0.01,]
+
+colnames(summary.cc)[1]=colnames(summary.bp)[1]=colnames(summary.mf)[1]="GOID"
+summary.cc$type="CC"
+summary.mf$type="MF"
+summary.bp$type="BP"
+
+gabra6.results = rbind(summary.bp,summary.mf,summary.cc)
+allGenes[allGenes$moduleColors=="orangered1" & allGenes$hubGene,]
+
+##  Gabra1 Results  ##
+brown = unique(allGenes$EntrezGeneID[allGenes$EntrezGeneID!="" & allGenes$moduleColors=="brown"])
+params<-new("GOHyperGParams",geneIds=brown,universeGeneIds=universe,annotation="org.Rn.eg",ontology="BP",pvalueCutoff=0.01,conditional=TRUE,testDirection="over")
+
+results.bp=hyperGTest(params)
+summary.bp=summary(results.bp)
+summary.bp=summary.bp[summary.bp$Count>1 & summary.bp$Pvalue<0.01,]
+
+ontology(params) = "MF"
+results.mf=hyperGTest(params)
+summary.mf=summary(results.mf)
+summary.mf=summary.mf[summary.mf$Count>1 & summary.mf$Pvalue<0.01,]
+
+ontology(params) = "CC"
+results.cc=hyperGTest(params)
+summary.cc=summary(results.cc)
+summary.cc=summary.cc[summary.cc$Count>1 & summary.cc$Pvalue<0.01,]
+
+colnames(summary.cc)[1]=colnames(summary.bp)[1]=colnames(summary.mf)[1]="GOID"
+summary.cc$type="CC"
+summary.mf$type="MF"
+summary.bp$type="BP"
+
+gabra1.results = rbind(summary.bp,summary.mf,summary.cc)
+
+##  Hub Gene Results  ##
+hub = unique(allGenes$EntrezGeneID[allGenes$EntrezGeneID!="" & allGenes$hubGene])
+params<-new("GOHyperGParams",geneIds=hub,universeGeneIds=universe,annotation="org.Rn.eg",ontology="BP",pvalueCutoff=0.01,conditional=TRUE,testDirection="over")
+
+results.bp=hyperGTest(params)
+summary.bp=summary(results.bp)
+summary.bp=summary.bp[summary.bp$Count>1 & summary.bp$Pvalue<0.0001,]
+
+ontology(params) = "MF"
+results.mf=hyperGTest(params)
+summary.mf=summary(results.mf)
+summary.mf=summary.mf[summary.mf$Count>1 & summary.mf$Pvalue<0.0001,]
+
+ontology(params) = "CC"
+results.cc=hyperGTest(params)
+summary.cc=summary(results.cc)
+summary.cc=summary.cc[summary.cc$Count>1 & summary.cc$Pvalue<0.0001,]
+
+colnames(summary.cc)[1]=colnames(summary.bp)[1]=colnames(summary.mf)[1]="GOID"
+summary.cc$type="CC"
+summary.mf$type="MF"
+summary.bp$type="BP"
+
+hub.results = rbind(summary.bp,summary.mf,summary.cc)
+
+
+hubs.wAnno = allGenes[allGenes$hubGene,]
+sum(grepl("transcription",hubs.wAnno$Description))
+hubs.wAnno[grepl("transcription",hubs.wAnno$Description),]
+
+sum(grepl("transcription",allGenes$Description))
+```
+
+Association of eigengenes with alcohol consumption
+```{r}
+phenoData <- read.table(file="/Volumes/saba/BxH.HxB.Rats/Exon.Arrays/Alcohol Consumption/Source/StrainMeans_ConsumpWk2and3.txt",sep="\t",header=TRUE,row.names=1)
+phenoData <- phenoData[grepl("HXB",rownames(phenoData)) | grepl("BXH",rownames(phenoData)), ]
+
+anxiety = read.table(file=paste(base.path,"data/anxietyConti.txt",sep=""),sep="\t",header=TRUE,row.names=1)
+
+phenoData = merge(phenoData,anxiety,by=0,all=TRUE)
+
+###  Create Heatmap  ###
+library(WGCNA,verbose=FALSE)
+
+#Define numbers of genes and samples
+nGenes=ncol(datExpr);
+nSamples=nrow(datExpr);
+
+#reformat phenotype data
+rownames(phenoData)=phenoData[,"Row.names"]
+phenoData = phenoData[,-1]
+phenoData = phenoData[,-2]
+datTraits = phenoData[rownames(datExpr),]
+rownames(datTraits) = rownames(datExpr)
+
+moduleTraitCor=cor(MEs, datTraits, use ="p");
+moduleTraitPvalue = corPvalueStudent(moduleTraitCor, nSamples)
+
+sigModuleTraitCor = moduleTraitCor[rowSums(moduleTraitPvalue<0.001)>0,]
+sigModuleTraitPvalue = moduleTraitPvalue[rowSums(moduleTraitPvalue<0.001)>0,]
+
+sizeGrWindow(10,6)
+#generate text matrix for overlay on heatmap
+textMatrix = paste(signif(sigModuleTraitCor, 2),"\n(",signif(sigModuleTraitPvalue, 1),")", sep ="")
+dim(textMatrix)=dim(sigModuleTraitCor)
+
+
+
+#Display the correlation values within a heatmapplot
+pdf(file=paste(base.path,"images/phenotypesWMEs.",format(Sys.Date(),format="%d%b%y"),".pdf",sep=""),width=14,height=10)
+par(mar=c(11,14,4,3))
+labeledHeatmap(Matrix = sigModuleTraitCor,xLabels=c("2-bottle Choice \nAlcohol Consumption","Number of Closed \nArm Entries","Number of Closed/Open \nArm Entries","Percent Open \nArm Entries","Amount of Time \nSpent in Open Arms"),yLabels =rownames(sigModuleTraitCor),ySymbols=rownames(sigModuleTraitCor),colorLabels=TRUE,colors = blueWhiteRed(50),textMatrix = textMatrix,setStdMargins = FALSE,cex.text=1,zlim = c(-1,1),main ="",cex.lab=1.5)
+dev.off()
+
+allGenes[allGenes$moduleColors=="lightsteelblue2",]
+
+
+pdf(file=paste("/Volumes/LauraS/BxH.HxB.Rats/Exon.Arrays/Alcohol Consumption/analysis.3Dec13/images/Figure1A.heatMapByGene.selectedLines.",format(Sys.Date(),format="%d%b%y"),".pdf",sep=""))
+par(mar=c(6,10,4,3))
+```
+
+Modules with Hub Genes
+```{r}
+
+head(allGenes[allGenes$hubGene & grepl("transcription",allGenes$Description),])
+write.table(allGenes[allGenes$moduleColors=="magenta3","GeneSymbol"],file=paste(base.path,"data/Nfix.magenta3.txt",sep=""),sep="\t",row.names=FALSE,col.names=FALSE,quote=FALSE)
