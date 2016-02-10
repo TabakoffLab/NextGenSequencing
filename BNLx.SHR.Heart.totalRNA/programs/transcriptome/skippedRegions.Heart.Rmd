@@ -47,37 +47,89 @@ total4$start = apply(total4[,c("V4.x","V4.y")],1,min,na.rm=TRUE)
 total4$stop = apply(total4[,c("V5.x","V5.y")],1,max,na.rm=TRUE)
 total4 = total4[,c("V1","start","stop")]
 
-
-
-total4$combo = paste(total4$V1,":",total4$start,"..",total4$stop,sep="")
-paste(total4$combo,collapse=" -region ")
+write.table(total4,file=paste(base.folder,"skipped.bed",sep=""),sep="\t",row.names=FALSE,col.names=FALSE,quote=FALSE)
 ```
 
 
+Separate and sample reads that align to skipped loci
 ```
-bamtools filter -region MT:1..16313 -in accepted_hits.bam -out /data/home/sabal/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/chrM.bam & 
+samtools index /data/hi-seq/BNLx.SHR.Heart.totalRNA.02Jun14/alignedReads/rn6/BNLx/accepted_hits.bam &
+samtools index /data/hi-seq/BNLx.SHR.Heart.totalRNA.02Jun14/alignedReads/rn6/SHR/accepted_hits.bam &
 
-bamtools filter -region MT:1..16313 -in /data/hi-seq/BNLx.SHR.Heart.totalRNA.02Jun14/alignedReads/rn6/SHR/accepted_hits.bam -out /data/home/sabal/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/chrM.SHR.bam &
-samtools view chrM.SHR.bam | wc -l
-samtools view chrM.SHR.bam | awk '{print $3}' | sort | uniq -c
+## Skipped regions not on the mitochondrial chromosome
+samtools view -bh -L /data/home/sabal/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/skipped.woM.bed -s 29374.10 /data/hi-seq/BNLx.SHR.Heart.totalRNA.02Jun14/alignedReads/rn6/BNLx/accepted_hits.bam > /data/home/sabal/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/skipped.BNLx.woM.sampled.bam &  
+samtools view -bh -L /data/home/sabal/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/skipped.woM.bed -s 29374.10 /data/hi-seq/BNLx.SHR.Heart.totalRNA.02Jun14/alignedReads/rn6/SHR/accepted_hits.bam > /data/home/sabal/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/skipped.SHR.woM.sampled.bam &  
 
-
-samtools index /data/hi-seq/BNLx.SHR.Heart.totalRNA.02Jun14/alignedReads/rn6/SHR/accepted_hits.bam
-samtools view -bh /data/hi-seq/BNLx.SHR.Heart.totalRNA.02Jun14/alignedReads/rn6/SHR/accepted_hits.bam MT >  /data/home/sabal/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/chrM.SHR.v2.bam &
-
-
-cufflinks -u --seed 658 -p 12 --library-type fr-firststrand -b /storage/saba/index/SHR.rn6.spikes.fa -g /storage/saba/index/rn6.ENS.spikes.gtf -o /storage/saba/BNLx.SHR.Heart.totalRNA/reconstruction/SHR.Heart.total.rn6.ensemblGuided.chrM /storage/saba/BNLx.SHR.Heart.totalRNA/alignedReads/SHR.heart.rn6.bam
+## Mitochondrial chromosome
+samtools view -bh -s 29375.10 /data/hi-seq/BNLx.SHR.Heart.totalRNA.02Jun14/alignedReads/rn6/BNLx/accepted_hits.bam MT > /data/home/sabal/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/skipped.BNLx.Monly.sampled.v3.bam &  
+samtools view -bh -s 29376.10 /data/hi-seq/BNLx.SHR.Heart.totalRNA.02Jun14/alignedReads/rn6/SHR/accepted_hits.bam MT > /data/home/sabal/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/skipped.SHR.Monly.sampled.bam &  
 
 
+samtools view -bh -s 29375.25 /data/hi-seq/BNLx.SHR.Heart.totalRNA.02Jun14/alignedReads/rn6/BNLx/accepted_hits.bam MT > /data/home/sabal/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/skipped.BNLx.Monly.sampled.v4.bam &  
+samtools view -bh -s 29375.25 /data/hi-seq/BNLx.SHR.Heart.totalRNA.02Jun14/alignedReads/rn6/SHR/accepted_hits.bam MT > /data/home/sabal/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/skipped.SHR.Monly.sampled.v2.bam &  
 
-bamtools filter -script /data/home/sabal/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/filters.txt -in /data/hi-seq/BNLx.SHR.Heart.totalRNA.02Jun14/alignedReads/rn6/BNLx/accepted_hits.bam -out /data/home/sabal/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/skipped.BNLx.v2.bam &
-samtools view skipped.BNLx.v2.bam | awk '{print $3}' | sort | uniq -c
 
-
-,12:39420082..39641285,12:7110537..7550747,12:24796162..24796571,13:52645257..52689325,14:46329442..46688481,15:33563345..33766888,17:65522230..66185548,3:105504242..105528429,3:63520257..64024225,4:14001352..14267181,6:91410039..91701023,7:71472483..72272184,7:118100405..118610599,8:181057..182332,8:85387861..85490050,MT:1..16313,X:23464863..23469041} -in /data/hi-seq/BNLx.SHR.Heart.totalRNA.02Jun14/alignedReads/rn6/BNLx/accepted_hits.bam -out /data/home/sabal/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/skipped.BNLx.bam &
-
-cufflinks -u --seed 658 -p 12 –max-bundle-frags 100000000 --library-type fr-firststrand -b /storage/saba/index/BNLx.rn6.spikes.fa -g /storage/saba/index/rn6.ENS.spikes.gtf -o /storage/saba/BNLx.SHR.Heart.totalRNA/reconstruction/BNLx.Heart.total.rn6.ensemblGuided.skipped.chrX /storage/saba/BNLx.SHR.Heart.totalRNA/alignedReads/BNLx.heart.rn6.bam
-
-qsub -q smp -N BNLx.heart /storage/saba/BNLx.SHR.Heart.totalRNA/programs/test.reconSkipped.BNLx.heart.sh
+samtools view -bh -s 29375.50 /data/hi-seq/BNLx.SHR.Heart.totalRNA.02Jun14/alignedReads/rn6/BNLx/accepted_hits.bam MT > /data/home/sabal/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/skipped.BNLx.Monly.sampled.v5.bam &  
+samtools view -bh -s 29375.50 /data/hi-seq/BNLx.SHR.Heart.totalRNA.02Jun14/alignedReads/rn6/SHR/accepted_hits.bam MT > /data/home/sabal/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/skipped.SHR.Monly.sampled.v5.bam &  
 
 ```
+
+Reconstruction on skipped regions used reduced set of reads and allowing larger max bundle fragments
+
+```
+## Skipped regions not on the mitochondrial chromosome
+cufflinks -u --seed 658 -p 12 --max-bundle-frags 10000000 --library-type fr-firststrand -b /data/rn6/index/BNLx.rn6.spikes.fa -g /data/rn6/index/rn6.ENS.spikes.gtf -o /data/home/sabal/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/BNLx.Heart.total.rn6.ensemblGuided.skipped.woM.sampled /data/home/sabal/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/skipped.BNLx.woM.sampled.bam &
+cufflinks -u --seed 6456 -p 12 --max-bundle-frags 10000000 --library-type fr-firststrand -b /data/rn6/index/SHR.rn6.spikes.fa -g /data/rn6/index/rn6.ENS.spikes.gtf -o /data/home/sabal/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/SHR.Heart.total.rn6.ensemblGuided.skipped.woM.sampled /data/home/sabal/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/skipped.SHR.woM.sampled.bam &
+
+
+## Mitochondrial chromosome
+cufflinks -u --seed 8949 -p 12 --max-bundle-frags 100000000 --library-type fr-firststrand -b /data/rn6/index/BNLx.rn6.spikes.fa -g /data/rn6/gtf/EnsemblGenes.RGSC6.0.rn6.chrMonly.gtf -o /data/home/sabal/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/BNLx.Heart.total.rn6.ensemblGuided.skipped.Monly.sampled.v3 /data/home/sabal/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/skipped.BNLx.Monly.sampled.v3.bam &
+
+
+cufflinks -u --seed 658 -p 12 --max-bundle-frags 100000000 --library-type fr-firststrand -b /data/rn6/index/BNLx.rn6.spikes.fa -g /data/rn6/gtf/EnsemblGenes.RGSC6.0.rn6.chrMonly.gtf -o /data/home/sabal/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/BNLx.Heart.total.rn6.ensemblGuided.skipped.Monly.sampled.v4 /data/home/sabal/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/skipped.BNLx.Monly.sampled.v4.bam &
+cufflinks -u --seed 6456 -p 12 --max-bundle-frags 10000000 --library-type fr-firststrand -b /data/rn6/index/SHR.rn6.spikes.fa -g /data/rn6/gtf/EnsemblGenes.RGSC6.0.rn6.chrMonly.gtf -o /data/home/sabal/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/SHR.Heart.total.rn6.ensemblGuided.skipped.Monly.sampled /data/home/sabal/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/skipped.SHR.Monly.sampled.bam &
+
+cufflinks -u --seed 6456 -p 12 --max-bundle-frags 100000000 --library-type fr-firststrand -b /data/rn6/index/SHR.rn6.spikes.fa -g /data/rn6/gtf/EnsemblGenes.RGSC6.0.rn6.chrMonly.gtf -o /data/home/sabal/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/SHR.Heart.total.rn6.ensemblGuided.skipped.Monly.sampled.v2 /data/home/sabal/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/skipped.SHR.Monly.sampled.v2.bam &
+
+cufflinks -u --seed 658 -p 12 --max-bundle-frags 100000000 --library-type fr-firststrand -b /data/rn6/index/BNLx.rn6.spikes.fa -g /data/rn6/gtf/EnsemblGenes.RGSC6.0.rn6.chrMonly.gtf -o /data/home/sabal/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/BNLx.Heart.total.rn6.ensemblGuided.skipped.Monly.sampled.v5 /data/home/sabal/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/skipped.BNLx.Monly.sampled.v5.bam &
+cufflinks -u --seed 6456 -p 12 --max-bundle-frags 10000000 --library-type fr-firststrand -b /data/rn6/index/SHR.rn6.spikes.fa -g /data/rn6/gtf/EnsemblGenes.RGSC6.0.rn6.chrMonly.gtf -o /data/home/sabal/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/SHR.Heart.total.rn6.ensemblGuided.skipped.Monly.sampled.v5 /data/home/sabal/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/skipped.SHR.Monly.sampled.v5.bam &
+
+
+
+
+
+##  no guide  ##
+cufflinks -u --seed 4545 -p 12 --max-bundle-frags 100000000 --library-type fr-firststrand -b /data/rn6/index/SHR.rn6.spikes.fa -o /data/home/sabal/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/SHR.Heart.total.rn6.notGuided.skipped.Monly.sampled.v2 /data/home/sabal/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/skipped.SHR.Monly.sampled.v2.bam &
+cufflinks -u --seed 8795 -p 12 --max-bundle-frags 100000000 --library-type fr-firststrand -b /data/rn6/index/BNLx.rn6.spikes.fa -o /data/home/sabal/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/BNLx.Heart.total.rn6.notGuided.skipped.Monly.sampled.v4 /data/home/sabal/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/skipped.BNLx.Monly.sampled.v4.bam &
+
+```
+
+
+Read in revived transcripts
+
+```{r}
+base.folder = "/Volumes/sabal/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/"
+
+bnlx.add = gtfFormat(read.table(file=paste(base.folder,"BNLx.Heart.total.rn6.ensemblGuided.skipped.woM.sampled/transcripts.gtf",sep=""),sep="\t",header=FALSE),FPKM=TRUE)
+
+shr.add = gtfFormat(read.table(file=paste(base.folder,"SHR.Heart.total.rn6.ensemblGuided.skipped.woM.sampled/transcripts.gtf",sep=""),sep="\t",header=FALSE),FPKM=TRUE)
+
+bnlx.transcripts = bnlx.add[bnlx.add$V3=="transcript" & bnlx.add$fpkm>0,]
+shr.transcripts = shr.add[shr.add$V3=="transcript" & shr.add$fpkm>0,]
+
+shr.transcripts$transcript_id = gsub("CUFF","SHR",shr.transcripts$transcript_id)
+bnlx.transcripts$transcript_id = gsub("CUFF","BNLx",bnlx.transcripts$transcript_id)
+```
+
+Complete SHR Transcriptome:  
+`r prettyNum(length(unique(shr.transcripts$gene_id)),big.mark=",")` genes  
+`r prettyNum(nrow(shr.transcripts),big.mark=",")` transcripts  
+`r prettyNum(sum(grepl("ENS",shr.transcripts$transcript_id)),big.mark=",")` Ensembl transcripts  
+`r prettyNum(sum(!grepl("ENS",shr.transcripts$transcript_id)),big.mark=",")` novel transcripts  
+
+Complete BNLx Transcriptome:  
+`r prettyNum(length(unique(bnlx.transcripts$gene_id)),big.mark=",")` genes  
+`r prettyNum(nrow(bnlx.transcripts),big.mark=",")` transcripts  
+`r prettyNum(sum(grepl("ENS",bnlx.transcripts$transcript_id)),big.mark=",")` Ensembl transcripts  
+`r prettyNum(sum(!grepl("ENS",bnlx.transcripts$transcript_id)),big.mark=",")` novel transcripts  
+

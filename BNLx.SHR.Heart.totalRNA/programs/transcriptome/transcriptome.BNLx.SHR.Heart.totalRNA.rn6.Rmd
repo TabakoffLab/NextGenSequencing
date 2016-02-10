@@ -1,7 +1,7 @@
 ---
 title: "Heart Transcriptome Reconstruction"
 author: "Laura Saba"
-date: "September 20, 2015"
+date: "February 4, 2016"
 output: html_document
 ---
 
@@ -10,44 +10,247 @@ rRNA-Depleted Total RNA Reconstruction
 
 ###1.  Strain-Specific Transcriptome Reconstruction (Ensembl-Guided) - 
 
-```
-qsub -q smp -N BNLx.heart /storage/saba/BNLx.SHR.Heart.totalRNA/programs/reconBNLx.heart.sh
-qsub -q smp -N SHR.heart /storage/saba/BNLx.SHR.Heart.totalRNA/programs/reconSHR.heart.sh
-```
-
-```{r}
+```{r,echo=FALSE}
 rm(list=ls())
 options(stringsAsFactors=FALSE)
+#setwd("/Volumes/saba/BNLx.SHR/RNA-Seq.Liver/reconstruction")
+printNow=FALSE
 
 #######################
 ##  local functions  ##
 #######################
 
-### format GTF files to include transcript ids, gene ids, and fpkm values  ###
+# format GTF files to include transcript ids, gene ids, and fpkm values
 gtfFormat = function(data,FPKM=TRUE){
   data$transcript_id = unlist(lapply(strsplit(data$V9,split=";",fixed=TRUE),function(a) gsub(" transcript_id ","",a[grep("transcript",a)]))) 
   data$gene_id = unlist(lapply(strsplit(data$V9,split=";",fixed=TRUE),function(a) gsub("gene_id ","",a[grep("gene",a)]))) 
   if(FPKM) data$fpkm = as.numeric(unlist(lapply(strsplit(data$V9,split=";",fixed=TRUE),function(a) gsub(" FPKM ","",a[grep("FPKM",a)]))))
   return(data)
 }
+
+checkSame = function(x){
+  sameGene = FALSE
+  if(x["start.x"]==x["start.y"] | x["stop.x"]==x["stop.y"]) sameGene = TRUE
+  if(!is.na(x["exonJunct.x"]) & !is.na(x["exonJunct.y"]) & sum(duplicated(c(unlist(strsplit(x["exonJunct.x"],split=",")),unlist(strsplit(x["exonJunct.y"],split=",")))))>0) sameGene = TRUE
+  return(sameGene)
+}
 ```
 
-```{r}
+###2. General Overview of Initial Strain-Specific Reconstructions
+
+```{r,echo=FALSE}
+options(stringsAsFactors=FALSE)
+
 base.folder = "/Volumes/sabal/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/"
 
-bnlx = read.table(file=paste(base.folder,"BNLx.Heart.total.rn6.ensemblGuided/transcripts.gtf",sep=""),sep="\t",header=FALSE)
-bnlx = gtfFormat(bnlx)
-bnlx = bnlx[bnlx$V1 %in% c(1:20,"X","Y"),]
-bnlx = bnlx[bnlx$fpkm>0,]
-bnlx$V1 = paste("chr",bnlx$V1,sep="")
-bnlx$V9 = paste('gene_id "',bnlx$gene_id,'"; transcript_id "',bnlx$transcript_id,'";',sep="")
-write.table(bnlx[,paste("V",1:9,sep="")],paste(base.folder,"BNLx.Heart.total.rn6.ensemblGuided/transcripts.UCSC.gtf",sep=""),sep="\t",col.names=FALSE,row.names=FALSE,quote=FALSE)
+shr = gtfFormat(read.table(file = paste(base.folder,"SHR.Heart.total.rn6.ensemblGuided/transcripts.gtf",sep=""),sep="\t",header=FALSE))
+shr.skipped = gtfFormat(read.table(file = paste(base.folder,"SHR.Heart.total.rn6.ensemblGuided.skipped.woM.sampled/transcripts.gtf",sep=""),sep="\t",header=FALSE))
+shr.skipped = shr.skipped[shr.skipped$fpkm>0,]
 
-shr = read.table(file=paste(base.folder,"SHR.Heart.total.rn6.ensemblGuided/transcripts.gtf",sep=""),sep="\t",header=FALSE)
-shr = gtfFormat(shr)
-shr = shr[shr$V1 %in% c(1:20,"X","Y"),]
-shr = shr[shr$fpkm>0,]
-shr$V1 = paste("chr",shr$V1,sep="")
-shr$V9 = paste('gene_id "',shr$gene_id,'"; transcript_id "',shr$transcript_id,'";',sep="")
-write.table(shr[,paste("V",1:9,sep="")],paste(base.folder,"SHR.Heart.total.rn6.ensemblGuided/transcripts.UCSC.gtf",sep=""),sep="\t",col.names=FALSE,row.names=FALSE,quote=FALSE)
+shr.skipped$old.gene_id = shr.skipped$gene_id
+shr.skipped$gene_id[grep("CUFF",shr.skipped$old.gene_id)] = paste("CUFF.",max(as.numeric(gsub("CUFF.","",shr$gene_id[grep("CUFF",shr$gene_id)]))) + as.numeric(gsub("CUFF.","",shr.skipped$old.gene_id[grep("CUFF",shr.skipped$gene_id)])),sep="")
+
+shr.skipped$old.transcript_id = shr.skipped$transcript_id
+shr.skipped$transcript_id[grep("CUFF",shr.skipped$old.transcript_id)] = paste(shr.skipped$gene_id[grep("CUFF",shr.skipped$old.transcript_id)],unlist(lapply(strsplit(shr.skipped$old.transcript_id[grep("CUFF",shr.skipped$old.transcript_id)],split=".",fixed=TRUE),function(a) a[3])),sep=".")
+
+shr.skipped = shr.skipped[,!grepl("old",colnames(shr.skipped))]
+
+shr.v2 = rbind(shr,shr.skipped)
+#shr.skipped[shr.skipped$V3=="transcript",c("gene_id","old.gene_id","transcript_id","old.transcript_id")]
+
+
+## Add in Mitochondrial Chromosome
+shr.m = gtfFormat(read.table(file = paste(base.folder,"SHR.Heart.total.rn6.ensemblGuided.skipped.Monly.sampled.v2/transcripts.gtf",sep=""),sep="\t",header=FALSE))
+shr.m = shr.m[shr.m$fpkm>0,]
+
+shr.m$old.gene_id = shr.m$gene_id
+shr.m$gene_id[grep("CUFF",shr.m$old.gene_id)] = paste("CUFF.",max(as.numeric(gsub("CUFF.","",shr.v2$gene_id[grep("CUFF",shr.v2$gene_id)]))) + as.numeric(gsub("CUFF.","",shr.m$old.gene_id[grep("CUFF",shr.m$gene_id)])),sep="")
+
+shr.m$old.transcript_id = shr.m$transcript_id
+shr.m$transcript_id[grep("CUFF",shr.m$old.transcript_id)] = paste(shr.m$gene_id[grep("CUFF",shr.m$old.transcript_id)],unlist(lapply(strsplit(shr.m$old.transcript_id[grep("CUFF",shr.m$old.transcript_id)],split=".",fixed=TRUE),function(a) a[3])),sep=".")
+
+#shr.m[shr.m$V3=="transcript",c("gene_id","old.gene_id","transcript_id","old.transcript_id")]
+
+shr.m = shr.m[,!grepl("old",colnames(shr.m))]
+
+shr.v3 = rbind(shr.v2,shr.m)
+
+
+bnlx = gtfFormat(read.table(file = paste(base.folder,"BNLx.Heart.total.rn6.ensemblGuided/transcripts.gtf",sep=""),sep="\t",header=FALSE))
+bnlx.skipped = gtfFormat(read.table(file = paste(base.folder,"BNLx.Heart.total.rn6.ensemblGuided.skipped.woM.sampled/transcripts.gtf",sep=""),sep="\t",header=FALSE))
+
+bnlx.skipped = bnlx.skipped[bnlx.skipped$fpkm>0,]
+
+bnlx.skipped$old.gene_id = bnlx.skipped$gene_id
+bnlx.skipped$gene_id[grep("CUFF",bnlx.skipped$old.gene_id)] = paste("CUFF.",max(as.numeric(gsub("CUFF.","",bnlx$gene_id[grep("CUFF",bnlx$gene_id)]))) + as.numeric(gsub("CUFF.","",bnlx.skipped$old.gene_id[grep("CUFF",bnlx.skipped$gene_id)])),sep="")
+
+bnlx.skipped$old.transcript_id = bnlx.skipped$transcript_id
+bnlx.skipped$transcript_id[grep("CUFF",bnlx.skipped$old.transcript_id)] = paste(bnlx.skipped$gene_id[grep("CUFF",bnlx.skipped$old.transcript_id)],unlist(lapply(strsplit(bnlx.skipped$old.transcript_id[grep("CUFF",bnlx.skipped$old.transcript_id)],split=".",fixed=TRUE),function(a) a[3])),sep=".")
+
+#bnlx.skipped[bnlx.skipped$V3=="transcript",c("gene_id","old.gene_id","transcript_id","old.transcript_id")]
+
+bnlx.skipped = bnlx.skipped[,!grepl("old",colnames(bnlx.skipped))]
+
+bnlx.v2 = rbind(bnlx,bnlx.skipped)
+
+## Add in Mitochondrial Chromosome
+bnlx.m = gtfFormat(read.table(file = paste(base.folder,"BNLx.Heart.total.rn6.ensemblGuided.skipped.Monly.sampled.v4/transcripts.gtf",sep=""),sep="\t",header=FALSE))
+bnlx.m = bnlx.m[bnlx.m$fpkm>0,]
+
+bnlx.m$old.gene_id = bnlx.m$gene_id
+bnlx.m$gene_id[grep("CUFF",bnlx.m$old.gene_id)] = paste("CUFF.",max(as.numeric(gsub("CUFF.","",bnlx.v2$gene_id[grep("CUFF",bnlx.v2$gene_id)]))) + as.numeric(gsub("CUFF.","",bnlx.m$old.gene_id[grep("CUFF",bnlx.m$gene_id)])),sep="")
+
+bnlx.m$old.transcript_id = bnlx.m$transcript_id
+bnlx.m$transcript_id[grep("CUFF",bnlx.m$old.transcript_id)] = paste(bnlx.m$gene_id[grep("CUFF",bnlx.m$old.transcript_id)],unlist(lapply(strsplit(bnlx.m$old.transcript_id[grep("CUFF",bnlx.m$old.transcript_id)],split=".",fixed=TRUE),function(a) a[3])),sep=".")
+
+#bnlx.m[bnlx.m$V3=="transcript",c("gene_id","old.gene_id","transcript_id","old.transcript_id")]
+
+bnlx.m = bnlx.m[,!grepl("old",colnames(bnlx.m))]
+
+bnlx.v3 = rbind(bnlx.v2,bnlx.m)
+
+##  Transcript Only Data Sets  ##
+shr.transcripts = shr.v3[shr.v3$V3=="transcript",]
+shr.transcripts = shr.transcripts[shr.transcripts$fpkm>0,]
+
+bnlx.transcripts = bnlx.v3[bnlx.v3$V3=="transcript",]
+bnlx.transcripts = bnlx.transcripts[bnlx.transcripts$fpkm>0,]
+
+shr.transcripts$transcript_id = gsub("CUFF","SHR",shr.transcripts$transcript_id)
+bnlx.transcripts$transcript_id = gsub("CUFF","BNLx",bnlx.transcripts$transcript_id)
+```
+
+Complete SHR Transcriptome:  
+`r prettyNum(length(unique(shr.transcripts$gene_id)),big.mark=",")` genes  
+`r prettyNum(nrow(shr.transcripts),big.mark=",")` transcripts  
+`r prettyNum(sum(grepl("ENS",shr.transcripts$transcript_id)),big.mark=",")` Ensembl transcripts  
+`r prettyNum(sum(!grepl("ENS",shr.transcripts$transcript_id)),big.mark=",")` novel transcripts  
+
+Complete BNLx Transcriptome:  
+`r prettyNum(length(unique(bnlx.transcripts$gene_id)),big.mark=",")` genes  
+`r prettyNum(nrow(bnlx.transcripts),big.mark=",")` transcripts  
+`r prettyNum(sum(grepl("ENS",bnlx.transcripts$transcript_id)),big.mark=",")` Ensembl transcripts  
+`r prettyNum(sum(!grepl("ENS",bnlx.transcripts$transcript_id)),big.mark=",")` novel transcripts  
+
+###2. Create GTF file for viewing at UCSC
+```{r,echo=FALSE,eval=FALSE}
+base.folder = "/Volumes/sabal/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/"
+
+shr.ucsc = shr.v3[shr.v3$V1 %in% c(1:20,"X","Y","MT"),]
+shr.ucsc = shr.ucsc[shr.ucsc$fpkm>0,]
+shr.ucsc$V1 = paste("chr",shr.ucsc$V1,sep="")
+shr.ucsc$V1[shr.ucsc$V1=="chrMT"] = "chrM"
+shr.ucsc$V9 = paste('gene_id "',shr.ucsc$gene_id,'"; transcript_id "',shr.ucsc$transcript_id,'";',sep="")
+write.table(shr.ucsc[,paste("V",1:9,sep="")],file = paste(base.folder,"SHR.Heart.total.rn6.ensemblGuided/transcripts.ucsc.gtf",sep=""), sep="\t",row.names=FALSE,col.names=FALSE,quote=FALSE)
+
+bnlx.ucsc = bnlx.v2[bnlx.v2$V1 %in% c(1:20,"X","Y","MT"),]
+bnlx.ucsc = bnlx.ucsc[bnlx.ucsc$fpkm>0,]
+bnlx.ucsc$V1 = paste("chr",bnlx.ucsc$V1,sep="")
+bnlx.ucsc$V1[bnlx.ucsc$V1=="chrMT"] = "chrM"
+bnlx.ucsc$V9 = paste('gene_id "',bnlx.ucsc$gene_id,'"; transcript_id "',bnlx.ucsc$transcript_id,'";',sep="")
+write.table(bnlx.ucsc[,paste("V",1:9,sep="")],file = paste(base.folder,"BNLx.Heart.total.rn6.ensemblGuided/transcripts.ucsc.gtf",sep=""), sep="\t",row.names=FALSE,col.names=FALSE,quote=FALSE)
+```
+
+
+
+1. Limit to transcripts with greater than 50 coverage and a transcript length greater than 200 nt (not including introns)
+--------------
+
+```{r,echo=FALSE,eval=FALSE}
+bnlx.gtf = bnlx.v3[bnlx.v3$fpkm>0,]
+bnlx.neg = bnlx.gtf[bnlx.gtf$V7==".",]
+bnlx.neg$gene_id = gsub("CUFF","CUFFneg",bnlx.neg$gene_id)
+bnlx.neg$transcript_id = gsub("CUFF","CUFFneg",bnlx.neg$transcript_id)
+bnlx.neg$V7 = "-"  
+  
+bnlx.gtf$V7[bnlx.gtf$V7=="."] = "+"
+bnlx.gtf = rbind(bnlx.gtf,bnlx.neg)
+
+bnlx.gtf$V9 = paste('gene_id "',bnlx.gtf$gene_id,'"; transcript_id "',bnlx.gtf$transcript_id,'";',sep="")
+write.table(bnlx.gtf[,paste("V",1:9,sep="")],file = paste(base.folder,"BNLx.Heart.total.rn6.ensemblGuided/BNLx.RSEM.v1.gtf",sep=""), sep="\t",row.names=FALSE,col.names=FALSE,quote=FALSE)
+
+
+shr.gtf = shr.v3[shr.v3$fpkm>0,]
+shr.neg = shr.gtf[shr.gtf$V7==".",]
+shr.neg$gene_id = gsub("CUFF","CUFFneg",shr.neg$gene_id)
+shr.neg$transcript_id = gsub("CUFF","CUFFneg",shr.neg$transcript_id)
+shr.neg$V7 = "-"  
+  
+shr.gtf$V7[shr.gtf$V7=="."] = "+"
+shr.gtf = rbind(shr.gtf,shr.neg)
+
+shr.gtf$V9 = paste('gene_id "',shr.gtf$gene_id,'"; transcript_id "',shr.gtf$transcript_id,'";',sep="")
+write.table(shr.gtf[,paste("V",1:9,sep="")],file = paste(base.folder,"SHR.Heart.total.rn6.ensemblGuided/SHR.RSEM.v1.gtf",sep=""), sep="\t",row.names=FALSE,col.names=FALSE,quote=FALSE)
+
+```
+
+```
+rsem-prepare-reference --bowtie2 --gtf /data/home/sabal/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/BNLx.Heart.total.rn6.ensemblGuided/BNLx.RSEM.v1.gtf /data/rn6/index/BNLx.rn6.spikes.fa /data/home/sabal/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/RSEM/BNLx.RSEM.v1 &
+
+rsem-prepare-reference --bowtie2 --gtf /data/home/sabal/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/SHR.Heart.total.rn6.ensemblGuided/SHR.RSEM.v1.gtf /data/rn6/index/SHR.rn6.spikes.fa /data/home/sabal/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/RSEM/SHR.RSEM.v1 &
+
+
+/data/home/sabal/BNLx.SHR/RNA-Seq.Heart/totalRNA/programs/RSEM.heart.BNLx.v1.sh &
+/data/home/sabal/BNLx.SHR/RNA-Seq.Heart/totalRNA/programs/RSEM.heart.SHR.v1.sh &
+
+```
+
+
+
+
+
+```{r,echo=FALSE}
+options(stringsAsFactors=FALSE)
+
+base.folder = "/Volumes/sabal/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/"
+
+shr.tracking = read.table(file = paste(base.folder,"SHR.Heart.total.rn6.ensemblGuided/isoforms.fpkm_tracking",sep=""),sep="\t",header=TRUE)
+bnlx.tracking = read.table(file = paste(base.folder,"BNLx.Heart.total.rn6.ensemblGuided/isoforms.fpkm_tracking",sep=""),sep="\t",header=TRUE)
+
+high.bnlx = bnlx.tracking[bnlx.tracking$FPKM>0,]
+high.bnlx = high.bnlx[high.bnlx$length>100,]
+high.bnlx = high.bnlx[-grep("ERCC",high.bnlx$locus),]
+
+high.shr = shr.tracking[shr.tracking$FPKM>0,]
+high.shr = high.shr[high.shr$length>100,]
+high.shr = high.shr[-grep("ERCC",high.shr$locus),]
+
+
+high.bnlx$transcript_id = gsub("CUFF","BNLx",high.bnlx$tracking_id)
+high.shr$transcript_id = gsub("CUFF","SHR",high.shr$tracking_id)
+
+###  Characterize  ###
+gene.shr = aggregate(shr.tracking$tracking_id,by=list(gene_id=shr.tracking$gene_id),function(a) sum(grepl("ENS",a)))
+high.shr = merge(high.shr,gene.shr,by="gene_id")
+
+gene.bnlx = aggregate(bnlx.tracking$tracking_id,by=list(gene_id=bnlx.tracking$gene_id),function(a) sum(grepl("ENS",a)))
+high.bnlx = merge(high.bnlx,gene.bnlx,by="gene_id")
+
+###  Examine High Expressors  ###
+high.shr = high.shr[order(high.shr$FPKM,decreasing=TRUE),]
+# top gene is Myl2 (myosin, light chain 2, regulatory, cardiac, slow (Myl2), mRNA)
+# second gene is Rmrp (Rattus norvegicus RNA component of mitochondrial RNA processing endoribonuclease (Rmrp), RNase MRP RNA)
+# third gene is Fabp3 (Rattus norvegicus fatty acid binding protein 3, muscle and heart (Fabp3), mRNA)
+
+
+high.bnlx = high.bnlx[order(high.bnlx$FPKM,decreasing=TRUE),]
+# top gene is Myl2 (myosin, light chain 2, regulatory, cardiac, slow (Myl2), mRNA)
+# second gene is Rmrp (Rattus norvegicus RNA component of mitochondrial RNA processing endoribonuclease (Rmrp), RNase MRP RNA)
+# third gene is Slc25a4 (Rattus norvegicus solute carrier family 25 (mitochondrial carrier; adenine nucleotide translocator), member 4 (Slc25a4), mRNA)
+```
+
+High Confidence SHR Transcripts:  
+`r prettyNum(length(unique(high.shr$gene_id)),big.mark=",")` genes  
+`r prettyNum(nrow(high.shr),big.mark=",")` transcripts  
+`r prettyNum(sum(grepl("ENS",high.shr$transcript_id)),big.mark=",")` Ensembl transcripts  
+`r prettyNum(sum(!grepl("ENS",high.shr$transcript_id) & high.shr$x>0),big.mark=",")` novel transcripts of Ensembl genes  
+`r prettyNum(sum(!grepl("ENS",high.shr$transcript_id) & high.shr$x==0),big.mark=",")` novel transcripts/genes   
+
+
+High Confidence BNLx Transcripts:  
+`r prettyNum(length(unique(high.bnlx$gene_id)),big.mark=",")` genes  
+`r prettyNum(nrow(high.bnlx),big.mark=",")` transcripts  
+`r prettyNum(sum(grepl("ENS",high.bnlx$transcript_id)),big.mark=",")` Ensembl transcripts  
+`r prettyNum(sum(!grepl("ENS",high.bnlx$transcript_id) & high.bnlx$x>0),big.mark=",")` novel transcripts of Ensembl genes  
+`r prettyNum(sum(!grepl("ENS",high.bnlx$transcript_id) & high.bnlx$x==0),big.mark=",")` novel transcripts/genes   
 
