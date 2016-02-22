@@ -1,0 +1,7 @@
+#File List to Merge
+
+/path/to/ensembl/txt	Ensembl
+/path/to/refseq/csv	RefSeq
+/path/to/mirdeep/result.bed mirDeep /path/to/mirdeep/result.csv
+/path/to/mirdeep/result.bed mirDeep /path/to/mirdeep/result.csv
+

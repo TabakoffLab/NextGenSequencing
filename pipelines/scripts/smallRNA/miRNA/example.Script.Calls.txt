@@ -1,0 +1,9 @@
+##Create a list of features merged based overlapping genome coordinates
+
+mergeMiRNA.py /path/fileList.txt /path/outputPrefix
+
+
+##Create a fasta with coordinates and strand fom the merged features
+##Note if a feature is on the -1 strand the output sequence has been reverse complimented and is the sense strand for the feature.
+
+generateMiRFasta.py /path/mergeMiRNA.output /path/strainSpecificGenome.fasta /path/output.fasta
