@@ -192,35 +192,59 @@ rsem-prepare-reference --bowtie2 --gtf /data/home/sabal/BNLx.SHR/RNA-Seq.Heart/t
 
 /data/home/sabal/BNLx.SHR/RNA-Seq.Heart/totalRNA/programs/RSEM.heart.BNLx.v1.sh &
 /data/home/sabal/BNLx.SHR/RNA-Seq.Heart/totalRNA/programs/RSEM.heart.SHR.v1.sh &
-
 ```
 
+RSEM Quantitation of Version 1
+```{r}
+base.folder = "/Volumes/sabal/BNLx.SHR/RNA-Seq.Heart/totalRNA/"
 
+samples = paste(rep(c("SHR"),each=4),c(1:4),sep="")
+for(i in samples){
+  x = read.table(file=paste(base.folder,"quantitation/",i,".RSEM.v1.isoforms.results",sep=""),sep="\t",header=TRUE)
+  x = x[,c("transcript_id","gene_id","length","effective_length","expected_count","TPM")]
+  colnames(x)[4:6] = paste(i,c(".effLength",".cnt",".tpm"),sep="")
+  if(i==samples[1]) shr.rsem=x
+  if(i!=samples[1]) shr.rsem=merge(shr.rsem,x,by=c("transcript_id","gene_id","length"),all=TRUE)
+}
 
+#length requirement >=200
+high.shr = shr.rsem[shr.rsem$length>=200,]
 
+# expression requirement >= average read depth of 10
+high.shr$aveEffLength = rowMeans(high.shr[,grep(".effLength",colnames(high.shr))])
+high.shr$totalCnt = rowSums(high.shr[,grep(".cnt",colnames(high.shr))])
+high.shr$coverage = 100*high.shr$totalCnt/high.shr$aveEffLength
+high.shr = high.shr[high.shr$coverage>=10,]
 
-```{r,echo=FALSE}
-options(stringsAsFactors=FALSE)
+## High Confidence Transcripts in BNLx ##
+samples = paste(rep(c("BNLx"),each=4),c(1:4),sep="")
+for(i in samples){
+  x = read.table(file=paste(base.folder,"quantitation/",i,".RSEM.v1.isoforms.results",sep=""),sep="\t",header=TRUE)
+  x = x[,c("transcript_id","gene_id","length","effective_length","expected_count","TPM")]
+  colnames(x)[4:6] = paste(i,c(".effLength",".cnt",".tpm"),sep="")
+  if(i==samples[1]) bnlx.rsem=x
+  if(i!=samples[1]) bnlx.rsem=merge(bnlx.rsem,x,by=c("transcript_id","gene_id","length"),all=TRUE)
+}
 
-base.folder = "/Volumes/sabal/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/"
+#length requirement >=200
+high.bnlx = bnlx.rsem[bnlx.rsem$length>=200,]
 
-shr.tracking = read.table(file = paste(base.folder,"SHR.Heart.total.rn6.ensemblGuided/isoforms.fpkm_tracking",sep=""),sep="\t",header=TRUE)
-bnlx.tracking = read.table(file = paste(base.folder,"BNLx.Heart.total.rn6.ensemblGuided/isoforms.fpkm_tracking",sep=""),sep="\t",header=TRUE)
+# expression requirement >= average read depth of 10
+high.bnlx$aveEffLength = rowMeans(high.bnlx[,grep(".effLength",colnames(high.bnlx))])
+high.bnlx$totalCnt = rowSums(high.bnlx[,grep(".cnt",colnames(high.bnlx))])
+high.bnlx$coverage = 100*high.bnlx$totalCnt/high.bnlx$aveEffLength
+high.bnlx = high.bnlx[high.bnlx$coverage>=10,]
 
-high.bnlx = bnlx.tracking[bnlx.tracking$FPKM>0,]
-high.bnlx = high.bnlx[high.bnlx$length>100,]
-high.bnlx = high.bnlx[-grep("ERCC",high.bnlx$locus),]
+##  Remove Spike-Ins  ##
+high.bnlx = high.bnlx[-grep("ERCC",high.bnlx$gene_id),]
+high.shr = high.shr[-grep("ERCC",high.shr$gene_id),]
 
-high.shr = shr.tracking[shr.tracking$FPKM>0,]
-high.shr = high.shr[high.shr$length>100,]
-high.shr = high.shr[-grep("ERCC",high.shr$locus),]
-
-
-high.bnlx$transcript_id = gsub("CUFF","BNLx",high.bnlx$tracking_id)
-high.shr$transcript_id = gsub("CUFF","SHR",high.shr$tracking_id)
+## Change Novel Transcripts Prefix  ##
+high.bnlx$transcript_id = gsub("CUFF","BNLx",high.bnlx$transcript_id)
+high.shr$transcript_id = gsub("CUFF","SHR",high.shr$transcript_id)
 
 ###  Characterize  ###
-gene.shr = aggregate(shr.tracking$tracking_id,by=list(gene_id=shr.tracking$gene_id),function(a) sum(grepl("ENS",a)))
+gene.shr = aggregate(shr.tracking$transcript_id,by=list(gene_id=shr.tracking$gene_id),function(a) sum(grepl("ENS",a)))
 high.shr = merge(high.shr,gene.shr,by="gene_id")
 
 gene.bnlx = aggregate(bnlx.tracking$tracking_id,by=list(gene_id=bnlx.tracking$gene_id),function(a) sum(grepl("ENS",a)))

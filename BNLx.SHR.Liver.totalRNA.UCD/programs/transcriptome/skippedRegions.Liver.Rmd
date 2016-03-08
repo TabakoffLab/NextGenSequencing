@@ -1,7 +1,7 @@
 ---
 title: "Skipped Regions"
 author: "Laura Saba"
-date: "January 15, 2016"
+date: "March 7, 2016"
 output: html_document
 ---
 
@@ -23,10 +23,10 @@ gtfFormat = function(data,FPKM=TRUE){
 ```
 
 ```{r}
-base.folder = "/Volumes/sabal/BNLx.SHR/RNA-Seq.Heart/totalRNA/reconstruction/"
+base.folder = "/Volumes/sabal/BNLx.SHR/RNA-Seq.Liver/reconstruction/"
 
-bnlx = gtfFormat(read.table(file=paste(base.folder,"BNLx.Heart.total.rn6.ensemblGuided/skipped.gtf",sep=""),sep="\t",header=FALSE),FPKM=FALSE)
-shr = gtfFormat(read.table(file=paste(base.folder,"SHR.Heart.total.rn6.ensemblGuided/skipped.gtf",sep=""),sep="\t",header=FALSE),FPKM=FALSE)
+bnlx = gtfFormat(read.table(file=paste(base.folder,"BNLx.Liver.total.rn6.ensemblGuided/skipped.gtf",sep=""),sep="\t",header=FALSE),FPKM=FALSE)
+shr = gtfFormat(read.table(file=paste(base.folder,"SHR.Liver.total.rn6.ensemblGuided/skipped.gtf",sep=""),sep="\t",header=FALSE),FPKM=FALSE)
 
 total = rbind(bnlx,shr)
 
